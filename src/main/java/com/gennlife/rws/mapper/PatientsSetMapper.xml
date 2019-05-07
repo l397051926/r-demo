@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.PatientsSetMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.PatientsSet">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="project_id" property="projectId" jdbcType="VARCHAR" />
+		<result column="patients_set_id" property="patientsSetId"
+			jdbcType="VARCHAR" />
+		<result column="patients_set_name" property="patientsSetName"
+			jdbcType="VARCHAR" />
+		<result column="patients_count" property="patientsCount"
+			jdbcType="INTEGER" />
+		<result column="search_condition_id" property="searchConditionId"
+			jdbcType="VARCHAR" />
+		<result column="create_id" property="createId" jdbcType="VARCHAR" />
+		<result column="create_name" property="createName" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="update_id" property="updateId" jdbcType="VARCHAR" />
+		<result column="update_name" property="updateName" jdbcType="VARCHAR" />
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="is_delete" property="isDelete" jdbcType="CHAR" />
+		<result column="uql_query" property="uqlQuery" jdbcType="LONGVARCHAR" />
+		<result column="patients_set_describe" property="patientsSetDescribe"
+			jdbcType="LONGVARCHAR" />
+		<result column="is_flush" property="isFlush" jdbcType="INTEGER" />
+	</resultMap>
+
+	<resultMap id="BaseAggregationMap" type="com.gennlife.rws.entity.AggregationModel">
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="value" property="value" jdbcType="INTEGER" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, project_id, patients_set_id, patients_set_name,
+		patients_count,
+		search_condition_id,
+		create_id, create_name,
+		create_time, update_id, update_name,
+		update_time,is_delete,patients_set_describe,uql_query,is_flush
+	</sql>
+	<sql id="Base_Column_List_remove_query">
+		id, project_id, patients_set_id, patients_set_name,
+		patients_count,
+		search_condition_id,
+		create_id, create_name,
+		create_time, update_id, update_name,
+		update_time,is_delete,patients_set_describe,is_flush
+	</sql>
+
+	<select id="selectById" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_patients_set
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+
+	<insert id="insert" parameterType="com.gennlife.rws.entity.PatientsSet">
+		insert into p_patients_set
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="projectId != null">
+				project_id,
+			</if>
+			<if test="patientsSetId != null">
+				patients_set_id,
+			</if>
+			<if test="patientsSetName != null">
+				patients_set_name,
+			</if>
+			<if test="patientsCount != null">
+				patients_count,
+			</if>
+			<if test="searchConditionId != null">
+				search_condition_id,
+			</if>
+			<if test="createId != null">
+				create_id,
+			</if>
+			<if test="createName != null">
+				create_name,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="updateId != null">
+				update_id,
+			</if>
+			<if test="updateName != null">
+				update_name,
+			</if>
+			<if test="updateTime != null">
+				update_time,
+			</if>
+			<if test="patientsSetDescribe != null">
+				patients_set_describe,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+			<if test="isFlush != null">
+				is_flush,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="projectId != null">
+				#{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="patientsSetId != null">
+				#{patientsSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="patientsSetName != null">
+				#{patientsSetName,jdbcType=VARCHAR},
+			</if>
+			<if test="patientsCount != null">
+				#{patientsCount,jdbcType=INTEGER},
+			</if>
+			<if test="searchConditionId != null">
+				#{searchConditionId,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				#{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				#{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				#{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				#{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="patientsSetDescribe != null">
+				#{patientsSetDescribe,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="isFlush != null">
+				#{isFlush,jdbcType=INTEGER},
+			</if>
+		</trim>
+	</insert>
+
+	<update id="updateById" parameterType="com.gennlife.rws.entity.PatientsSet">
+		update p_patients_set
+		<set>
+			<if test="projectId != null">
+				project_id = #{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="patientsSetId != null">
+				patients_set_id = #{patientsSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="patientsSetName != null">
+				patients_set_name = #{patientsSetName,jdbcType=VARCHAR},
+			</if>
+			<if test="patientsCount != null">
+				patients_count = #{patientsCount,jdbcType=INTEGER},
+			</if>
+			<if test="searchConditionId != null">
+				search_condition_id =
+				#{searchConditionId,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				create_id = #{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				create_name = #{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				update_id = #{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				update_name = #{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				update_time = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="patientsSetDescribe != null">
+				patients_set_describe = #{patientsSetDescribe,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="isDelete != null">
+				is_delete = #{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="isFlush != null">
+				is_flush = #{isFlush,jdbcType=INTEGER},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="getPatientSetByProjectId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_patients_set
+		where is_delete='0'
+		and project_id =
+		#{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getPatientsSetList" resultMap="BaseResultMap"
+		parameterType="java.util.Map">
+		select
+		<include refid="Base_Column_List_remove_query" />
+		from p_patients_set
+		where is_delete='0'
+		<if test="projectId !=null and projectId !=''">
+			and project_id = #{projectId}
+		</if>
+		order by create_time
+	</select>
+
+	<select id="selectByPatSetId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_patients_set
+		where is_delete='0'
+		and patients_set_id =
+		#{patientsSetId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteByProjectID" parameterType="java.lang.String">
+		delete from
+		p_patients_set
+		where project_id =
+		#{projectId,jdbcType=VARCHAR}
+	</delete>
+
+	<update id="updatePatientsCount" parameterType="com.gennlife.rws.entity.PatientsSet">
+		update p_patients_set
+		<set>
+				patients_count = #{patientsCount,jdbcType=INTEGER},
+				uql_query = #{uqlQuery,jdbcType=LONGVARCHAR},
+		</set>
+		where patients_set_id = #{patientSetId,jdbcType=VARCHAR}
+	</update>
+
+	<select id="getpatientSetNameByPatSetId" resultType="java.lang.String"
+			parameterType="java.lang.String">
+		select
+		patients_set_name
+		from p_patients_set
+		where is_delete='0'
+		and patients_set_id =
+		#{patientsSetId,jdbcType=VARCHAR}
+	</select>
+
+
+	<update id="updatePatientsCountAndQuery" parameterType="com.gennlife.rws.entity.PatientsSet">
+		update p_patients_set
+		<set>
+			<if test="curenntCount != null">
+				patients_count = #{curenntCount,jdbcType=INTEGER},
+			</if>
+			<if test="uqlQuery != null">
+				uql_query = #{uqlQuery,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="isFlush != null">
+				is_flush = #{isFlush,jdbcType=INTEGER},
+			</if>
+		</set>
+		where patients_set_id = #{patientSetId,jdbcType=VARCHAR}
+	</update>
+
+	<select id="getPatientSetCount" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(*)
+		from p_patients_set
+		where is_delete='0' and patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getPatientsetSql" resultType="java.lang.String" parameterType="java.lang.String">
+		select uql_query from p_patients_set
+		where is_delete='0' and patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getPatientSetSqlByGroupId" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT uql_query FROM `p_patients_set` where patients_set_id in(
+			select patient_set_id from p_group_patient_data where group_id=#{groupId,jdbcType=VARCHAR}
+			)
+			AND
+			is_delete='0'
+	</select>
+
+	<select id="getPatientsetSqlAll" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT uql_query FROM `p_patients_set` where patients_set_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="patientSets">
+		#{item}
+		</foreach>
+		AND
+		is_delete='0'
+	</select>
+
+
+	<select id="getpatientSetNameByPatSetIds" resultType="java.lang.String" parameterType="java.lang.String">
+		select patients_set_name
+		from p_patients_set
+		where is_delete='0'
+		and patients_set_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="patientSetIds">
+		#{item}
+		</foreach>
+	</select>
+
+	<select id="getPatientSet" resultMap="BaseResultMap"
+			parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_patients_set
+		where is_delete='0'
+		and patients_set_id in(
+		select
+		patient_set_id
+		from p_group_patient_data
+		where group_id = #{groupId,jdbcType=VARCHAR}
+		)
+	</select>
+
+	<select id="getPatientSetAggreagation" resultMap="BaseAggregationMap" parameterType="java.lang.Object">
+		SELECT DISTINCT
+			create_name AS NAME,
+			COUNT(*) AS value
+		FROM
+			`p_patients_set`
+		WHERE
+			project_id = #{projectId,jdbcType=VARCHAR}
+		AND is_delete = 0
+		GROUP BY
+			create_name
+	</select>
+
+	<select id="getPatientSetCountByProjectId" resultType="java.lang.Integer" parameterType="java.lang.Object">
+		SELECT
+		COUNT(*)
+		FROM
+		`p_patients_set`
+		WHERE
+		project_id = #{projectId,jdbcType=VARCHAR}
+		AND is_delete = 0
+	</select>
+
+	<select id="getSumCount" resultType="java.lang.Integer" parameterType="java.lang.Object">
+		SELECT
+		SUM(patients_count)
+		FROM
+		`p_patients_set`
+		WHERE
+		project_id = #{projectId,jdbcType=VARCHAR}
+		AND is_delete = 0
+	</select>
+
+	<select id="getPatientSetIdByProjectId" resultType="java.lang.String" parameterType="java.lang.String">
+		select patients_set_id from p_patients_set
+		where is_delete='0' and project_id = #{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getCountByProjectIdAndPatientsetName" resultType="java.lang.Integer" parameterType="java.lang.Object">
+		SELECT
+		COUNT(*)
+		FROM
+		`p_patients_set`
+		WHERE
+		project_id = #{projectId,jdbcType=VARCHAR}
+		AND is_delete = 0
+		AND patients_set_name =#{patientsSetName,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getcountByPatIdAndPatName" resultType="java.lang.Integer" parameterType="java.lang.Object">
+		SELECT
+		COUNT(*)
+		FROM
+		`p_patients_set`
+		WHERE
+		patients_set_id = #{patientSetId,jdbcType=VARCHAR}
+		AND is_delete = 0
+		AND patients_set_name =#{patientsSetName,jdbcType=VARCHAR}
+	</select>
+
+	<update id="updateIsFlush" parameterType="com.gennlife.rws.entity.PatientsSet">
+		update p_patients_set
+		set		is_flush = #{isFlush,jdbcType=INTEGER}
+		where 	patients_set_id = #{patientSetId,jdbcType=VARCHAR}
+	</update>
+
+	<update id="updatePatientsCountByPateintSetId" parameterType="com.gennlife.rws.entity.PatientsSet">
+		update p_patients_set
+		<set>
+			<if test="curenntCount != null">
+				patients_count = #{curenntCount,jdbcType=INTEGER},
+			</if>
+		</set>
+		where patients_set_id = #{patientSetId,jdbcType=VARCHAR}
+	</update>
+</mapper>

@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ActiveSqlMapMapper">
+
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ActiveSqlMap">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="project_id" property="projectId" jdbcType="VARCHAR" />
+		<result column="active_index_id" property="activeIndexId" jdbcType="VARCHAR" />
+		<result column="index_result_value" property="indexResultValue" jdbcType="VARCHAR" />
+		<result column="active_sql" property="activeSql" jdbcType="LONGVARCHAR" />
+        <result column="sql_select" property="sqlSelect" jdbcType="VARCHAR" />
+        <result column="sql_where" property="sqlWhere" jdbcType="VARCHAR" />
+        <result column="sql_from" property="sqlFrom" jdbcType="LONGVARCHAR" />
+        <result column="source_filtere" property="sourceFiltere" jdbcType="LONGVARCHAR" />
+		<result column="active_type" property="activeType" jdbcType="VARCHAR" />
+		<result column="ref_active_ids" property="refActiveIds"  jdbcType="LONGVARCHAR" />
+		<result column="source_value" property="sourceValue" jdbcType="LONGVARCHAR" />
+		<result column="event_where" property="eventWhere" jdbcType="LONGVARCHAR"/>
+		<result column="active_result_doc_id" property="activeResultDocId" jdbcType="VARCHAR" />
+		<result column="active_result_value" property="activeResultValue" jdbcType="VARCHAR" />
+		<result column="select_value" property="selectValue" jdbcType="VARCHAR" />
+		<result column="count_value" property="countValue" jdbcType="VARCHAR" />
+		<result column="active_other_result" property="activeOtherResult" jdbcType="LONGVARCHAR" />
+		<result column="index_type_value" property="indexTypeValue" jdbcType="VARCHAR" />
+		<result column="active_name" property="activeName" jdbcType="VARCHAR" />
+		<result column="sqlMd5" property="sqlMd5" jdbcType="VARCHAR" />
+		<result column="is_other" property="isOther" jdbcType="INTEGER" />
+		<result column="sql_having" property="sqlHaving" jdbcType="VARCHAR" />
+		<result column="group_id" property="groupId" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+id, project_id, active_index_id,
+		active_sql,index_result_value,
+		sql_select,sql_where,sql_from,source_filtere,
+		active_type,ref_active_ids,source_value,
+		active_result_doc_id,active_result_value,
+		event_where,select_value,active_other_result,
+		count_value,active_name,index_type_value,sqlMd5,
+		is_other,sql_having,group_id
+	</sql>
+
+
+	<insert id="insert" parameterType="com.gennlife.rws.entity.ActiveSqlMap">
+		replace into p_active_sql_map
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="projectId != null">
+				project_id,
+			</if>
+			<if test="activeIndexId != null">
+				active_index_id,
+			</if>
+			<if test="activeSql != null">
+				active_sql,
+			</if>
+			<if test="indexResultValue != null">
+				index_result_value,
+			</if>
+            <if test="sqlSelect != null">
+                sql_select,
+            </if>
+            <if test="sqlWhere != null">
+                sql_where,
+            </if>
+            <if test="sqlFrom != null">
+                sql_from,
+            </if>
+            <if test="sourceFiltere != null">
+				source_filtere,
+            </if>
+			<if test="activeType != null">
+				active_type,
+			</if>
+			<if test="refActiveIds != null">
+				ref_active_ids,
+			</if>
+			<if test="sourceValue != null">
+				source_value,
+			</if>
+			<if test="activeResultDocId != null">
+				active_result_doc_id,
+			</if>
+			<if test="activeResultValue != null">
+				active_result_value,
+			</if>
+			<if test="eventWhere != null">
+				event_where,
+			</if>
+			<if test="selectValue != null">
+				select_value,
+			</if>
+			<if test="activeOtherResult != null">
+				active_other_result,
+			</if>
+			<if test="countValue != null">
+				count_value,
+			</if>
+			<if test="indexTypeValue != null">
+				index_type_value,
+			</if>
+			<if test="activeName != null">
+				active_name,
+			</if>
+			<if test="sqlMd5 != null">
+				sqlMd5,
+			</if>
+			<if test="isOther != null">
+				is_other,
+			</if>
+			<if test="sqlHaving != null">
+				sql_having,
+			</if>
+			<if test="groupId != null">
+				group_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="projectId != null">
+				#{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="activeIndexId != null">
+				#{activeIndexId,jdbcType=VARCHAR},
+			</if>
+			<if test="activeSql != null">
+				#{activeSql,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="indexResultValue != null">
+				#{indexResultValue,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlSelect != null">
+				#{sqlSelect,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlWhere != null">
+				#{sqlWhere,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlFrom != null">
+				#{sqlFrom,jdbcType=VARCHAR},
+			</if>
+			<if test="sourceFiltere != null">
+				#{sourceFiltere,jdbcType=VARCHAR},
+			</if>
+			<if test="activeType != null">
+				#{activeType,jdbcType=VARCHAR},
+			</if>
+			<if test="refActiveIds != null">
+				#{refActiveIds,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="sourceValue != null">
+				#{sourceValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeResultDocId != null">
+				#{activeResultDocId,jdbcType=VARCHAR},
+			</if>
+			<if test="activeResultValue != null">
+				#{activeResultValue,jdbcType=VARCHAR},
+			</if>
+			<if test="eventWhere != null">
+				#{eventWhere,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="selectValue != null">
+				#{selectValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeOtherResult != null">
+				#{activeOtherResult,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="countValue != null">
+				#{countValue,jdbcType=VARCHAR},
+			</if>
+			<if test="indexTypeValue != null">
+				#{indexTypeValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeName != null">
+				#{activeName,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="sqlMd5 != null">
+				#{sqlMd5,jdbcType=VARCHAR},
+			</if>
+			<if test="isOther != null">
+				#{isOther,jdbcType=INTEGER},
+			</if>
+			<if test="sqlHaving != null">
+				#{sqlHaving,jdbcType=VARCHAR},
+			</if>
+			<if test="groupId != null">
+				#{groupId,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.ActiveSqlMap">
+		update p_active_sql_map
+		<set>
+			<if test="projectId != null">
+				project_id = #{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="activeIndexId != null">
+				active_index_id = #{activeIndexId,jdbcType=VARCHAR},
+			</if>
+			<if test="activeSql != null">
+				active_sql = #{activeSql,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="indexResultValue != null">
+				index_result_value = #{indexResultValue,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlSelect != null">
+				sql_select = #{sqlSelect,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlWhere != null">
+				sql_where = #{sqlWhere,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlFrom != null">
+				sql_from = #{sqlFrom,jdbcType=VARCHAR},
+			</if>
+			<if test="sourceFiltere != null">
+				source_filtere = #{sourceFiltere,jdbcType=VARCHAR},
+			</if>
+			<if test="activeType != null">
+				active_type = #{activeType,jdbcType=VARCHAR},
+			</if>
+			<if test="refActiveIds != null">
+				ref_active_ids = #{refActiveIds,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="sourceValue != null">
+				source_value = #{sourceValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="eventWhere != null">
+				event_where = #{eventWhere,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="selectValue != null">
+				select_value = #{selectValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="indexTypeValue != null">
+				index_type_value = #{indexTypeValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeName != null">
+				active_name = #{activeName,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeOtherResult != null">
+				active_other_result = #{activeOtherResult,jdbcType=LONGVARCHAR},
+			</if>
+            <if test="countValue != null">
+                count_value = #{countValue,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlMd5 != null">
+				sqlMd5 = #{sqlMd5,jdbcType=VARCHAR},
+			</if>
+			<if test="isOther != null">
+				is_other = #{isOther,jdbcType=INTEGER},
+			</if>
+			<if test="sqlHaving != null">
+				sql_having = #{sqlHaving,jdbcType=VARCHAR},
+			</if>
+			<if test="groupId != null">
+				group_id = #{groupId,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+		select
+		<include refid="Base_Column_List" />
+		FROM p_active_sql_map
+		where  id = #{id,jdbcType=INTEGER}
+	</select>
+
+	<select id="getSqlByProjectIdAndActiveId" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+		active_sql
+		FROM p_active_sql_map
+		where  project_id = #{projectId,jdbcType=VARCHAR} and active_index_id = #{activeId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getActiveSqlByActiveId" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+		active_sql
+		FROM p_active_sql_map
+		where active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getActiveSqlMapByProjectId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		FROM p_active_sql_map
+		where  project_id = #{projectId,jdbcType=VARCHAR} and active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getCountByActiveIndexId" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(*)
+		FROM p_active_sql_map
+		where   active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<update id="updateByActiveId" parameterType="com.gennlife.rws.entity.ActiveSqlMap">
+		update p_active_sql_map
+		<set>
+			<if test="activeSql != null">
+				active_sql = #{activeSql,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="sqlSelect != null">
+				sql_select = #{sqlSelect,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlWhere != null">
+				sql_where = #{sqlWhere,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlFrom != null">
+				sql_from = #{sqlFrom,jdbcType=VARCHAR},
+			</if>
+			<if test="activeResultDocId != null">
+				active_result_doc_id = #{activeResultDocId,jdbcType=VARCHAR},
+			</if>
+			<if test="activeResultValue != null">
+				active_result_value = #{activeResultValue,jdbcType=VARCHAR},
+			</if>
+			<if test="eventWhere != null">
+				event_where = #{eventWhere,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="selectValue != null">
+				select_value = #{selectValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="indexTypeValue != null">
+				index_type_value = #{indexTypeValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeName != null">
+				active_name = #{activeName,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeOtherResult != null">
+				active_other_result = #{activeOtherResult,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="countValue != null">
+				count_value = #{countValue,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlMd5 != null">
+				sqlMd5 = #{sqlMd5,jdbcType=VARCHAR},
+			</if>
+			<if test="isOther != null">
+				is_other = #{isOther,jdbcType=INTEGER},
+			</if>
+			<if test="sqlHaving != null">
+				sql_having = #{sqlHaving,jdbcType=VARCHAR},
+			</if>
+			source_filtere = #{sourceFiltere,jdbcType=VARCHAR},
+			active_type = #{activeType,jdbcType=VARCHAR},
+			ref_active_ids = #{refActiveIds,jdbcType=LONGVARCHAR},
+			source_value = #{sourceValue,jdbcType=LONGVARCHAR},
+
+		</set>
+		where active_index_id = #{activeIndexId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</update>
+
+	<select id="getActiveSql" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		FROM p_active_sql_map
+		where active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+	<select id="getCountByActiveIdAndIndexValue" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(*)
+		FROM p_active_sql_map
+		where   active_index_id = #{activeIndexId,jdbcType=VARCHAR} and index_result_value = #{indexResultValue,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<update id="updateByActiveIdAndIndexValue" parameterType="com.gennlife.rws.entity.ActiveSqlMap">
+		update p_active_sql_map
+		<set>
+			<if test="activeSql != null">
+				active_sql = #{activeSql,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="sqlSelect != null">
+				sql_select = #{sqlSelect,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlWhere != null">
+				sql_where = #{sqlWhere,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlFrom != null">
+				sql_from = #{sqlFrom,jdbcType=VARCHAR},
+			</if>
+			<if test="selectValue != null">
+				select_value = #{selectValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="indexTypeValue != null">
+				index_type_value = #{indexTypeValue,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeName != null">
+				active_name = #{activeName,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="activeOtherResult != null">
+				active_other_result = #{activeOtherResult,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="countValue != null">
+				count_value = #{countValue,jdbcType=VARCHAR},
+			</if>
+			<if test="sqlMd5 != null">
+				sqlMd5 = #{sqlMd5,jdbcType=VARCHAR},
+			</if>
+			<if test="isOther != null">
+				is_other = #{isOther,jdbcType=INTEGER},
+			</if>
+			<if test="sqlHaving != null">
+				sql_having = #{sqlHaving,jdbcType=VARCHAR},
+			</if>
+			source_filtere = #{sourceFiltere,jdbcType=VARCHAR},
+			active_type = #{activeType,jdbcType=VARCHAR},
+			ref_active_ids = #{refActiveIds,jdbcType=LONGVARCHAR},
+			source_value = #{sourceValue,jdbcType=LONGVARCHAR},
+
+		</set>
+		where active_index_id = #{activeIndexId,jdbcType=VARCHAR} and index_result_value = #{indexResultValue,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</update>
+	<delete id="deleteByActiveIndexId" parameterType="java.lang.String" >
+		    delete from p_active_sql_map
+   			 where active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</delete>
+
+	<select id="getCountByActiveAndsqlMd5" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select count(*)
+		FROM p_active_sql_map
+		where   active_index_id = #{activeIndexId,jdbcType=VARCHAR} and sqlMd5 = #{sqlMd5,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteByTmpActiveId" parameterType="java.lang.String" >
+		delete from p_active_sql_map
+		where active_index_id like '%_tmp' limit 200
+	</delete>
+
+</mapper>

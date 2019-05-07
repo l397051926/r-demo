@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.OperLogsMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.OperLogs">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="project_id" property="projectId" jdbcType="VARCHAR" />
+		<result column="is_delete" property="isDelete" jdbcType="CHAR" />
+		<result column="url" property="url" jdbcType="VARCHAR" />
+		<result column="create_id" property="createId" jdbcType="VARCHAR" />
+		<result column="create_name" property="createName" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="content" property="content" jdbcType="LONGVARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, project_id, is_delete, url, create_id, create_name,
+		create_time,content
+	</sql>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.OperLogs">
+		insert into p_oper_logs
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="projectId != null">
+				project_id,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+			<if test="url != null">
+				url,
+			</if>
+			<if test="createId != null">
+				create_id,
+			</if>
+			<if test="createName != null">
+				create_name,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="content != null">
+				content,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="projectId != null">
+				#{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="url != null">
+				#{url,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				#{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				#{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="content != null">
+				#{content,jdbcType=LONGVARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.OperLogs">
+		update p_oper_logs
+		<set>
+			<if test="projectId != null">
+				project_id = #{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				is_delete = #{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="url != null">
+				url = #{url,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				create_id = #{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				create_name = #{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="content != null">
+				content = #{content,jdbcType=LONGVARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="getOperLogsList" resultMap="BaseResultMap" parameterType="java.lang.Object" >
+		select
+		<include refid="Base_Column_List" />
+		from p_oper_logs
+		where project_id = #{projectId,jdbcType=VARCHAR} order by create_time DESC
+		limit #{page,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+	</select>
+
+
+    <select id="getOperLogsCount" resultType="java.lang.Integer"
+            parameterType="java.lang.String">
+        select COUNT(*)
+        from p_oper_logs
+        where project_id = #{projectId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="getOperLogsListBy2" resultMap="BaseResultMap"
+            parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List" />
+        from p_oper_logs
+        where project_id = #{projectId,jdbcType=VARCHAR}
+        order by create_time DESC
+        limit 0,2
+    </select>
+</mapper>

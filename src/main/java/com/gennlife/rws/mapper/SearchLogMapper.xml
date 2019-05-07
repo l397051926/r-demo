@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.SearchLogMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.SearchLog">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="patient_set_id" property="patientSetId"
+			jdbcType="VARCHAR" />
+		<result column="create_id" property="createId" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="search_conditio" property="searchConditio"
+			jdbcType="LONGVARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, patient_set_id, create_id, create_time,search_conditio
+	</sql>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_search_log
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		p_search_log
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.SearchLog">
+		insert into p_search_log (id,
+		patient_set_id, create_id,
+		create_time, search_conditio)
+		values
+		(#{id,jdbcType=INTEGER}, #{patientSetId,jdbcType=VARCHAR},
+		#{createId,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP},
+		#{searchConditio,jdbcType=LONGVARCHAR})
+	</insert>
+	<insert id="insertSelective" parameterType="com.gennlife.rws.entity.SearchLog">
+		insert into p_search_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="patientSetId != null">
+				patient_set_id,
+			</if>
+			<if test="createId != null">
+				create_id,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="searchConditio != null">
+				search_conditio,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="patientSetId != null">
+				#{patientSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				#{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="searchConditio != null">
+				#{searchConditio,jdbcType=LONGVARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="update" parameterType="com.gennlife.rws.entity.SearchLog">
+		update p_search_log
+		<set>
+			<if test="patientSetId != null">
+				patient_set_id = #{patientSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				create_id = #{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="searchConditio != null">
+				search_conditio = #{searchConditio,jdbcType=LONGVARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="selectByPrtisntId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_search_log
+		where patient_set_id =
+		#{patientSetId,jdbcType=VARCHAR}
+		ORDER BY  create_time desc;
+	</select>
+
+
+
+	<select id="selectBypatientSetIds" resultMap="BaseResultMap"  parameterType="java.util.List">
+		select
+		<include refid="Base_Column_List" />
+		from p_search_log
+		where patient_set_id IN
+		<foreach collection="list" item="item" index="index" close=")" open="(" separator=",">
+			#{item}
+		</foreach>
+		ORDER BY  create_time DESC;
+	</select>
+
+	<select id="getSearchLog" resultType="java.lang.String"  parameterType="java.lang.String">
+		select
+		search_condition
+		from p_search_log
+		where patient_set_id = #{patientSetId,jdbcType=VARCHAR}
+		ORDER BY  create_time DESC
+		limit 0,1
+	</select>
+
+</mapper>

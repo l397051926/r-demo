@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ContrastiveAnalysisCountMapper" >
+  <resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ContrastiveAnalysisCount" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="uid" property="uid" jdbcType="VARCHAR" />
+    <result column="group_id" property="groupId" jdbcType="VARCHAR" />
+    <result column="group_name" property="groupName" jdbcType="VARCHAR" />
+    <result column="active_name" property="activeName" jdbcType="VARCHAR" />
+    <result column="projectId" property="projectid" jdbcType="VARCHAR" />
+    <result column="activer_index_id" property="activerIndexId" jdbcType="VARCHAR" />
+    <result column="group_type" property="groupType" jdbcType="VARCHAR" />
+    <result column="contrastive_analysis_count_result_id" property="contrastiveAnalysisCountResultId" jdbcType="VARCHAR" />
+    <result column="create_id" property="createId" jdbcType="VARCHAR" />
+    <result column="create_name" property="createName" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, uid, projectId, activer_index_id, group_type, contrastive_analysis_count_result_id, 
+    create_id, create_name, create_time, group_id, group_name, active_name
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from p_contrastive_analysis_count
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from p_contrastive_analysis_count
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCount" >
+    insert into p_contrastive_analysis_count (id, uid, projectId, 
+      activer_index_id, group_type, contrastive_analysis_count_result_id, 
+      create_id, create_name, create_time, group_id, group_name, active_name
+      )
+    values (#{id,jdbcType=INTEGER}, #{uid,jdbcType=VARCHAR}, #{projectid,jdbcType=VARCHAR}, 
+      #{activerIndexId,jdbcType=VARCHAR}, #{groupType,jdbcType=VARCHAR}, #{contrastiveAnalysisCountResultId,jdbcType=VARCHAR}, 
+      #{createId,jdbcType=VARCHAR}, #{createName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},#{groupId,jdbcType=VARCHAR},
+      #{groupName,jdbcType=VARCHAR}, #{activeName,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCount" >
+    insert into p_contrastive_analysis_count
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="uid != null" >
+        uid,
+      </if>
+      <if test="projectid != null" >
+        projectId,
+      </if>
+      <if test="activerIndexId != null" >
+        activer_index_id,
+      </if>
+      <if test="groupType != null" >
+        group_type,
+      </if>
+      <if test="contrastiveAnalysisCountResultId != null" >
+        contrastive_analysis_count_result_id,
+      </if>
+      <if test="createId != null" >
+        create_id,
+      </if>
+      <if test="createName != null" >
+        create_name,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="groupId != null" >
+        group_id,
+      </if>
+      <if test="groupName != null" >
+        group_name,
+      </if>
+      <if test="activeName != null" >
+        active_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="uid != null" >
+        #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="projectid != null" >
+        #{projectid,jdbcType=VARCHAR},
+      </if>
+      <if test="activerIndexId != null" >
+        #{activerIndexId,jdbcType=VARCHAR},
+      </if>
+      <if test="groupType != null" >
+        #{groupType,jdbcType=VARCHAR},
+      </if>
+      <if test="contrastiveAnalysisCountResultId != null" >
+        #{contrastiveAnalysisCountResultId,jdbcType=VARCHAR},
+      </if>
+      <if test="createId != null" >
+        #{createId,jdbcType=VARCHAR},
+      </if>
+      <if test="createName != null" >
+        #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="groupId != null" >
+        #{groupId,jdbcType=VARCHAR},
+      </if>
+      <if test="groupName != null" >
+        #{groupName,jdbcType=VARCHAR},
+      </if>
+      <if test="activeName != null" >
+        #{activeName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCount" >
+    update p_contrastive_analysis_count
+    <set >
+      <if test="uid != null" >
+        uid = #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="projectid != null" >
+        projectId = #{projectid,jdbcType=VARCHAR},
+      </if>
+      <if test="activerIndexId != null" >
+        activer_index_id = #{activerIndexId,jdbcType=VARCHAR},
+      </if>
+      <if test="groupType != null" >
+        group_type = #{groupType,jdbcType=VARCHAR},
+      </if>
+      <if test="contrastiveAnalysisCountResultId != null" >
+        contrastive_analysis_count_result_id = #{contrastiveAnalysisCountResultId,jdbcType=VARCHAR},
+      </if>
+      <if test="createId != null" >
+        create_id = #{createId,jdbcType=VARCHAR},
+      </if>
+      <if test="createName != null" >
+        create_name = #{createName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="groupId != null" >
+        group_id = #{groupId,jdbcType=VARCHAR},
+      </if>
+      <if test="groupName != null" >
+        group_name = #{groupName,jdbcType=VARCHAR},
+      </if>
+      <if test="activeName != null" >
+        active_name = #{activeName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCount" >
+    update p_contrastive_analysis_count
+    set uid = #{uid,jdbcType=VARCHAR},
+      projectId = #{projectid,jdbcType=VARCHAR},
+      activer_index_id = #{activerIndexId,jdbcType=VARCHAR},
+      group_type = #{groupType,jdbcType=VARCHAR},
+      contrastive_analysis_count_result_id = #{contrastiveAnalysisCountResultId,jdbcType=VARCHAR},
+      create_id = #{createId,jdbcType=VARCHAR},
+      create_name = #{createName,jdbcType=VARCHAR},
+      group_id = #{groupId,jdbcType=VARCHAR},
+      group_name = #{groupName,jdbcType=VARCHAR},
+      active_name = #{activeName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="getContrastiveByUidAndPro" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from p_contrastive_analysis_count
+    where uid = #{uid,jdbcType=VARCHAR}
+    AND  projectId = #{projectId,jdbcType=VARCHAR}
+  </select>
+</mapper>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ProjectUserMapMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ProjectUserMap">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="project_id" property="projectId" jdbcType="VARCHAR" />
+		<result column="uid" property="uid" jdbcType="VARCHAR" />
+		<result column="oblig_id" property="obligId" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, project_id, uid ,oblig_id,create_time
+	</sql>
+	<select id="selectById" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_project_user_map
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteById" parameterType="java.lang.Integer">
+		delete from
+		p_project_user_map
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.ProjectUserMap">
+		insert ignore into p_project_user_map
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="projectId != null">
+				project_id,
+			</if>
+			<if test="uid != null">
+				uid,
+			</if>
+			<if test="obligId != null">
+				oblig_id,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="projectId != null">
+				#{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="uid != null">
+				#{uid,jdbcType=VARCHAR},
+			</if>
+			<if test="obligId != null">
+				#{obligId,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.ProjectUserMap">
+		update p_project_user_map
+		<set>
+			<if test="projectId != null">
+				project_id = #{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="uid != null">
+				uid = #{uid,jdbcType=VARCHAR},
+			</if>
+			<if test="obligId != null">
+				oblig_id = #{obligId,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="selectByUid" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_project_user_map
+		where uid = #{uid,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteByProjectId" parameterType="java.lang.String">
+		delete from
+		p_project_user_map
+		where project_id = #{projectId,jdbcType=VARCHAR}
+	</delete>
+
+	<select id="selectByProjectId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_project_user_map
+		where project_id =
+		#{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="selectByUidAndProjectId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_project_user_map
+		where uid = #{uid,jdbcType=VARCHAR}
+		AND project_id=#{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteByUidProjectId" parameterType="java.lang.String">
+		delete from
+		p_project_user_map
+		where project_id = #{projectId,jdbcType=VARCHAR}
+		AND uid = #{uid,jdbcType=VARCHAR}
+	</delete>
+
+
+	<update id="updateByProjectIdAndUid" parameterType="com.gennlife.rws.entity.ProjectUserMap">
+		update p_project_user_map
+		<set>
+			<if test="obligId != null">
+				oblig_id = #{obligId,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where project_id = #{projectId,jdbcType=VARCHAR} AND uid = #{uid,jdbcType=VARCHAR}
+	</update>
+
+	<select id="getUserIds" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+		uid
+		from p_project_user_map
+		where project_id=#{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="selectCountByProjectIdAndUid" resultType="java.lang.Integer" parameterType="java.lang.String">
+		select
+		count(*)
+		from p_project_user_map
+		where uid = #{uid,jdbcType=VARCHAR}
+		AND project_id=#{projectId,jdbcType=VARCHAR}
+	</select>
+
+</mapper>

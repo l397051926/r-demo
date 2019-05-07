@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.GroupMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.Group">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="group_id" property="groupId" jdbcType="VARCHAR" />
+		<result column="group_name" property="groupName" jdbcType="VARCHAR" />
+		<result column="group_parent_id" property="groupParentId"
+			jdbcType="VARCHAR" />
+		<result column="group_level" property="groupLevel" jdbcType="INTEGER" />
+		<result column="group_type_id" property="groupTypeId" jdbcType="VARCHAR" />
+		<result column="group_type_name" property="groupTypeName"
+			jdbcType="VARCHAR" />
+		<result column="project_id" property="projectId" jdbcType="VARCHAR" />
+		<result column="create_id" property="createId" jdbcType="VARCHAR" />
+		<result column="create_name" property="createName" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="update_id" property="updateId" jdbcType="VARCHAR" />
+		<result column="update_name" property="updateName" jdbcType="VARCHAR" />
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="is_delete" property="isDelete" jdbcType="CHAR" />
+		<result column="group_describe" property="groupDescribe"
+			jdbcType="LONGVARCHAR" />
+		<result column="query_search" property="querySearch" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, group_id, group_name, group_parent_id, group_level,
+		group_type_id,
+		project_id,group_describe,
+		create_id, create_name,
+		create_time,
+		update_id, update_name,
+		update_time,is_delete,query_search
+	</sql>
+
+
+	<insert id="insert" parameterType="com.gennlife.rws.entity.Group">
+		insert into p_group
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="groupId != null">
+				group_id,
+			</if>
+			<if test="groupName != null">
+				group_name,
+			</if>
+			<if test="groupParentId != null">
+				group_parent_id,
+			</if>
+			<if test="groupLevel != null">
+				group_level,
+			</if>
+			<if test="groupTypeId != null">
+				group_type_id,
+			</if>
+			<if test="projectId != null">
+				project_id,
+			</if>
+			<if test="createId != null">
+				create_id,
+			</if>
+			<if test="createName != null">
+				create_name,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="updateId != null">
+				update_id,
+			</if>
+			<if test="updateName != null">
+				update_name,
+			</if>
+			<if test="updateTime != null">
+				update_time,
+			</if>
+			<if test="groupDescribe != null">
+				group_describe,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="groupId != null">
+				#{groupId,jdbcType=VARCHAR},
+			</if>
+			<if test="groupName != null">
+				#{groupName,jdbcType=VARCHAR},
+			</if>
+			<if test="groupParentId != null">
+				#{groupParentId,jdbcType=VARCHAR},
+			</if>
+			<if test="groupLevel != null">
+				#{groupLevel,jdbcType=INTEGER},
+			</if>
+			<if test="groupTypeId != null">
+				#{groupTypeId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectId != null">
+				#{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				#{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				#{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				#{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				#{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="groupDescribe != null">
+				#{groupDescribe,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete,jdbcType=CHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.Group">
+		update p_group
+		<set>
+			<if test="groupId != null">
+				group_id = #{groupId,jdbcType=VARCHAR},
+			</if>
+			<if test="groupName != null">
+				group_name = #{groupName,jdbcType=VARCHAR},
+			</if>
+			<if test="groupParentId != null">
+				group_parent_id = #{groupParentId,jdbcType=VARCHAR},
+			</if>
+			<if test="groupLevel != null">
+				group_level = #{groupLevel,jdbcType=INTEGER},
+			</if>
+			<if test="groupTypeId != null">
+				group_type_id = #{groupTypeId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectId != null">
+				project_id = #{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="createId != null">
+				create_id = #{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				create_name = #{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				update_id = #{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				update_name = #{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				update_time = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="groupDescribe != null">
+				group_describe = #{groupDescribe,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="isDelete != null">
+				is_delete = #{isDelete,jdbcType=CHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="getGroupByProjectId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group
+		where is_delete='0'
+		and group_type_id =
+		#{groupTypeId,jdbcType=VARCHAR}
+		AND
+		project_id =
+		#{projectId,jdbcType=VARCHAR}
+		order by
+		create_time desc
+	</select>
+
+	<sql id="Base_Column_Group_List">
+		select p.*,m.group_type_name
+		from p_group p inner join
+		p_group_type m on
+		p.group_type_id=m.group_type_id
+	</sql>
+
+	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		<include refid="Base_Column_Group_List" />
+		where is_delete='0'
+		and id =
+		#{id,jdbcType=INTEGER}
+	</select>
+
+	<select id="getGroupList" resultMap="BaseResultMap"
+		parameterType="java.util.Map">
+		<include refid="Base_Column_Group_List" />
+		where
+		is_delete='0'
+		<if test="projectId != null and projectId!=''">
+			and project_id = #{projectId}
+		</if>
+		<if test="groupParentId != null and groupParentId !=''">
+			and group_parent_id = #{groupParentId}
+		</if>
+		<if test="groupLevel != null">
+			and group_level = #{groupLevel}
+		</if>
+		<if test="groupTypeId != null and groupTypeId !=''">
+			and p.group_type_id = #{groupTypeId}
+		</if>
+		<!-- <if test="groupTypeId != null and groupTypeId !=''"> and group_type_id 
+			= #{groupTypeId} </if> -->
+		order by
+		create_time
+	</select>
+
+	<select id="selectByGroupId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		<include refid="Base_Column_Group_List" />
+		where is_delete='0'
+		and group_id =
+		#{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteByProjectId" parameterType="java.lang.String">
+		delete from
+		p_group
+		where project_id = #{projectId,jdbcType=VARCHAR}
+	</delete>
+
+	<select id="getGroupListByProjectId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		<include refid="Base_Column_Group_List" />
+		where p.is_delete='0'
+		and p.project_id = #{projectId,jdbcType=VARCHAR}
+		order by p.create_time
+	</select>
+
+	<select id="getGroupByTypeId" resultMap="BaseResultMap"
+			parameterType="java.lang.String">
+		<include refid="Base_Column_Group_List" />
+		where p.is_delete='0'
+		and p.project_id = #{projectId,jdbcType=VARCHAR}
+		and p.group_type_id = #{groupTypeId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getMaxLevelebyProjectId" resultType="java.lang.Integer"
+			parameterType="java.lang.String">
+		SELECT MAX(group_level)
+		 FROM `p_group`
+		where is_delete='0'
+		and project_id = #{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getQuerySearch" resultType="java.lang.String"
+			parameterType="java.lang.String">
+		SELECT query_search
+		FROM `p_group`
+		where is_delete='0'
+		and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getProjectId" resultType="java.lang.String"
+			parameterType="java.lang.String">
+		SELECT project_id
+		FROM `p_group`
+		where is_delete='0'
+		and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getgroupChildIds" resultMap="BaseResultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM `p_group`
+		where is_delete='0'
+		and group_parent_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+
+	<select id="getGroupByGroupId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group
+		where group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getGroupByGroupParentId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group
+		where group_id = (
+			select group_parent_id from p_group where group_id = #{groupId,jdbcType=VARCHAR}
+		)
+	</select>
+
+	<select id="getGroupParentId" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT group_parent_id
+		FROM `p_group`
+		where is_delete='0'
+		and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getGroupNameByGroupId" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT group_name
+		FROM `p_group`
+		where  group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="selectCountByGroupId" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT count(*)
+		FROM `p_group`
+		where is_delete='0'
+		and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getGroupListByParentId" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group
+		where is_delete='0'
+		and group_parent_id= #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getGroupByProjectIdAndUid" resultType="java.lang.String"  parameterType="java.lang.String">
+		SELECT
+		group_id
+		from p_group
+		where is_delete='0'
+		and project_id = #{projectId,jdbcType=VARCHAR}
+		and create_id = #{createId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getpGroupParentName"  resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		FROM `p_group` where
+		group_id =
+			(SELECT group_parent_id
+				from p_group
+				where is_delete='0' and  group_id= #{groupId,jdbcType=VARCHAR}
+			)
+	</select>
+
+	<select id="selectCountByGroupIdAndUid" resultType="java.lang.Integer" parameterType="java.lang.String">
+		SELECT count(*)
+		FROM `p_group`
+		where is_delete='0'
+		and group_id = #{groupId,jdbcType=VARCHAR}
+		and create_id = #{uid,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getGroupListByGroupCondition" resultMap="BaseResultMap"
+			parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group
+		where is_delete='0'
+		and group_id in ( select
+		group_id
+		from p_group_condition
+		where uid = #{uid,jdbcType=VARCHAR}
+		AND project_id = #{projectId,jdbcType=VARCHAR}
+		<if test="cortType != null" >
+			AND cort_type = #{cortType,jdbcType=INTEGER}
+		</if>
+		)
+	</select>
+</mapper>

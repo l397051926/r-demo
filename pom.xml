@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.gennlife</groupId>
+	<artifactId>rws-service</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<name>rws-service</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.8.RELEASE</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.gennlife</groupId>
+			<artifactId>darren-library</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/RedisLabs/spark-redis -->
+		<dependency>
+			<groupId>RedisLabs</groupId>
+			<artifactId>spark-redis</artifactId>
+			<version>0.3.2</version>
+		</dependency>
+
+		<!-- druid数据源 -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>1.0.26</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.6.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.gennlife.packagingservice</groupId>
+			<artifactId>packaging-arithmetic</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-legacy</artifactId>
+			<version>1.1.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.10</version>
+		</dependency>
+
+		<!--添加swagger -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+		<!-- fastjson -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.38</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.6</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations-java5</artifactId>
+			<version>RELEASE</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.6.1</version>
+		</dependency>
+		<!--异常处理-->
+		<dependency>
+			<groupId>com.gennlife</groupId>
+			<artifactId>vitark-common</artifactId>
+			<version>releases1.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.cloud</groupId>
+					<artifactId>spring-cloud-starter-oauth2</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.cloud</groupId>
+					<artifactId>spring-cloud-starter-security</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.101tec</groupId>
+					<artifactId>zkclient</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hbase</groupId>
+					<artifactId>hbase-client</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hbase</groupId>
+					<artifactId>hbase-common</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hbase</groupId>
+					<artifactId>hbase-protocol</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.hbase</groupId>
+					<artifactId>hbase-thrift</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.zookeeper</groupId>
+					<artifactId>zookeeper</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.rocketmq/rocketmq-common -->
+		<dependency>
+			<groupId>org.apache.rocketmq</groupId>
+			<artifactId>rocketmq-common</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+
+
+		<!-- https://mvnrepository.com/artifact/org.apache.rocketmq/rocketmq-client -->
+		<dependency>
+			<groupId>org.apache.rocketmq</groupId>
+			<artifactId>rocketmq-client</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+
+	</dependencies>
+
+	<!--<build> <plugins> <plugin> <groupId>org.springframework.boot</groupId> 
+		<artifactId>spring-boot-maven-plugin</artifactId> </plugin> &lt;!&ndash;<plugin> 
+		<groupId>org.mybatis.generator</groupId> <artifactId>mybatis-generator-maven-plugin</artifactId> 
+		<version>1.3.1</version> <executions> <execution> <id>Generate MyBatis Files</id> 
+		<goals> <goal>generate</goal> </goals> &lt;!&ndash;&lt;!&ndash;<phase>generate</phase>&ndash;&gt;&ndash;&gt; 
+		<configuration> <verbose>true</verbose> <overwrite>true</overwrite> </configuration> 
+		</execution> </executions> &lt;!&ndash;<dependencies> <dependency> <groupId>mysql</groupId> 
+		<artifactId>mysql-connector-java</artifactId> <version>5.1.10</version> </dependency> 
+		<dependency> <groupId>org.mybatis.generator</groupId> <artifactId>mybatis-generator-core</artifactId> 
+		<version>1.3.5</version> </dependency> </dependencies>&ndash;&gt; </plugin>&ndash;&gt; 
+		</plugins> </build> -->
+	<build>
+		<!-- 打包时的别名 -->
+		<finalName>rws-service</finalName>
+		<resources>
+
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<!-- 资源根目录排除各环境的配置，使用单独的资源目录来指定 -->
+				<excludes>
+					<exclude>application.properties</exclude>
+					<exclude>application.properties.*</exclude>
+					<exclude>file.json</exclude>
+					<exclude>generatorConfig.xml</exclude>
+					<exclude>jdbc.properties</exclude>
+					<exclude>logback.xml</exclude>
+					<exclude>environment/*</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>src/main/resources/environment/${profiles.active}</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>build-helper-maven-plugin</artifactId> 
+				<version>1.8</version> <executions> <execution> <id>add-resource</id> <phase>generate-resources</phase> 
+				<goals> <goal>add-resource</goal> </goals> <configuration> <resources> <resource> 
+				<directory>src/main/java</directory> <includes> <include>**/*.xml</include> 
+				</includes> </resource> </resources> </configuration> </execution> </executions> 
+				</plugin> -->
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<profiles.active>development</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>jiangsu</id>
+			<properties>
+				<profiles.active>jiangsu</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>yantai-jfcs</id>
+			<properties>
+				<profiles.active>yantai-jfcs</profiles.active>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<id>jiangsu_product</id>
+			<properties>
+				<profiles.active>jiangsu_product</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>demo-jf-new</id>
+			<properties>
+				<profiles.active>demo-jf-new</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>demo-jf</id>
+			<properties>
+				<profiles.active>demo-jf</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>demo-jf-new-test</id>
+			<properties>
+				<profiles.active>demo-jf-new-test</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>demo-test</id>
+			<properties>
+				<profiles.active>demo-test</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>tianjin</id>
+			<properties>
+				<profiles.active>tianjin</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>tianjin-jf</id>
+			<properties>
+				<profiles.active>tianjin-jf</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>jinzhou</id>
+			<properties>
+				<profiles.active>jinzhou</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>taihe_ytj</id>
+			<properties>
+				<profiles.active>taihe_ytj</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>jiangsu_ytj</id>
+			<properties>
+				<profiles.active>jiangsu_ytj</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>cloud_ytj</id>
+			<properties>
+				<profiles.active>cloud_ytj</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>zhengzhou_ytj</id>
+			<properties>
+				<profiles.active>zhengzhou_ytj</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>beidaguoji_ytj</id>
+			<properties>
+				<profiles.active>beidaguoji_ytj</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<id>beidarenmin_ytj</id>
+			<properties>
+				<profiles.active>beidarenmin_ytj</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<!-- 测试环境 -->
+			<id>test</id>
+			<properties>
+				<profiles.active>test</profiles.active>
+			</properties>
+
+		</profile>
+		<profile>
+			<!-- 生产环境 -->
+			<id>production</id>
+			<properties>
+				<profiles.active>production</profiles.active>
+			</properties>
+		</profile>
+	</profiles>
+</project>

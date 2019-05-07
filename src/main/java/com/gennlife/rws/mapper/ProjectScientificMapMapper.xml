@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ProjectScientificMapMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ProjectScientificMap">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="scientific_id" property="scientificId"
+			jdbcType="VARCHAR" />
+		<result column="project_id" property="projectId" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, scientific_id, project_id
+	</sql>
+	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_project_scientific_map
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByProjectId" parameterType="java.lang.String">
+		delete from
+		p_project_scientific_map
+		where project_id =
+		#{projectId,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.ProjectScientificMap">
+		insert into p_project_scientific_map
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="scientificId != null">
+				scientific_id,
+			</if>
+			<if test="projectId != null">
+				project_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="scientificId != null">
+				#{scientificId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectId != null">
+				#{projectId,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.ProjectScientificMap">
+		update p_project_scientific_map
+		<set>
+			<if test="scientificId != null">
+				scientific_id = #{scientificId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectId != null">
+				project_id = #{projectId,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="selectByProjectId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_project_scientific_map
+		where project_id =
+		#{projectId,jdbcType=VARCHAR}
+	</select>
+</mapper>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ProjectMemberMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ProjectMember">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="uid" property="uid" jdbcType="VARCHAR" />
+		<result column="uname" property="uname" jdbcType="VARCHAR" />
+		<result column="unumber" property="unumber" jdbcType="VARCHAR" />
+		<result column="lab_id" property="labId" jdbcType="VARCHAR" />
+		<result column="lab_name" property="labName" jdbcType="VARCHAR" />
+		<result column="org_id" property="orgId" jdbcType="VARCHAR" />
+		<result column="org_name" property="orgName" jdbcType="VARCHAR" />
+		<result column="oblig_id" property="obligId" jdbcType="VARCHAR" />
+		<result column="is_delete" property="isDelete" jdbcType="CHAR" />
+		<result column="create_id" property="createId" jdbcType="VARCHAR" />
+		<result column="create_name" property="createName" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="update_id" property="updateId" jdbcType="VARCHAR" />
+		<result column="update_name" property="updateName" jdbcType="VARCHAR" />
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="oblig_name" property="obligName" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, uid, uname, unumber, lab_id, lab_name, org_id,
+		org_name,is_delete,
+		create_id, create_name, create_time,
+		update_id, update_name, update_time
+	</sql>
+	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_project_member
+		where is_delete = '0'
+		and id =
+		#{id,jdbcType=INTEGER}
+	</select>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.ProjectMember">
+		replace into p_project_member
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="uid != null">
+				uid,
+			</if>
+			<if test="uname != null">
+				uname,
+			</if>
+			<if test="unumber != null">
+				unumber,
+			</if>
+			<if test="labId != null">
+				lab_id,
+			</if>
+			<if test="labName != null">
+				lab_name,
+			</if>
+			<if test="orgId != null">
+				org_id,
+			</if>
+			<if test="orgName != null">
+				org_name,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+			<if test="createId != null">
+				create_id,
+			</if>
+			<if test="createName != null">
+				create_name,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="updateId != null">
+				update_id,
+			</if>
+			<if test="updateName != null">
+				update_name,
+			</if>
+			<if test="updateTime != null">
+				update_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="uid != null">
+				#{uid,jdbcType=VARCHAR},
+			</if>
+			<if test="uname != null">
+				#{uname,jdbcType=VARCHAR},
+			</if>
+			<if test="unumber != null">
+				#{unumber,jdbcType=VARCHAR},
+			</if>
+			<if test="labId != null">
+				#{labId,jdbcType=VARCHAR},
+			</if>
+			<if test="labName != null">
+				#{labName,jdbcType=VARCHAR},
+			</if>
+			<if test="orgId != null">
+				#{orgId,jdbcType=VARCHAR},
+			</if>
+			<if test="orgName != null">
+				#{orgName,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="createId != null">
+				#{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				#{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				#{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				#{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.ProjectMember">
+		update p_project_member
+		<set>
+			<if test="uid != null">
+				uid = #{uid,jdbcType=VARCHAR},
+			</if>
+			<if test="uname != null">
+				uname = #{uname,jdbcType=VARCHAR},
+			</if>
+			<if test="unumber != null">
+				unumber = #{unumber,jdbcType=VARCHAR},
+			</if>
+			<if test="labId != null">
+				lab_id = #{labId,jdbcType=VARCHAR},
+			</if>
+			<if test="labName != null">
+				lab_name = #{labName,jdbcType=VARCHAR},
+			</if>
+			<if test="orgId != null">
+				org_id = #{orgId,jdbcType=VARCHAR},
+			</if>
+			<if test="orgName != null">
+				org_name = #{orgName,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				is_delete = #{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="createId != null">
+				create_id = #{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				create_name = #{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				update_id = #{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				update_name = #{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				update_time = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="getUserProjectList" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		SELECT pro.* , umap.oblig_id as oblig_id , res.responsibility_name as obli_name
+		FROM `p_project_member` pro ,p_project_user_map umap,p_responsibility res
+		where pro.uid=umap.uid
+		and  umap.project_id=#{0}
+		and  umap.oblig_id=responsibility_id
+		and pro.is_delete=0
+		order by pro.create_time desc
+	</select>
+
+	<select id="getUserProjectCount" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		select COUNT(*)
+		FROM `p_project_member` pro  , p_project_user_map umap ,p_responsibility res
+		where pro.uid=umap.uid
+		and  umap.project_id=#{projectId}
+		and  umap.oblig_id=responsibility_id
+		and pro.is_delete=0
+		order by umap.create_time
+	</select>
+
+	<select id="getUserProjectListByLimit" parameterType="java.lang.Object"
+			resultMap="BaseResultMap">
+		SELECT pro.* , umap.oblig_id as oblig_id , res.responsibility_name as oblig_name ,umap.id as umapId
+		FROM `p_project_member` pro ,p_project_user_map umap,p_responsibility res
+		where pro.uid=umap.uid
+		and  umap.project_id=#{projectId}
+		and  umap.oblig_id=responsibility_id
+		and pro.is_delete=0
+		order by umapId
+		limit #{page},#{pageSize}
+	</select>
+
+
+	<select id="getCountPrincipal" parameterType="java.lang.Object" resultType="java.lang.Integer">
+		select COUNT(*)
+		from p_project_member mem
+		LEFT JOIN p_project_user_map pro
+		on mem.uid=pro.uid
+		where pro.project_id = #{projectId,jdbcType=VARCHAR}
+		and pro.oblig_id = #{obligId,jdbcType=VARCHAR}
+	</select>
+</mapper>

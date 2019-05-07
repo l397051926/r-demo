@@ -1,0 +1,81 @@
+#spring.druid.dbUrl=jdbc:mysql://localhost:3306/rws1?useUnicode=true&amp;characterEncoding=UTF-8
+#spring.druid.username=root
+#spring.druid.password=123456
+#spring.druid.driverClassName=com.mysql.jdbc.Driver
+#spring.druid.type=com.alibaba.druid.pool.DruidDataSource
+spring.druid.dbUrl=jdbc:mysql://10.0.2.86:3306/rws?useUnicode=true&characterEncoding=UTF-8
+spring.druid.username=rws
+spring.druid.password=@Rws2015
+spring.druid.driverClassName=com.mysql.jdbc.Driver
+spring.druid.type=com.alibaba.druid.pool.DruidDataSource
+server.port=9000
+
+spring.profiles.active=pro
+
+spring.application.name=rws-service
+#server.context-path=/rws-service
+
+#���ӳص�������Ϣ
+## ��ʼ����С����С�����
+spring.druid.initialSize=5
+spring.druid.minIdle=5
+spring.druid.maxActive=20
+## ���û�ȡ���ӵȴ���ʱ��ʱ��
+spring.druid.maxWait=60000
+# ���ü����òŽ���һ�μ�⣬�����Ҫ�رյĿ������ӣ���λ�Ǻ���
+spring.druid.timeBetweenEvictionRunsMillis=60000
+# ����һ�������ڳ�����С�����ʱ�䣬��λ�Ǻ���
+spring.druid.minEvictableIdleTimeMillis=300000
+spring.druid.validationQuery=SELECT 1
+spring.druid.testWhileIdle=true
+spring.druid.testOnBorrow=false
+spring.druid.testOnReturn=false
+spring.druid.poolPreparedStatements=true
+spring.druid.maxPoolPreparedStatementPerConnectionSize=20
+# ���ü��ͳ�����ص�filters��ȥ�����ؽ���sql�޷�ͳ�ƣ�'wall'���ڷ���ǽ
+spring.druid.filters=stat,wall,log4j
+# ͨ��connectProperties��������mergeSql���ܣ���SQL��¼
+spring.druid.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+
+##mongodb����
+spring.data.mongodb.host=10.0.2.88
+spring.data.mongodb.port=27017
+spring.data.mongodb.database=rws
+#spring.data.mongodb.username=rws
+#spring.data.mongodb.password=@Rws2015
+#spring.data.mongodb.password=
+#spring.data.mongodb.username=
+server.tomcat.max-http-post-size=1000000000
+server.max-http-header-size=1000000
+
+#logger ��־����
+logging.config=classpath:logback.xml
+logging.path=/opt/applog/rws/logs
+logging.level.root=debug
+server.error.path=/error
+LOG_PATH=/opt/applog/rws/logs
+#mybatis
+mybatis.type-aliases-package=com.gennlife.rws.entity
+mybatis.mapper-locations=classpath:com/gennlife/rws/mapper/*.xml
+es.searchIndexName=yantai_hospital_clinical_patients
+#���ES��
+#es.servie.UrlAndPort=10.0.2.175:8989
+#��̨
+es.servie.UrlAndPort=10.0.2.86:8989
+#es.esServiceUrl=http://10.0.2.86:8989/search-server/search
+es.esServiceUrl=http://10.0.2.86:8989/search-server/export
+
+#����ʱ����ESÿҳ�Ĵ�С
+download.pageSize=10
+#���ز�������
+download.totalSize=100000
+#��װ�����url
+packaging.service.url=http://10.0.2.86:9885/packaging/rws/action
+#�ȴ�������ɵ�ʱ��
+waiteTaskComplateTime=1
+#�����ֶ�������Ϣ
+ordercolumn.orderKey={"visits.visit_info":"visits.visit_info.ADMISSION_DATE","visits.diagnose":"visits.diagnose.DIAGNOSTIC_DATE","visits.medical_record_home_page":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.operation":"visits.medical_record_home_page.operation.OPERATION_DATE","visits.medical_record_home_page.pathology":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.injury":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.admiss_diag":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.dis_main_diag":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.dis_other_diag":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.clinic_diag":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.drug_allergy":"visits.medical_record_home_page.ADMISS_DATE","visits.medical_record_home_page.icu":"visits.medical_record_home_page.icu.ICU_IN_TIME","visits.operation_info":"visits.operation_info.OPERATION_START_TIME","visits.operation_pre_summary":"visits.operation_pre_summary.RECORD_DATE","visits.operation_records":"visits.operation_records.OPERATION_DATE","visits.operation_pre_anesthesia_interview_records":"visits.operation_pre_anesthesia_interview_records.SIGN_DATE","visits.operation_pre_conference_records":"visits.operation_pre_conference_records.DISCUSS_DATE","visits.operation_post_anesthesia_interview_records":"visits.operation_post_anesthesia_interview_records.RECOVERY_TIME","visits.operation_post_course_records":"visits.operation_post_course_records.RECORD_DATE","visits.medicine_order":"visits.medicine_order.ORDER_START_TIME","visits.inspection_reports":"visits.inspection_reports.REPORT_TIME","visits.inspection_reports.sub_inspection":"visits.inspection_reports.sub_inspection.REPORT_TIME","visits.ct_reports":"visits.ct_reports.EXAMINATION_DATE","visits.ect_reports":"visits.ect_reports.EXAMINATION_DATE","visits.xray_image_reports":"visits.xray_image_reports.EXAMINATION_DATE","visits.mr_reports":"visits.mr_reports.EXAMINATION_DATE","visits.microscopic_exam_reports":"visits.microscopic_exam_reports.EXAMINATION_DATE","visits.pet_ct_reports":"visits.pet_ct_reports.EXAMINATION_DATE","visits.pet_mr_reports":"visits.pet_mr_reports.EXAMINATION_DATE","visits.other_imaging_exam_diagnosis_reports":"visits.other_imaging_exam_diagnosis_reports.EXAMINATION_DATE","visits.pathology_reports":"visits.pathology_reports.REPORT_DATE","visits.ultrasonic_diagnosis_reports":"visits.ultrasonic_diagnosis_reports.EXAMINATION_DATE","visits.lung_functional_exam":"visits.lung_functional_exam.DATE","visits.lung_functional_exam.examination_sub":"visits.lung_functional_exam.DATE","visits.electrocardiogram_reports":"visits.electrocardiogram_reports.EXAMINATION_DATE","visits.electrocardiographic_reports":"visits.electrocardiographic_reports.DATE","visits.electroencephalogram_reports":"visits.electroencephalogram_reports.EXAMINATION_DATE","visits.admissions_records":"visits.admissions_records.HOSPITAL_ADMISSION_DATE","visits.discharge_records":"visits.discharge_records.RECORD_DATE","visits.discharge_summary":"visits.discharge_summary.RECORD_DATE","visits.first_course_records":"visits.first_course_records.RECORD_DATE","visits.attending_physician_rounds_records":"visits.attending_physician_rounds_records.RECORD_DATE","visits.course_records":"visits.course_records.RECORD_DATE","visits.consultation_opinion_records":"visits.consultation_opinion_records.CONSULTATION_TIME","visits.death_discuss_records":"visits.death_discuss_records.DEATH_DATE","visits.death_records":"visits.death_records.DEATH_DATE","visits.death_summary":"visits.death_summary.RECORD_DATE","visits.rescue_records":"visits.rescue_records.RECORD_DATE","visits.stage_summary":"visits.stage_summary.SUMMARY_DATE","visits.nurse_operation":"visits.nurse_operation.NURSE_OP_TIME","visits.icu_record":"visits.icu_record.RECORD_DATE","visits.triple_test_table":"visits.triple_test_table.EXAM_TIME","visits.orders":"visits.orders.ORDER_START_TIME","visits.order_implemet_records":"visits.order_implemet_records.PROCESS_DATE","visits.invasive_records":"visits.invasive_records.OPERATION_DATE"}
+#���ű������׺
+filter.tablename.post=_data
+#��ʱ���񿪹�
+task.failure.isRunningTimmer=0

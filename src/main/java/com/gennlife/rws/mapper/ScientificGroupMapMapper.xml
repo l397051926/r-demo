@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ScientificGroupMapMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ScientificGroupMap">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="scientific_id" property="scientificId"
+			jdbcType="CHAR" />
+		<result column="group_type_id" property="groupTypeId" jdbcType="CHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, scientific_id, group_type_id
+	</sql>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_scientific_group_map
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		p_scientific_group_map
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.ScientificGroupMap">
+		insert into p_scientific_group_map
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="scientificId != null">
+				scientific_id,
+			</if>
+			<if test="groupTypeId != null">
+				group_type_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="scientificId != null">
+				#{scientificId,jdbcType=CHAR},
+			</if>
+			<if test="groupTypeId != null">
+				#{groupTypeId,jdbcType=CHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="update" parameterType="com.gennlife.rws.entity.ScientificGroupMap">
+		update p_scientific_group_map
+		<set>
+			<if test="scientificId != null">
+				scientific_id = #{scientificId,jdbcType=CHAR},
+			</if>
+			<if test="groupTypeId != null">
+				group_type_id = #{groupTypeId,jdbcType=CHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="getSciGroupByProject" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select p.* from p_group_type p
+		join
+		p_scientific_group_map m on
+		p.id=m.group_type_id
+		join
+		p_scientific_research_type y on
+		y.id=m.scientific_id
+		join
+		p_project_scientific_map s on
+		m.scientific_id=s.scientific_id
+		where
+		s.project_id=#{0}
+	</select>
+</mapper>

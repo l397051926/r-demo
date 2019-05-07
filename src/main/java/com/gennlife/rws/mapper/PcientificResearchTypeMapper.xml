@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.PcientificResearchTypeMapper" >
+  <resultMap id="BaseResultMap" type="com.gennlife.rws.entity.PcientificResearchType" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="scientific_id" property="scientificId" jdbcType="VARCHAR" />
+    <result column="scientific_name" property="scientificName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, scientific_id, scientific_name
+  </sql>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select
+    <include refid="Base_Column_List" />
+    from p_scientific_research_type
+  </select>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from p_scientific_research_type
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from p_scientific_research_type
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.gennlife.rws.entity.PcientificResearchType" >
+    insert into p_scientific_research_type (id, scientific_id, scientific_name
+      )
+    values (#{id,jdbcType=INTEGER}, #{scientificId,jdbcType=VARCHAR}, #{scientificName,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.gennlife.rws.entity.PcientificResearchType" >
+    insert into p_scientific_research_type
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="scientificId != null" >
+        scientific_id,
+      </if>
+      <if test="scientificName != null" >
+        scientific_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="scientificId != null" >
+        #{scientificId,jdbcType=VARCHAR},
+      </if>
+      <if test="scientificName != null" >
+        #{scientificName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.gennlife.rws.entity.PcientificResearchType" >
+    update p_scientific_research_type
+    <set >
+      <if test="scientificId != null" >
+        scientific_id = #{scientificId,jdbcType=VARCHAR},
+      </if>
+      <if test="scientificName != null" >
+        scientific_name = #{scientificName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.gennlife.rws.entity.PcientificResearchType" >
+    update p_scientific_research_type
+    set scientific_id = #{scientificId,jdbcType=VARCHAR},
+      scientific_name = #{scientificName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

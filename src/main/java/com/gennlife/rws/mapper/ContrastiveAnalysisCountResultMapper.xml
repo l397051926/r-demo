@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ContrastiveAnalysisCountResultMapper" >
+  <resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ContrastiveAnalysisCountResult" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="active_index_id" property="activeIndexId" jdbcType="VARCHAR" />
+    <result column="col_name" property="colName" jdbcType="VARCHAR" />
+    <result column="col_value" property="colValue" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, active_index_id, col_name, col_value
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from p_contrastive_analysis_count_result
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from p_contrastive_analysis_count_result
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCountResult" >
+    insert into p_contrastive_analysis_count_result (id, active_index_id, col_name, 
+      col_value)
+    values (#{id,jdbcType=INTEGER}, #{activeIndexId,jdbcType=VARCHAR}, #{colName,jdbcType=VARCHAR}, 
+      #{colValue,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCountResult" >
+    insert into p_contrastive_analysis_count_result
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="activeIndexId != null" >
+        active_index_id,
+      </if>
+      <if test="colName != null" >
+        col_name,
+      </if>
+      <if test="colValue != null" >
+        col_value,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="activeIndexId != null" >
+        #{activeIndexId,jdbcType=VARCHAR},
+      </if>
+      <if test="colName != null" >
+        #{colName,jdbcType=VARCHAR},
+      </if>
+      <if test="colValue != null" >
+        #{colValue,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCountResult" >
+    update p_contrastive_analysis_count_result
+    <set >
+      <if test="activeIndexId != null" >
+        active_index_id = #{activeIndexId,jdbcType=VARCHAR},
+      </if>
+      <if test="colName != null" >
+        col_name = #{colName,jdbcType=VARCHAR},
+      </if>
+      <if test="colValue != null" >
+        col_value = #{colValue,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisCountResult" >
+    update p_contrastive_analysis_count_result
+    set active_index_id = #{activeIndexId,jdbcType=VARCHAR},
+      col_name = #{colName,jdbcType=VARCHAR},
+      col_value = #{colValue,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <select id="getResultByUidAndPro" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from p_contrastive_analysis_count_result
+    where active_index_id = #{activerIndexId,jdbcType=VARCHAR}
+  </select>
+</mapper>

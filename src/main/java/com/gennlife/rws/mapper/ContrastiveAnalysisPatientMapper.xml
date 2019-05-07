@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ContrastiveAnalysisPatientMapper">
+    <resultMap id="BaseResultMap" type="com.gennlife.rws.entity.ContrastiveAnalysisPatient">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="uid" property="uid" jdbcType="VARCHAR"/>
+        <result column="projectId" property="projectid" jdbcType="VARCHAR"/>
+        <result column="col_name" property="colName" jdbcType="VARCHAR"/>
+        <result column="col_value" property="colValue" jdbcType="VARCHAR"/>
+        <result column="create_id" property="createId" jdbcType="VARCHAR"/>
+        <result column="create_name" property="createName" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="row_num" property="rowNum" jdbcType="INTEGER"/>
+        <result column="col_id" property="colId" jdbcType="VARCHAR"/>
+        <result column="patient_sn" property="patientSn" jdbcType="VARCHAR"/>
+        <result column="group_id" property="groupId" jdbcType="VARCHAR"/>
+        <result column="group_name" property="groupName" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, uid, projectId, col_name, col_value, create_id, create_name, create_time, row_num ,col_id ,patient_sn,group_id,group_name
+  </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from p_contrastive_analysis_patient
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from p_contrastive_analysis_patient
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+    <insert id="insert" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisPatient">
+    insert into p_contrastive_analysis_patient (id, uid, projectId, 
+      col_name, col_value, create_id, 
+      create_name, create_time, row_num,col_id,patient_sn,group_id,group_name)
+    values (#{id,jdbcType=INTEGER}, #{uid,jdbcType=VARCHAR}, #{projectid,jdbcType=VARCHAR}, 
+      #{colName,jdbcType=VARCHAR}, #{colValue,jdbcType=VARCHAR}, #{createId,jdbcType=VARCHAR}, 
+      #{createName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{rwoNum,jdbcType=INTEGER}, #{colId,jdbcType=VARCHAR}), #{patientSn,jdbcType=VARCHAR}), #{groupId,jdbcType=VARCHAR}), #{groupName,jdbcType=VARCHAR})
+  </insert>
+    <insert id="insertSelective" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisPatient">
+        insert into p_contrastive_analysis_patient
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="uid != null">
+                uid,
+            </if>
+            <if test="projectid != null">
+                projectId,
+            </if>
+            <if test="colName != null">
+                col_name,
+            </if>
+            <if test="colValue != null">
+                col_value,
+            </if>
+            <if test="createId != null">
+                create_id,
+            </if>
+            <if test="createName != null">
+                create_name,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="rowNum != null">
+                row_num,
+            </if>
+            <if test="colId != null">
+                col_id,
+            </if>
+            <if test="patientSn != null">
+                patient_sn,
+            </if>
+            <if test="groupId != null">
+                group_id,
+            </if>
+            <if test="groupName != null">
+                group_name,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="uid != null">
+                #{uid,jdbcType=VARCHAR},
+            </if>
+            <if test="projectid != null">
+                #{projectid,jdbcType=VARCHAR},
+            </if>
+            <if test="colName != null">
+                #{colName,jdbcType=VARCHAR},
+            </if>
+            <if test="colValue != null">
+                #{colValue,jdbcType=VARCHAR},
+            </if>
+            <if test="createId != null">
+                #{createId,jdbcType=VARCHAR},
+            </if>
+            <if test="createName != null">
+                #{createName,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rowNum != null">
+                #{rowNum,jdbcType=TIMESTAMP},
+            </if>
+            <if test="colId != null">
+                #{colId,jdbcType=VARCHAR},
+            </if>
+            <if test="patientId != null">
+                #{patientId,jdbcType=VARCHAR},
+            </if>
+            <if test="groupId != null">
+                #{groupId,jdbcType=VARCHAR},
+            </if>
+            <if test="groupName != null">
+                #{groupName,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisPatient">
+        update p_contrastive_analysis_patient
+        <set>
+            <if test="uid != null">
+                uid = #{uid,jdbcType=VARCHAR},
+            </if>
+            <if test="projectid != null">
+                projectId = #{projectid,jdbcType=VARCHAR},
+            </if>
+            <if test="colName != null">
+                col_name = #{colName,jdbcType=VARCHAR},
+            </if>
+            <if test="colValue != null">
+                col_value = #{colValue,jdbcType=VARCHAR},
+            </if>
+            <if test="createId != null">
+                create_id = #{createId,jdbcType=VARCHAR},
+            </if>
+            <if test="createName != null">
+                create_name = #{createName,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rowNum != null">
+                row_num = #{rowNum,jdbcType=TIMESTAMP},
+            </if>
+            <if test="colId != null">
+                col_id = #{colId,jdbcType=VARCHAR},
+            </if>
+            <if test="patientSn != null">
+                patient_sn = #{patientSn,jdbcType=VARCHAR},
+            </if>
+            <if test="groupId != null">
+                group_id = #{groupId,jdbcType=VARCHAR},
+            </if>
+            <if test="groupName != null">
+                group_name = #{group_name,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.gennlife.rws.entity.ContrastiveAnalysisPatient">
+    update p_contrastive_analysis_patient
+    set uid = #{uid,jdbcType=VARCHAR},
+      projectId = #{projectid,jdbcType=VARCHAR},
+      col_name = #{colName,jdbcType=VARCHAR},
+      col_value = #{colValue,jdbcType=VARCHAR},
+      create_id = #{createId,jdbcType=VARCHAR},
+      create_name = #{createName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      row_num = #{rowNum,jdbcType=TIMESTAMP},
+      col_id = #{colId,jdbcType=TIMESTAMP},
+      patient_sn = #{patientSn,jdbcType=TIMESTAMP},
+      group_id = #{groupId,jdbcType=TIMESTAMP},
+      group_name = #{groupName,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+    <select id="getColNameByProjectId" resultType="java.lang.String" parameterType="java.lang.String" >
+        select
+        DISTINCT col_name
+        from p_contrastive_analysis_patient
+        where uid = #{uid,jdbcType=VARCHAR}
+        AND  projectId = #{projectId,jdbcType=VARCHAR}
+    </select>
+    <select id="getContrastiveByUidAndPro" resultMap="BaseResultMap" parameterType="java.lang.Object" >
+        select
+        <include refid="Base_Column_List"/>
+        from p_contrastive_analysis_patient
+        where uid = #{uid,jdbcType=VARCHAR}
+        AND  projectId = #{projectId,jdbcType=VARCHAR}
+        AND  row_num <![CDATA[ >= ]]> #{startNum,jdbcType=INTEGER}
+        AND  row_num <![CDATA[ < ]]> #{endNum,jdbcType=INTEGER}
+    </select>
+    <select id="getMaxRowNum" resultType="java.lang.Integer" parameterType="java.lang.String" >
+        select
+        max(row_num)
+        from p_contrastive_analysis_patient
+        where uid = #{uid,jdbcType=VARCHAR}
+        AND  projectId = #{projectId,jdbcType=VARCHAR}
+    </select>
+</mapper>

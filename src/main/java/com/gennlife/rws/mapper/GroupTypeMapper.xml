@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.GroupTypeMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.GroupType">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="group_type_id" property="groupTypeId" jdbcType="VARCHAR" />
+		<result column="group_type_name" property="groupTypeName"
+			jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, group_type_id, group_type_name
+	</sql>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_type
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from
+		p_group_type
+		where id = #{id,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.GroupType">
+		insert into p_group_type (id,
+		group_type_id, group_type_name
+		)
+		values (#{id,jdbcType=INTEGER},
+		#{groupTypeId,jdbcType=VARCHAR},
+		#{groupTypeName,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="insertSelective" parameterType="com.gennlife.rws.entity.GroupType">
+		insert into p_group_type
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="groupTypeId != null">
+				group_type_id,
+			</if>
+			<if test="groupTypeName != null">
+				group_type_name,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="groupTypeId != null">
+				#{groupTypeId,jdbcType=VARCHAR},
+			</if>
+			<if test="groupTypeName != null">
+				#{groupTypeName,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.gennlife.rws.entity.GroupType">
+		update p_group_type
+		<set>
+			<if test="groupTypeId != null">
+				group_type_id = #{groupTypeId,jdbcType=VARCHAR},
+			</if>
+			<if test="groupTypeName != null">
+				group_type_name = #{groupTypeName,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.gennlife.rws.entity.GroupType">
+		update
+		p_group_type
+		set group_type_id = #{groupTypeId,jdbcType=VARCHAR},
+		group_type_name = #{groupTypeName,jdbcType=VARCHAR}
+		where id =
+		#{id,jdbcType=INTEGER}
+	</update>
+
+	<select id="getGroupType" resultType="string" parameterType="java.lang.String">
+		select
+		group_type_id
+		from p_group_type
+		where group_type_name =
+		#{groupTypeName,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getGroupTypeList" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select p.* from p_group_type p
+		join
+		p_scientific_group_map m on
+		p.id=m.group_type_id
+		join
+		p_scientific_research_type y on
+		y.id=m.scientific_id
+		join
+		p_project_scientific_map s on
+		m.scientific_id=s.scientific_id
+		where
+		s.project_id=#{0}
+	</select>
+
+	<select id="getGroupTypeName" resultType="string" parameterType="java.lang.String">
+		select
+		group_type_name
+		from p_group_type
+		where group_type_id = #{groupTypeId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getGroupTypeNameByGroupId" resultType="string" parameterType="java.lang.String">
+		SELECT group_type_name
+		FROM `p_group_type`
+		 where group_type_id =
+		 (SELECT group_type_id from p_group where is_delete='0' and  group_id= #{groupId,jdbcType=VARCHAR} );
+	</select>
+
+</mapper>

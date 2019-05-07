@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.GroupDataMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.GroupData">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="group_id" property="groupId" jdbcType="VARCHAR" />
+		<result column="patient_sn" property="patientSn" jdbcType="VARCHAR" />
+		<result column="create_id" property="createId" jdbcType="VARCHAR" />
+		<result column="create_name" property="createName" jdbcType="VARCHAR" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="update_id" property="updateId" jdbcType="VARCHAR" />
+		<result column="update_name" property="updateName" jdbcType="VARCHAR" />
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="remove" property="remove" jdbcType="CHAR" />
+		<result column="patient_set_id" property="patientSetId"
+			jdbcType="VARCHAR" />
+		<result column="efhnic" property="efhnic" jdbcType="VARCHAR" />
+		<result column="nationality" property="nationality" jdbcType="VARCHAR" />
+		<result column="marital_status" property="maritalStatus"
+			jdbcType="VARCHAR" />
+		<result column="gender" property="gender" jdbcType="VARCHAR" />
+		<result column="group_name" property="groupName" jdbcType="VARCHAR" />
+		<result column="patient_doc_id" property="patientDocId" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="BaseAggregationMap" type="com.gennlife.rws.entity.GroupAggregation">
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="count" property="count" jdbcType="INTEGER" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		group_id, patient_sn, id, create_id, create_name,
+		create_time, update_id,
+		update_name,
+		update_time, remove,
+		patient_set_id,efhnic,nationality,marital_status,gender,patient_doc_id
+	</sql>
+	<sql id="Base_Group_Data_List">
+		d.group_id, d.patient_sn, d.id, d.create_id, d.create_name,
+		d.create_time, d.update_id,
+		d.update_name,
+		d.update_time, d.remove,
+		d.patient_set_id,d.efhnic,d.nationality,d.marital_status,d.gender,g.group_name,d.patient_doc_id
+	</sql>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="com.gennlife.rws.entity.GroupData">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where
+		group_id =
+		#{groupId,jdbcType=VARCHAR}
+		and
+		patient_sn =
+		#{patientSn,jdbcType=VARCHAR}
+	</select>
+
+	<insert id="batchInsert" parameterType="List">
+		insert ignore into p_group_data(
+		<include refid="Base_Column_List"></include>
+		)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(
+			#{item.groupId,jdbcType=VARCHAR},
+			#{item.patientSn,jdbcType=VARCHAR},
+			#{item.id,jdbcType=INTEGER},
+			#{item.createId,jdbcType=VARCHAR},
+			#{item.createName,jdbcType=VARCHAR},
+			#{item.createTime,jdbcType=TIMESTAMP},
+			#{item.updateId,jdbcType=VARCHAR},
+			#{item.updateName,jdbcType=VARCHAR},
+			#{item.updateTime,jdbcType=TIMESTAMP},
+			#{item.remove,jdbcType=CHAR},
+			#{item.patientSetId,jdbcType=VARCHAR},
+			#{item.efhnic,jdbcType=VARCHAR},
+			#{item.nationality,jdbcType=VARCHAR},
+			#{item.maritalStatus,jdbcType=VARCHAR},
+			#{item.gender,jdbcType=VARCHAR},
+			#{item.patientDocId,jdbcType=VARCHAR}
+			)
+		</foreach>
+	</insert>
+
+	<insert id="insert" parameterType="com.gennlife.rws.entity.GroupData">
+		insert ignore into p_group_data
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="groupId != null">
+				group_id,
+			</if>
+			<if test="patientSn != null">
+				patient_sn,
+			</if>
+			<if test="id != null">
+				id,
+			</if>
+			<if test="createId != null">
+				create_id,
+			</if>
+			<if test="createName != null">
+				create_name,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="updateId != null">
+				update_id,
+			</if>
+			<if test="updateName != null">
+				update_name,
+			</if>
+			<if test="updateTime != null">
+				update_time,
+			</if>
+			<if test="remove != null">
+				remove,
+			</if>
+			<if test="patientSetId != null">
+				patient_set_id,
+			</if>
+			<if test="efhnic != null">
+				efhnic,
+			</if>
+			<if test="nationality != null">
+				nationality,
+			</if>
+			<if test="maritalStatus != null">
+				marital_status,
+			</if>
+			<if test="gender != null">
+				gender,
+			</if>
+			<if test="patientDocId != null">
+				patient_doc_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="groupId != null">
+				#{groupId,jdbcType=VARCHAR},
+			</if>
+			<if test="patientSn != null">
+				#{patientSn,jdbcType=VARCHAR},
+			</if>
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="createId != null">
+				#{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				#{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				#{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				#{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				#{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="remove != null">
+				#{remove,jdbcType=CHAR},
+			</if>
+			<if test="patientSetId != null">
+				#{patientSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="efhnic != null">
+				#{efhnic,jdbcType=VARCHAR},
+			</if>
+			<if test="nationality != null">
+				#{nationality,jdbcType=VARCHAR},
+			</if>
+			<if test="maritalStatus != null">
+				#{maritalStatus,jdbcType=VARCHAR},
+			</if>
+			<if test="patientDocId != null">
+				#{patientDocId,jdbcType=VARCHAR},
+			</if>
+
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.GroupData">
+		update p_group_data
+		<set>
+			<if test="id != null">
+				id = #{id,jdbcType=INTEGER},
+			</if>
+			<if test="createId != null">
+				create_id = #{createId,jdbcType=VARCHAR},
+			</if>
+			<if test="createName != null">
+				create_name = #{createName,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null">
+				create_time = #{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="updateId != null">
+				update_id = #{updateId,jdbcType=VARCHAR},
+			</if>
+			<if test="updateName != null">
+				update_name = #{updateName,jdbcType=VARCHAR},
+			</if>
+			<if test="updateTime != null">
+				update_time = #{updateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="remove != null">
+				remove = #{remove,jdbcType=CHAR},
+			</if>
+			<if test="patientSetId != null">
+				patient_set_id = #{patientSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="efhnic != null">
+				efhnic = #{efhnic,jdbcType=VARCHAR},
+			</if>
+			<if test="nationality != null">
+				nationality = #{nationality,jdbcType=VARCHAR},
+			</if>
+			<if test="maritalStatus != null">
+				marital_status = #{maritalStatus,jdbcType=VARCHAR},
+			</if>
+			<if test="gender != null">
+				gender = #{gender,jdbcType=VARCHAR},
+			</if>
+			<if test="patientDocId != null">
+				patient_doc_id = #{patientDocId,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where group_id = #{groupId,jdbcType=VARCHAR}
+		and patient_sn =
+		#{patientSn,jdbcType=VARCHAR}
+	</update>
+
+
+
+
+	<update id="batchUpdate" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";">
+			update p_group_data
+			<set>
+				<if test="item.createId != null and item.createId != ''">
+					create_id = #{item.createId,jdbcType=VARCHAR},
+				</if>
+				<if test="item.createName != null and item.createName != ''">
+					create_name = #{item.createName,jdbcType=VARCHAR},
+				</if>
+				<if test="item.createTime != null">
+					create_time = #{item.createTime,jdbcType=TIMESTAMP},
+				</if>
+				<if test="item.updateId != null  and item.updateId != ''">
+					update_id = #{item.updateId,jdbcType=VARCHAR},
+				</if>
+				<if test="item.updateName != null and item.updateName != ''">
+					update_name = #{item.updateName,jdbcType=VARCHAR},
+				</if>
+				<if test="item.updateTime != null">
+					update_time = #{item.updateTime,jdbcType=TIMESTAMP},
+				</if>
+				<if test="item.remove != null  and item.remove != ''">
+					remove = #{item.remove,jdbcType=CHAR},
+				</if>
+				<if test="item.patientSetId != null">
+					patient_set_id = #{item.patientSetId,jdbcType=VARCHAR},
+				</if>
+				<if test="item.efhnic != null">
+					efhnic = #{item.efhnic,jdbcType=VARCHAR},
+				</if>
+				<if test="item.nationality != null">
+					nationality = #{item.nationality,jdbcType=VARCHAR},
+				</if>
+				<if test="item.maritalStatus != null">
+					marital_status = #{item.maritalStatus,jdbcType=VARCHAR},
+				</if>
+				<if test="item.gender != null">
+					gender = #{item.gender,jdbcType=VARCHAR},
+				</if>
+				<if test="item.patientDocId != null">
+					patient_doc_id = #{item.patientDocId,jdbcType=VARCHAR},
+				</if>
+
+			</set>
+			where group_id = #{item.groupId,jdbcType=VARCHAR}
+			and patient_sn =
+			#{item.patientSn,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+
+	<delete id="deleteByGroupId" parameterType="java.lang.String">
+		delete from
+		p_group_data
+		where group_id = #{groupId,jdbcType=VARCHAR}
+	</delete>
+
+	<delete id="deleteByPatientSetId" parameterType="java.lang.String">
+		delete from
+		p_group_data
+		where patient_set_id = #{patientSetId,jdbcType=VARCHAR}
+	</delete>
+
+	<select id="getPatientSnList" resultType="java.lang.String"
+		parameterType="java.lang.String">
+		select patient_sn from p_group_data where
+		remove='0' and
+		group_id=#{groupId};
+	</select>
+
+	<select id="findDataByKey" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data m
+		where 1=1
+		and m.group_id =
+		#{groupId}
+		and
+		m.patient_sn
+		=#{patientSn}
+	</select>
+
+	<select id="getByGroupId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where remove='0' and
+		group_id =
+		#{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+
+	<select id="getPatSetAggregation" resultMap="BaseAggregationMap"
+		parameterType="java.lang.Object">
+		SELECT
+		DISTINCT
+		<if test="gender != null">
+			gender
+		</if>
+		<if test="efhnic != null">
+			efhnic
+		</if>
+		<if test="maritalStatus != null">
+			marital_status
+		</if>
+		<if test="nationality != null">
+			nationality
+		</if>
+		AS name ,
+		COUNT(*) AS count
+		FROM `p_group_data`
+		where group_id =
+		#{groupId,jdbcType=VARCHAR} and remove='0'
+		GROUP BY
+		<if test="gender != null">
+			gender
+		</if>
+		<if test="efhnic != null">
+			efhnic
+		</if>
+		<if test="maritalStatus != null">
+			marital_status
+		</if>
+		<if test="nationality != null">
+			nationality
+		</if>
+	</select>
+
+	<select id="getPatSetAggregationCount" resultType="java.lang.Integer"
+		parameterType="java.lang.Object">
+		select
+		COUNT(*)
+		from p_group_data
+		where group_id =
+		#{groupId,jdbcType=VARCHAR} and remove='0'
+	</select>
+
+	<select id="getByGroupIdLimit" resultMap="BaseResultMap"
+		parameterType="java.lang.Object">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where
+		group_id =
+		#{groupId,jdbcType=VARCHAR}
+		<if test="operType != null">
+			and remove= #{operType,jdbcType=CHAR}
+		</if>
+		ORDER BY patient_sn DESC
+		limit
+		#{pageNum,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+	</select>
+
+	<select id="getPatSetNameByPatientSn" resultType="java.lang.String"
+		parameterType="java.lang.Object">
+		SELECT pat.patients_set_name
+		FROM `p_group_data` g RIGHT
+		JOIN p_patients_set pat
+		on g.patient_set_id=pat.patients_set_id
+		where
+		g.patient_sn=#{patientSn,jdbcType=VARCHAR}
+		AND
+		g.group_id=#{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getByPatientSetId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where remove='0' and
+		patient_set_id =
+		#{patientSetId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getPatSetCountByGroupIdAndOperType" resultType="java.lang.Integer"
+		parameterType="java.lang.Object">
+		select
+		COUNT(*)
+		from p_group_data
+		where
+		group_id = #{groupId,jdbcType=VARCHAR}
+		AND(
+		remove= #{operType,jdbcType=CHAR}
+		<if test="operType == 0 and willRecoverPatientList != null and willRecoverPatientList.size>0 ">
+			OR
+			patient_sn IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverPatientList">
+				#{item}
+			</foreach>
+		</if>
+		<if test="operType == 1 and willRemovePatientList != null and willRemovePatientList.size>0 ">
+			OR
+			patient_sn IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRemovePatientList">
+				#{item}
+			</foreach>
+		</if>
+		)
+		<if test="operType == 0 and willRemovePatientList != null and willRemovePatientList.size>0 ">
+            AND
+			patient_sn NOT IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRemovePatientList">
+				#{item}
+			</foreach>
+		</if>
+		<if test="operType == 1 and willRecoverPatientList != null and willRecoverPatientList.size>0 ">
+            AND
+			patient_sn NOT IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverPatientList">
+				#{item}
+			</foreach>
+		</if>
+	</select>
+
+	<update id="allUpdate" parameterType="java.lang.String">
+		update p_group_data p set
+		p.`remove`='0'
+		where p.`remove`='1'
+		and
+		p.group_id=#{groupId,jdbcType=VARCHAR}
+	</update>
+
+	<select id="getByGroupIdLimitByRemove" resultMap="BaseResultMap"  parameterType="java.lang.Object">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where
+		group_id = #{groupId,jdbcType=VARCHAR}
+		AND(
+		remove= #{operType,jdbcType=CHAR}
+		<if test="operType == 0 and willRecoverPatientList != null and willRecoverPatientList.size>0 ">
+			OR
+			patient_sn IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverPatientList">
+				#{item}
+			</foreach>
+		</if>
+		<if test="operType == 1 and willRemovePatientList != null and willRemovePatientList.size>0 ">
+			OR
+			patient_sn IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRemovePatientList">
+				#{item}
+			</foreach>
+		</if>
+		)
+		<if test="operType == 0 and willRemovePatientList != null and willRemovePatientList.size>0 ">
+            AND
+			patient_sn NOT IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRemovePatientList">
+				#{item}
+			</foreach>
+		</if>
+		<if test="operType == 1 and willRecoverPatientList != null and willRecoverPatientList.size>0 ">
+            AND
+			patient_sn NOT IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverPatientList">
+				#{item}
+			</foreach>
+		</if>
+		ORDER BY patient_sn DESC
+		limit
+		#{pageNum,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+	</select>
+
+	<select id="getByGroupIdLimitByAll" resultMap="BaseResultMap"  parameterType="java.lang.Object">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where
+		group_id = #{groupId,jdbcType=VARCHAR}
+		AND(
+		 remove= #{operType,jdbcType=CHAR}
+		<if test="operType == 0 and willRecoverPatientList != null and willRecoverPatientList.size>0 ">
+			OR
+			patient_sn IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverPatientList">
+				#{item}
+			</foreach>
+		</if>
+		<if test="operType == 1 and willRemovePatientList != null and willRemovePatientList.size>0 ">
+			OR
+			patient_sn IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRemovePatientList">
+				#{item}
+			</foreach>
+		</if>
+		)
+		<if test="operType == 0 and willRemovePatientList != null and willRemovePatientList.size>0 ">
+			AND
+			patient_sn NOT IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRemovePatientList">
+				#{item}
+			</foreach>
+		</if>
+		<if test="operType == 1 and willRecoverPatientList != null and willRecoverPatientList.size>0 ">
+            AND
+			patient_sn NOT IN
+			<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverPatientList">
+				#{item}
+			</foreach>
+		</if>
+		ORDER BY patient_sn DESC
+	</select>
+
+	<select id="getPatientSnByGroupIds"  resultMap="BaseResultMap"  parameterType="java.lang.String">
+		select
+		<include refid="Base_Group_Data_List" />
+		FROM
+		    `p_group_data` d
+		JOIN
+		    p_group g
+		ON
+		    d.group_id = g.group_id
+		where
+		    d.remove='0' and d.group_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverGroupIds">
+			#{item}
+		</foreach>
+		limit
+		#{startNum,jdbcType=INTEGER},#{endNum,jdbcType=INTEGER}
+	</select>
+
+
+	<select id="getPatSetCountBygroupIds" resultType="java.lang.Integer"
+			parameterType="java.lang.Object">
+		select
+		count(*)
+		FROM
+		`p_group_data` d
+		JOIN
+		p_group g
+		ON
+		d.group_id = g.group_id
+		where
+		d.remove='0' and d.group_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverGroupIds">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="getPatientSnByPatientSetId" resultType="java.lang.String"
+			parameterType="java.lang.String">
+		select patient_sn from p_group_data where
+		patient_set_id=#{patientsSetId};
+
+	</select>
+
+
+	<delete id="deleteByPatSn" parameterType="java.lang.String">
+		delete from
+		p_group_data
+		where group_id = #{groupId,jdbcType=VARCHAR} and binary patient_doc_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="patSns">
+			#{item}
+		</foreach>
+	</delete>
+
+	<select id="getByGroupParentId" resultMap="BaseResultMap"
+			parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data
+		where
+		group_id = ( SELECT group_parent_id from p_group where group_id = #{groupId,jdbcType=VARCHAR})
+		AND remove=1
+
+	</select>
+
+	<select id="getPatientSnListByRemove" resultType="java.lang.String" parameterType="java.lang.String">
+		select patient_sn from p_group_data where
+		group_id = #{groupId,jdbcType=VARCHAR}
+		and remove=1
+
+	</select>
+
+	<select id="getPatientDocId" resultType="java.lang.String" parameterType="java.lang.String">
+		select patient_doc_id from p_group_data where
+		group_id = #{groupId,jdbcType=VARCHAR}
+		and remove=0
+
+	</select>
+
+	<select id="getBrotherPatSns" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT
+			patient_sn
+		FROM
+			`p_group_data`
+		WHERE
+			group_id IN (
+				SELECT
+					group_id
+				FROM
+					`p_group`
+				WHERE
+					group_parent_id = (
+						SELECT
+							group_parent_id
+						FROM
+							p_group
+						WHERE
+							group_id = #{groupId,jdbcType=VARCHAR}
+						)
+				AND group_id != #{groupId,jdbcType=VARCHAR}
+				And is_delete = 0
+		);
+
+	</select>
+
+	<select id="getAllPatientSnList" resultType="java.lang.String"
+			parameterType="java.lang.String">
+		select patient_sn from p_group_data where
+		group_id=#{groupId};
+
+	</select>
+
+	<select id="getPatientSnListAndDocId" resultMap="BaseResultMap"
+			parameterType="java.lang.String">
+		select patient_sn,patient_doc_id from p_group_data where
+		group_id=#{groupId};
+
+	</select>
+
+	<select id="getPatientSnListByGroupIds"  resultType="java.lang.String" parameterType="java.lang.String">
+		select
+		patient_sn
+		FROM
+		`p_group_data`
+		where
+		remove='0' and group_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="groupList">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="getGroupDataByPatientSns" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group_data where
+		patient_sn in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="patSns">
+			#{item}
+		</foreach>
+
+	</select>
+
+	<select id="getGroupName" resultType="java.lang.String" parameterType="java.lang.Object">
+		select group_name from p_group where
+		group_id=#{groupId};
+	</select>
+
+	<select id="getPatientDocIdsByPatientSns" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+		DISTINCT patient_doc_id
+		from p_group_data where
+		patient_sn in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="patSns">
+			#{item}
+		</foreach>
+
+	</select>
+
+	<select id="getPatientSnListsByGroupIds" resultType="java.lang.String" parameterType="java.lang.Object">
+		select
+		patient_sn
+		FROM
+		`p_group_data`
+		where
+		remove='0' and group_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="willRecoverGroupIds">
+			#{item}
+		</foreach>
+	</select>
+
+</mapper>

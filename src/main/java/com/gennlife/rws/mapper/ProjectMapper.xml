@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.ProjectMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.Project">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="project_id" property="projectId" jdbcType="VARCHAR" />
+		<result column="project_name" property="projectName" jdbcType="VARCHAR" />
+		<result column="start_time" property="startTime" jdbcType="TIMESTAMP" />
+		<result column="end_time" property="endTime" jdbcType="TIMESTAMP" />
+		<result column="head_id" property="headId" jdbcType="VARCHAR" />
+		<result column="head_name" property="headName" jdbcType="VARCHAR" />
+		<result column="cooper_is" property="cooperIs" jdbcType="CHAR" />
+		<result column="cooper_id" property="cooperId" jdbcType="VARCHAR" />
+		<result column="cooper_name" property="cooperName" jdbcType="VARCHAR" />
+		<result column="cooper_head_id" property="cooperHeadId"
+			jdbcType="VARCHAR" />
+		<result column="cooper_head_name" property="cooperHeadName"
+			jdbcType="VARCHAR" />
+		<result column="is_delete" property="isDelete" jdbcType="CHAR" />
+		<result column="creator_id" property="creatorId" jdbcType="VARCHAR" />
+		<result column="creator_name" property="creatorName" jdbcType="VARCHAR" />
+		<result column="creator_time" property="creatorTime" jdbcType="TIMESTAMP" />
+		<result column="modify_id" property="modifyId" jdbcType="VARCHAR" />
+		<result column="modify_name" property="modifyName" jdbcType="VARCHAR" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="data_source" property="dataSource" jdbcType="VARCHAR" />
+		<result column="crf_id" property="crfId" jdbcType="VARCHAR" />
+		<result column="projectdesc" property="projectdesc" jdbcType="LONGVARCHAR" />
+		<result column="scientific_id" property="scientificId"
+			jdbcType="VARCHAR" />
+		<result column="scientific_name" property="scientificName"
+			jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, project_id, project_name, start_time, end_time,
+		head_id, head_name,
+		cooper_is,
+		cooper_id, cooper_name, cooper_head_id,
+		cooper_head_name, is_delete, creator_id,
+		creator_name, creator_time,
+		modify_id, modify_name, modify_time,
+		data_source, crf_id
+	</sql>
+	<sql id="Blob_Column_List">
+		projectdesc
+	</sql>
+	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_project
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.Project">
+		insert into p_project
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="projectId != null">
+				project_id,
+			</if>
+			<if test="projectName != null">
+				project_name,
+			</if>
+			<if test="startTime != null">
+				start_time,
+			</if>
+			<if test="endTime != null">
+				end_time,
+			</if>
+			<if test="headId != null">
+				head_id,
+			</if>
+			<if test="headName != null">
+				head_name,
+			</if>
+			<if test="cooperIs != null">
+				cooper_is,
+			</if>
+			<if test="cooperId != null">
+				cooper_id,
+			</if>
+			<if test="cooperName != null">
+				cooper_name,
+			</if>
+			<if test="cooperHeadId != null">
+				cooper_head_id,
+			</if>
+			<if test="cooperHeadName != null">
+				cooper_head_name,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+			<if test="creatorId != null">
+				creator_id,
+			</if>
+			<if test="creatorName != null">
+				creator_name,
+			</if>
+			<if test="creatorTime != null">
+				creator_time,
+			</if>
+			<if test="modifyId != null">
+				modify_id,
+			</if>
+			<if test="modifyName != null">
+				modify_name,
+			</if>
+			<if test="modifyTime != null">
+				modify_time,
+			</if>
+			<if test="dataSource != null">
+				data_source,
+			</if>
+			<if test="crfId != null">
+				crf_id,
+			</if>
+			<if test="projectdesc != null">
+				projectdesc,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="projectId != null">
+				#{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectName != null">
+				#{projectName,jdbcType=VARCHAR},
+			</if>
+			<if test="startTime != null">
+				#{startTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="endTime != null">
+				#{endTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="headId != null">
+				#{headId,jdbcType=VARCHAR},
+			</if>
+			<if test="headName != null">
+				#{headName,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperIs != null">
+				#{cooperIs,jdbcType=CHAR},
+			</if>
+			<if test="cooperId != null">
+				#{cooperId,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperName != null">
+				#{cooperName,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperHeadId != null">
+				#{cooperHeadId,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperHeadName != null">
+				#{cooperHeadName,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="creatorId != null">
+				#{creatorId,jdbcType=VARCHAR},
+			</if>
+			<if test="creatorName != null">
+				#{creatorName,jdbcType=VARCHAR},
+			</if>
+			<if test="creatorTime != null">
+				#{creatorTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyId != null">
+				#{modifyId,jdbcType=VARCHAR},
+			</if>
+			<if test="modifyName != null">
+				#{modifyName,jdbcType=VARCHAR},
+			</if>
+			<if test="modifyTime != null">
+				#{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="dataSource != null">
+				#{dataSource,jdbcType=VARCHAR},
+			</if>
+			<if test="crfId != null">
+				#{crfId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectdesc != null">
+				#{projectdesc,jdbcType=LONGVARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateById" parameterType="com.gennlife.rws.entity.Project">
+		update p_project
+		<set>
+			<if test="projectId != null">
+				project_id = #{projectId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectName != null">
+				project_name = #{projectName,jdbcType=VARCHAR},
+			</if>
+			<if test="startTime != null">
+				start_time = #{startTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="endTime != null">
+				end_time = #{endTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="headId != null">
+				head_id = #{headId,jdbcType=VARCHAR},
+			</if>
+			<if test="headName != null">
+				head_name = #{headName,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperIs != null">
+				cooper_is = #{cooperIs,jdbcType=CHAR},
+			</if>
+			<if test="cooperId != null">
+				cooper_id = #{cooperId,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperName != null">
+				cooper_name = #{cooperName,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperHeadId != null">
+				cooper_head_id = #{cooperHeadId,jdbcType=VARCHAR},
+			</if>
+			<if test="cooperHeadName != null">
+				cooper_head_name = #{cooperHeadName,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				is_delete = #{isDelete,jdbcType=CHAR},
+			</if>
+			<if test="creatorId != null">
+				creator_id = #{creatorId,jdbcType=VARCHAR},
+			</if>
+			<if test="creatorName != null">
+				creator_name = #{creatorName,jdbcType=VARCHAR},
+			</if>
+			<if test="creatorTime != null">
+				creator_time = #{creatorTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="modifyId != null">
+				modify_id = #{modifyId,jdbcType=VARCHAR},
+			</if>
+			<if test="modifyName != null">
+				modify_name = #{modifyName,jdbcType=VARCHAR},
+			</if>
+			<if test="modifyTime != null">
+				modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="dataSource != null">
+				data_source = #{dataSource,jdbcType=VARCHAR},
+			</if>
+			<if test="crfId != null">
+				crf_id = #{crfId,jdbcType=VARCHAR},
+			</if>
+			<if test="projectdesc != null">
+				projectdesc = #{projectdesc,jdbcType=LONGVARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<sql id="Base_Column_Scient_List">
+		select p.*,y.scientific_id,y.scientific_name from p_project
+		p inner join
+		p_project_scientific_map m
+		on p.project_id=m.project_id
+		inner join
+		p_scientific_research_type y
+		on
+		m.scientific_id=y.scientific_id
+	</sql>
+
+	<select id="selectByProjectId" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		<include refid="Base_Column_Scient_List" />
+		where
+		p.is_delete='0'
+		and p.project_id =
+		#{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getProjectList" resultMap="BaseResultMap"
+		parameterType="java.util.Map">
+		<include refid="Base_Column_Scient_List" />
+        INNER JOIN p_project_user_map umap
+        ON p.project_id = umap.project_id
+        <if test="uid !=null and uid !=''">
+            and umap.uid = #{uid}
+        </if>
+        where
+		p.is_delete='0'
+		<if test="uid !=null and uid !=''">
+			 and ( p.creator_id = #{uid} OR umap.uid = #{uid} )
+		</if>
+		order by creator_time desc
+	</select>
+	<!-- 后期改造直接拿这个用就可以 in (SELECT project_id FROM `p_project_user_map` where 
+		uid = #{uid,jdbcType=VARCHAR} / -->
+	<select id="getProjectByUid" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		<include refid="Base_Column_Scient_List" />
+		where
+		p.is_delete='0'
+		AND p.creator_id =
+		#{uid,jdbcType=VARCHAR}
+	</select>
+
+	<update id="saveDatasource" parameterType="java.lang.String">
+		UPDATE p_project
+		<set>
+		data_source = #{dataSource,jdbcType=VARCHAR},
+		crf_id =#{crfId,jdbcType=VARCHAR}
+		</set>
+		WHERE project_id
+		=#{projectId,jdbcType=VARCHAR}
+	</update>
+
+	<select id="getCooperIsByProjectId" resultType="java.lang.String"
+		parameterType="java.lang.String">
+		select cooper_is
+		FROM `p_project`
+		where
+		is_delete='0'
+		AND
+		project_id
+		=#{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="chengName" resultType="java.lang.Integer"
+		parameterType="java.util.Map">
+		select COUNT(*) from
+		<if test="type != null and type=='001'">
+			p_project p where p.project_name=#{name} AND p.creator_id=#{uid} AND is_delete='0'
+		</if>
+		<if test="type != null and type=='002'">
+			p_patients_set p where p.patients_set_name=#{name} AND p.project_id=#{projectId} AND is_delete='0'
+		</if>
+		<if test="type != null and type=='003'">
+			p_group where group_name=#{name}  AND project_id=#{projectId} AND is_delete='0'
+		</if>
+
+	</select>
+
+	<select id="selectCountByProjectId" resultType="java.lang.Integer"
+			parameterType="java.util.Map">
+		select COUNT(*) FROM `p_project`
+		where
+		is_delete='0'
+		AND
+		project_id = #{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getProjectNameByProjectId" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+		project_name
+		from p_project
+		where project_id=#{projectId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getProjectAttribute" resultMap="BaseResultMap" parameterType="java.lang.Object">
+		<include refid="Base_Column_Scient_List" />
+		where
+		1=1
+		<if test="userId != null and userId !='' ">
+			AND p.creator_id=#{userId}
+		</if>
+		<if test="proIds != null and proIds.size > 0 ">
+			AND  p.project_id IN
+			<foreach collection="proIds" item="item" index="index" close=")" open="(" separator="," >
+				#{item}
+			</foreach>
+		</if>
+		<if test="projectName != null and projectName != '' ">
+			AND p.project_name like concat('%',#{projectName},'%')
+		</if>
+	</select>
+
+	<select id="getCountByProjectIdAndProjectName" resultType="java.lang.Integer"
+			parameterType="java.util.Map">
+		select COUNT(*) FROM `p_project`
+		where
+		is_delete='0'
+		AND
+		project_id = #{projectId,jdbcType=VARCHAR} and project_name=#{projectName,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getCreateIdByTaskId" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT pro.creator_id
+		FROM `p_project` pro
+		join p_input_task task
+		on pro.project_id=task.project_id
+		where task.input_id=#{taskId,jdbcType=VARCHAR}
+	</select>
+
+</mapper>
