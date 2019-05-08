@@ -7,7 +7,7 @@
           <element id="module-output" name="rws-service" />
         </element>
         <element id="directory" name="lib">
-          <element id="file-copy" path="$MAVEN_REPOSITORY$/com/gennlife/darren-library/1.0-SNAPSHOT/darren-library-1.0-20190507.080246-13.jar" output-file-name="darren-library-1.0-SNAPSHOT.jar" />
+          <element id="file-copy" path="$MAVEN_REPOSITORY$/com/gennlife/darren-library/1.0-SNAPSHOT/darren-library-1.0-20190507.103159-19.jar" output-file-name="darren-library-1.0-SNAPSHOT.jar" />
           <element id="library" level="project" name="Maven: org.mybatis.spring.boot:mybatis-spring-boot-starter:1.3.1" />
           <element id="library" level="project" name="Maven: org.springframework.boot:spring-boot-starter:1.5.8.RELEASE" />
           <element id="library" level="project" name="Maven: org.springframework.boot:spring-boot-starter-logging:1.5.8.RELEASE" />

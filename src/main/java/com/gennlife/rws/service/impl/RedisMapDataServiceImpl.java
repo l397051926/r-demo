@@ -23,7 +23,7 @@ import java.util.Set;
  */
 @Service
 public class RedisMapDataServiceImpl implements RedisMapDataService{
-    private Logger LOG = LoggerFactory.getLogger(RetryServiceImpl.class);
+    private Logger LOG = LoggerFactory.getLogger(RedisMapDataServiceImpl.class);
     @Autowired
     private JedisClusterFactory jedisClusters;
 

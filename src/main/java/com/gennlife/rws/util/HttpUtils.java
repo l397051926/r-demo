@@ -42,10 +42,7 @@ public class HttpUtils {
     private String esServiceUrl;
     @Value("${download.pageSize:50}")
     private Integer pageSize;
-    @Value("${download.totalSize:10000}")
-    private Integer totalSize;
-    @Value("${packaging.service.url}")
-    private String packagingServiceUrl;
+
     @Value("${es.esSearchUql}")
     private String esSearchUql;
     @Value("${es.buildIndex}")
@@ -319,18 +316,6 @@ public class HttpUtils {
         this.pageSize = pageSize;
     }
 
-    public Integer getTotalSize() {
-        return totalSize;
-    }
-
-    public void setTotalSize(Integer totalSize) {
-        this.totalSize = totalSize;
-    }
-
-    public String getPackagingServiceUrl() {
-        return packagingServiceUrl;
-    }
-
     public String getEsSearchUql() {
         return esSearchUql;
     }
@@ -345,10 +330,6 @@ public class HttpUtils {
 
     public void setBuildIndex(String buildIndex) {
         this.buildIndex = buildIndex;
-    }
-
-    public void setPackagingServiceUrl(String packagingServiceUrl) {
-        this.packagingServiceUrl = packagingServiceUrl;
     }
 
     public String getEsExceport() {

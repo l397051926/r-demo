@@ -31,8 +31,6 @@ public class ActiveIndexTaskServiceImpl implements ActiveIndexTaskService {
     private static Logger LOG = LoggerFactory.getLogger(ActiveIndexTaskServiceImpl.class);
     @Autowired
     private ActiveIndexTaskMapper taskMapper;
-    @Value("${waiteTaskComplateTime:1}")
-    private Integer waiteTaskComplateTime;
 
     @Override
     public List<ActiveIndexTask> getTaskByActiveIdsAndStatus(List<String> list) {
