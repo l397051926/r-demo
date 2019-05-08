@@ -131,6 +131,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         inputTask.setStartTime(new Date());
         inputTask.setStatus(InputStratus.IN_QUEUE);
         inputTask.setUpdateTime(new Date());
+        inputTask.setRemainTime(null);
         inputTaskMapper.updateInputTask(inputTask);
 
 

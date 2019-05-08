@@ -284,9 +284,6 @@
 		<include refid="Base_Column_Scient_List" />
         INNER JOIN p_project_user_map umap
         ON p.project_id = umap.project_id
-        <if test="uid !=null and uid !=''">
-            and umap.uid = #{uid}
-        </if>
         where
 		p.is_delete='0'
 		<if test="uid !=null and uid !=''">
