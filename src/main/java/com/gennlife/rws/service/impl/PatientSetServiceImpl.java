@@ -75,13 +75,14 @@ public class PatientSetServiceImpl implements PatientSetService {
 			Integer isFlush = patientsSet.getIsFlush() == null ? 0 : patientsSet.getIsFlush(); //1 是刷新并置为0 0是不刷新
 			if(isFlush != null && isFlush==0){
 				continue;
-			}else {
+			}
+			long count =getPatientSqlCount(patientSetId,projectId,crfId);
+			if(count >0){
 				patientsSetMapper.updateIsFlush(--isFlush,patientSetId);
 			}
 			//自动更新下面组的筛选功能
 			SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
 				try {
-					long count =getPatientSqlCount(patientSetId,projectId,crfId);
 					patientsSet.setPatientsCount(count);
 					patientsSetMapper.updatePatientsCountByPateintSetId(patientSetId,count);
 					flushCountGroup(patientSetId,projectId,crfId);
