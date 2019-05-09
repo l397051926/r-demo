@@ -9,6 +9,8 @@ import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.AjaxObject;
 import com.gennlife.rws.util.StringUtils;
 import com.gennlife.rws.vo.CustomerStatusEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,7 @@ import java.util.List;
 @RequestMapping("/rws/patientGroup")
 public class PatientGroupController {
 
+	private static final Logger LOG = LoggerFactory.getLogger(PatientGroupController.class);
 	@Autowired
 	private PatientGroupService patGroupService;
 	@Autowired
@@ -152,6 +155,7 @@ public class PatientGroupController {
 			ajaxObject.setData(data);
 			return ajaxObject;
 		} catch (Exception e) {
+			LOG.error(e.getMessage());
 			ajaxObject = new AjaxObject(CustomerStatusEnum.UNKONW_ERROR.getCode(), e.getMessage());
 			return ajaxObject;
 		}
