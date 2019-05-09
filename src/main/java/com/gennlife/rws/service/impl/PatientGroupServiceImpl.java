@@ -850,6 +850,10 @@ public class PatientGroupServiceImpl implements PatientGroupService {
             // groupId, createId, createName);
 //            List<Patient> listPatients = getPatentByMongo(patientSetId, isExport);
             List<Patient> listPatients = searchByuqlService.getpatentByUql(patientSetId,isExport,projectId,crfId);
+            if(listPatients.size() == 0){
+                LOG.error("存入患者分组数据0人，不符合实际功能");
+                throw new CustomerException(CustomerStatusEnum.SUCCESS.toString(), "存入患者分组数据0人，不符合实际功能");
+            }
             contCount = contCount + listPatients.size();
             for (int j = 0; j < listPatients.size(); j++) {
                 Patient patient = listPatients.get(j);
