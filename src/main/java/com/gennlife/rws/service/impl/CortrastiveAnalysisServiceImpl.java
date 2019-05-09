@@ -112,6 +112,12 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             ajaxObject.setCount(0);
             return ajaxObject;
         }
+        if(groupList==null || groupList.size()==0){
+            AjaxObject ajaxObject =  new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"分组没有数据，无法计算");
+            ajaxObject.setData(new JSONArray());
+            ajaxObject.setCount(0);
+            return ajaxObject;
+        }
         //增加父及id
         Set<String> set = saveParentConditionList(groupConditionList,groupList);
         for (GroupCondition groupCondition : groupConditionList) {
