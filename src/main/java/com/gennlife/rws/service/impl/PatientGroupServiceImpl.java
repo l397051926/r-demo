@@ -839,18 +839,12 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         for (int i = 0; i < arr.size(); i++) {
             String patientSetId = arr.getJSONObject(i).getString("patientSetId");
             String patientSetName = arr.getJSONObject(i).getString("patientSetName");
-            patientsSetMapper.updateIsFlush(1,patientSetId);
+            patientsSetMapper.updateIsFlush(3,patientSetId);
             if (StringUtils.isNotEmpty(patients)){
                 patients = patients + "," + patientSetName;
             }else {
                 patients = patientSetName;
             }
-
-            // 保存分组和患者集关系
-            GroupPatientData gpData = new GroupPatientData();
-            gpData.setGroupId(groupId);
-            gpData.setPatientSetId(patientSetId);
-            groupPatDataMapper.insert(gpData);
             // 获取患者集合 根据患者集ID查询患者集合
             // List<String> listPatients = getPatientFrouMongo(patientSetId,
             // groupId, createId, createName);
@@ -877,6 +871,11 @@ public class PatientGroupServiceImpl implements PatientGroupService {
                 groupData.setUpdateTime(new Date());
                 listdata.add(groupData);
             }
+            // 保存分组和患者集关系
+            GroupPatientData gpData = new GroupPatientData();
+            gpData.setGroupId(groupId);
+            gpData.setPatientSetId(patientSetId);
+            groupPatDataMapper.insert(gpData);
         }
         list.add(listdata);
         for (List<GroupData> li : list){
