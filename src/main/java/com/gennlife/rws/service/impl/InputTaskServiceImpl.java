@@ -252,6 +252,16 @@ public class InputTaskServiceImpl implements InputTaskService {
         buildIndexRws.setUid(createId);
 
         String result = httpUtils.buildIndexRws(buildIndexRws);
+        JSONObject object = JSONObject.parseObject(result);
+        Integer status = object.getInteger("status");
+        int num = 3;
+        while (status == 500 && num >0 ){
+             result = httpUtils.buildIndexRws(buildIndexRws);
+             object = JSONObject.parseObject(result);
+             status = object.getInteger("status");
+            LOGGER.info("taskId: "+taskId +" 取消任务失败 返回结果："+result + "重试第"+num+"次");
+            num --;
+        }
         LOGGER.info("taskId: "+taskId +" 取消任务成功 返回结果："+result);
     }
 
