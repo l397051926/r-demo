@@ -267,7 +267,7 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
         status = #{status,jdbcType=INTEGER}
     </set>
-    where input_id = #{inputId,jdbcType=VARCHAR}
+    where input_id = #{inputId,jdbcType=VARCHAR} AND(status =3 OR status = 2)
   </update>
 
   <select id="judgeInputTaskStatus" resultType="java.lang.Integer"  parameterType="java.lang.String">
