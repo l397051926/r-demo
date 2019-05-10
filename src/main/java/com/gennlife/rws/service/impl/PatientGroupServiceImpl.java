@@ -11,6 +11,7 @@ import com.gennlife.exception.CustomerStatusEnum;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
+import com.gennlife.rws.exception.SaveGroupAndPatientException;
 import com.gennlife.rws.query.UqlQureyResult;
 import com.gennlife.rws.service.ActiveIndexService;
 import com.gennlife.rws.service.ModuleConvertService;
@@ -828,7 +829,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         String patientsSetId = arr.getJSONObject(0).getString("patientSetId");
         int count = groupPatDataMapper.getPatSetAndGroutId(groupId, patientsSetId);
         if (count > 0) {
-            throw new CustomerException(CustomerStatusEnum.SUCCESS.toString(), "不能重复导入患者集");
+            throw new SaveGroupAndPatientException("1", "不能重复导入患者集");
         }
         String patients = "";
         List<List<GroupData>> list = new ArrayList<>();

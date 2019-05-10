@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.ActiveIndex;
 import com.gennlife.rws.entity.Group;
 import com.gennlife.rws.entity.GroupType;
+import com.gennlife.rws.exception.SaveGroupAndPatientException;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.AjaxObject;
 import com.gennlife.rws.util.StringUtils;
@@ -153,6 +154,9 @@ public class PatientGroupController {
 			data.put("groupId",object.getString("groupId"));
 			data.put("repetitionCount",count);
 			ajaxObject.setData(data);
+			return ajaxObject;
+		} catch (SaveGroupAndPatientException e1){
+			ajaxObject = new AjaxObject(300, e1.getMessage());
 			return ajaxObject;
 		} catch (Exception e) {
 			e.printStackTrace();
