@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.Pair;
 import com.gennlife.darren.collection.keypath.KeyPath;
+import com.gennlife.exception.CustomerException;
+import com.gennlife.exception.CustomerStatusEnum;
 import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.content.UqlConfig;
@@ -876,7 +878,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         JSONArray hits = UqlQureyResult.getHitsArray(jsonData);
         int size = hits ==null ? 0 :hits.size();
         for (int i = 0; i < size; i++) {
-            JSONObject sourceObj = hits.getJSONObject(i).getJSONObject("_source");
+            JSONObject tmpObj = hits.getJSONObject(i);
+            if(tmpObj == null ){
+                throw new CustomerException(CustomerStatusEnum.SUCCESS.toString(), "数据异常，操作失败，请重试");
+            }
+            JSONObject sourceObj = tmpObj.getJSONObject("_source");
 //            JSONObject patientInfo = sourceObj.getJSONArray(IndexContent.getPatientInfo(crfId)).getJSONObject(0);
             JSONObject patientInfo  = IndexContent.getPatientInfoObj(sourceObj,crfId);
             String patientSn = patientInfo.getString("PATIENT_SN");
