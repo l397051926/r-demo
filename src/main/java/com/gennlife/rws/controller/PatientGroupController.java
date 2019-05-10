@@ -155,7 +155,7 @@ public class PatientGroupController {
 			ajaxObject.setData(data);
 			return ajaxObject;
 		} catch (Exception e) {
-			LOG.error(e.getMessage());
+			e.printStackTrace();
 			ajaxObject = new AjaxObject(CustomerStatusEnum.UNKONW_ERROR.getCode(), e.getMessage());
 			return ajaxObject;
 		}
