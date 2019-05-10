@@ -75,14 +75,14 @@ public class ProducerService {
     public void romoveProMember(String uid, String creatorName, String projectName) {
         JSONObject msgObj = new JSONObject()
             .fluentPut("user_id", uid)
-            .fluentPut("msg", addProjectMsg(creatorName + "将你从" + projectName + "项目中移除"));
+            .fluentPut("msg", addProjectMsg(creatorName + "将你从“" + projectName + "”项目中移除"));
         send(rocketMqContent.getTopicPro(), rocketMqContent.getRemoveProUserTag(), msgObj.toJSONString());
     }
 
     public void sendAddProMember(String uid, String creatorName, String projectName, String projectId) {
         JSONObject msgObj = new JSONObject()
             .fluentPut("user_id", uid)
-            .fluentPut("msg", addProjectMsg(creatorName + "将你加入到" + projectName + "项目"))
+            .fluentPut("msg", addProjectMsg(creatorName + "将你加入到“" + projectName + "”项目"))
             .fluentPut("project_id", projectId);
         //发送一条消息到 rocketmq
         send(rocketMqContent.getTopicPro(), rocketMqContent.getAddProUserTag(), msgObj.toJSONString());
