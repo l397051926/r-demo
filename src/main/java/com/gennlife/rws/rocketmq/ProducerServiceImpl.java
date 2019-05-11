@@ -24,6 +24,7 @@ public class ProducerServiceImpl implements ProducerService{
 
     @PostConstruct
     public void initProducer() {
+        LOGGER.info("rocketmaqcontent"+ rocketMqContent.getProducerGroup()+rocketMqContent.getNamesrvAddr()+rocketMqContent.getNamesrvAddr());
         producer = new DefaultMQProducer(rocketMqContent.getProducerGroup());
         producer.setNamesrvAddr(rocketMqContent.getNamesrvAddr());
         producer.setRetryTimesWhenSendFailed(3);
