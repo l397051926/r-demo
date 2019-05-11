@@ -14,8 +14,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 @Service
-public class ProducerServiceInmpl implements ProducerService{
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProducerServiceInmpl.class);
+public class ProducerServiceImpl implements ProducerService{
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProducerServiceImpl.class);
 
     @Autowired
     private RocketMqContent rocketMqContent;
