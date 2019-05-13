@@ -32,6 +32,7 @@ public class ProducerServiceImpl implements ProducerService{
             producer.start();
             System.out.println("[Producer 已启动]");
         } catch (Exception e) {
+            LOGGER.error("prducer  ---------  启动失败");
             e.printStackTrace();
         }
     }

@@ -103,6 +103,7 @@ public class ProjectConsumer {
             consumer.start();
             System.out.println("[Consumer 已启动]");
         } catch (Exception e) {
+            LOGGER.error("Consumer ---------------------启动失败  ");
             e.printStackTrace();
         }
     }
