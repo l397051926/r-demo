@@ -1,9 +1,8 @@
 package com.gennlife.rws.content;
 
 import com.alibaba.fastjson.JSONObject;
-import com.gennlife.rws.entity.Project;
 import com.gennlife.rws.util.StringUtils;
-import org.apache.kafka.clients.producer.ProducerRecord;
+
 
 import static com.gennlife.rws.query.BuildIndexCrf.PROJECT_INDEX_NAME_PREFIX;
 

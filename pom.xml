@@ -38,10 +38,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.kafka</groupId>
-			<artifactId>spring-kafka</artifactId>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.springframework.kafka</groupId>-->
+			<!--<artifactId>spring-kafka</artifactId>-->
+		<!--</dependency>-->
 		<!-- https://mvnrepository.com/artifact/RedisLabs/spark-redis -->
 		<dependency>
 			<groupId>RedisLabs</groupId>
@@ -189,6 +189,16 @@
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-common</artifactId>
 			<version>4.3.2</version>
+			<exclusions>
+				<exclusion>
+						<groupId>com.alibaba</groupId>
+						<artifactId>fastjson</artifactId>
+				</exclusion>
+				<exclusion>
+						<groupId>io.netty</groupId>
+						<artifactId>netty-all</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 
@@ -197,13 +207,19 @@
 			<groupId>org.apache.rocketmq</groupId>
 			<artifactId>rocketmq-client</artifactId>
 			<version>4.3.2</version>
+			<exclusions>
+				<exclusion>
+						<groupId>org.apache.commons</groupId>
+						<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-all</artifactId>
-			<version>4.1.32.Final</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>io.netty</groupId>-->
+			<!--<artifactId>netty-all</artifactId>-->
+			<!--<version>4.1.32.Final</version>-->
+		<!--</dependency>-->
 
 	</dependencies>
 
