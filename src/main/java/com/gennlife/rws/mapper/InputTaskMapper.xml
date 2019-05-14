@@ -332,4 +332,11 @@
     (status =3 OR status = 2)
   </select>
 
+  <update id="updateInputTaskRemainTime" parameterType="com.gennlife.rws.entity.InputTask" >
+    UPDATE p_input_task
+    <set>
+      remain_time = #{remainTime,jdbcType=INTEGER},
+    </set>
+    where input_id = #{inputId,jdbcType=VARCHAR}
+  </update>
 </mapper>

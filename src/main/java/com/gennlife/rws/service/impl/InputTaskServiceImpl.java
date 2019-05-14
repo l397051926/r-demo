@@ -72,7 +72,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         for (InputTask inputTask : inputTasks){
             if(InputStratus.FAILURE == inputTask.getStatus() && inputTask.getRemainTime() != null && inputTask.getRemainTime() !=0){
                 inputTask.setRemainTime(null);
-                inputTaskMapper.updateinputCancelDate(inputTask);
+                inputTaskMapper.updateInputTaskRemainTime(inputTask);
             }
         }
         Integer total = inputTaskMapper.getInputTasksTotal(uid,projectName,patientSetName,status);

@@ -47,4 +47,6 @@ public interface InputTaskMapper {
     List<String> getInputIdsByProjectId(String projectId);
 
     Integer getWorkTaskByProjectId(String projectId);
+
+    void updateInputTaskRemainTime(InputTask inputTask);
 }
