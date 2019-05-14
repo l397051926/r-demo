@@ -21,6 +21,7 @@ import com.gennlife.rws.util.AjaxObject;
 import com.gennlife.rws.util.HttpUtils;
 import com.gennlife.rws.util.StringUtils;
 import com.gennlife.rws.util.TransPatientSql;
+import com.google.gson.JsonArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,8 +139,6 @@ public class DownLoadServiceImpl implements DownLoadService {
         if( count >maxMember){
             return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"导出数据超过 "+ maxMember + "人， 无法导出数据") ;
         }
-        esJSon.put("size",Integer.MAX_VALUE-1);
-        String value = httpUtils.httpPost( JSON.toJSONString(esJSon),esServiceUrl);
         //曾经的人数
         Integer allCount = patientsSetMapper.getSumCount(projectId) == null ? 0 :  patientsSetMapper.getSumCount(projectId);
         Integer runTaskSumCount = inputTaskMapper.getRunTaskSumCountByProjcetId(projectId);
@@ -146,12 +146,44 @@ public class DownLoadServiceImpl implements DownLoadService {
         if(allCount +runTaskSumCount + count >maxMember){
             return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"导出数据超过 "+ maxMember + "人， 无法导出数据") ;
         }
-        Set<String> allPats = new KeyPath("hits", "hits", "_id")
-            .fuzzyResolve(JSON.parseObject(value))
-            .stream()
-            .map(String.class::cast)
-            .collect(toSet());
-        whereQuery = String.join("|",allPats);
+        Set<String> tmpPats = new HashSet<>();
+        long stime = System.currentTimeMillis();
+        {
+            esJSon.put("size",5000);
+            String value = httpUtils.httpPost(JSON.toJSONString(esJSon),esServiceUrl);
+            JSONObject obj = JSONObject.parseObject(value);
+            String scroll_id = obj.getString("_scroll_id");
+            Set<String> allPats = new KeyPath("hits", "hits", "_id")
+                .fuzzyResolve(JSON.parseObject(value))
+                .stream()
+                .map(String.class::cast)
+                .collect(toSet());
+            tmpPats.addAll(allPats);
+            while (true){
+                JSONObject tmeEsonJson = new JSONObject().fluentPut("indexName",esJSon.getString("indexName")).fluentPut("_scroll_id",scroll_id).fluentPut("_time_out",60*1000*60);
+                String tmpValue = httpUtils.httpPost(JSON.toJSONString(tmeEsonJson),esServiceUrl);
+                JSONObject tmpObj = JSONObject.parseObject(value);
+                scroll_id = tmpObj.getString("_scroll_id");
+                Set<String> tmpAllPats = new KeyPath("hits", "hits", "_id")
+                    .fuzzyResolve(JSON.parseObject(tmpValue))
+                    .stream()
+                    .map(String.class::cast)
+                    .collect(toSet());
+                if(tmpAllPats.size() == 0){
+                    break;
+                }
+                tmpPats.addAll(tmpAllPats);
+            }
+        }
+//        esJSon.put("size",Integer.MAX_VALUE-1);
+//        String value = httpUtils.httpPost( JSON.toJSONString(esJSon),esServiceUrl);
+//        Set<String> allPats = new KeyPath("hits", "hits", "_id")
+//            .fuzzyResolve(JSON.parseObject(value))
+//            .stream()
+//            .map(String.class::cast)
+//            .collect(toSet());
+        LOG.info("search time: "+(System.currentTimeMillis()-stime));
+        whereQuery = String.join("|",tmpPats);
         if(StringUtils.isNotEmpty(where)){
             whereQuery= where+"|"+whereQuery;
         }
