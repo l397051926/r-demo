@@ -69,6 +69,12 @@ public class InputTaskServiceImpl implements InputTaskService {
         Integer startNum = (page-1)*size;
         Integer endNum = size;
         List<InputTask> inputTasks = inputTaskMapper.getInputTasks(uid,projectName,patientSetName,status,startNum,endNum);
+        for (InputTask inputTask : inputTasks){
+            if(InputStratus.FAILURE == inputTask.getStatus() && inputTask.getRemainTime() != null && inputTask.getRemainTime() !=0){
+                inputTask.setRemainTime(null);
+                inputTaskMapper.updateinputCancelDate(inputTask);
+            }
+        }
         Integer total = inputTaskMapper.getInputTasksTotal(uid,projectName,patientSetName,status);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
         ajaxObject.setData(inputTasks);
