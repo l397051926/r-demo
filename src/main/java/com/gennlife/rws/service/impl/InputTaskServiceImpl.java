@@ -74,6 +74,20 @@ public class InputTaskServiceImpl implements InputTaskService {
                 inputTask.setRemainTime(null);
                 inputTaskMapper.updateInputTaskRemainTime(inputTask);
             }
+            if(InputStratus.UNDER_WAY == inputTask.getStatus() || InputStratus.IN_QUEUE == inputTask.getStatus()){
+                String projectId = inputTask.getProjectId();
+                String patientSetId = inputTask.getPatientSetId();
+                Integer proCount = projectMapper.selectCountByProjectId(projectId);
+                Integer patSetCount = patientsSetMapper.getPatientSetCount(patientSetId);
+                if( proCount == null || proCount <= 0 ||  patSetCount == null || patSetCount <=0){
+                    inputTask.setRemainTime(null);
+                    inputTask.setFinishTime(new Date(0));
+                    inputTask.setStatus(InputStratus.FAILURE);
+                    inputTask.setUpdateTime(new Date());
+                    inputTaskMapper.updateinputCancelDate(inputTask);
+                }
+
+            }
         }
         Integer total = inputTaskMapper.getInputTasksTotal(uid,projectName,patientSetName,status);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
