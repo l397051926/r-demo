@@ -10,6 +10,7 @@ import com.gennlife.rws.dao.InputTaskMapper;
 import com.gennlife.rws.dao.PatientsSetMapper;
 import com.gennlife.rws.entity.ActiveIndex;
 import com.gennlife.rws.entity.Project;
+import com.gennlife.rws.exception.DownLoadSystemException;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.*;
 import io.swagger.annotations.Api;
@@ -122,6 +123,9 @@ public class PreLiminaryController {
             object = downLoadService. sysBuildIndex(downLoadService,patientSetId,esJSon,crfId,createId,createName,patientName,projectId,uqlQuery,projectName,crfName);
 
             LOG.info("传给检索服务的条件为{}",esJSon.toJSONString());
+        } catch (DownLoadSystemException e){
+            object = new AjaxObject(300, e.getMessage());
+            return object;
         } catch (Exception e) {
             object.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
             object.setMessage("导出数据时发生异常，异常信息为："+e.getMessage());

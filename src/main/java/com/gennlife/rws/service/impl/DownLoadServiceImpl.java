@@ -13,6 +13,7 @@ import com.gennlife.rws.dao.ActiveIndexTaskMapper;
 import com.gennlife.rws.dao.InputTaskMapper;
 import com.gennlife.rws.dao.PatientsSetMapper;
 import com.gennlife.rws.entity.ActiveIndexTask;
+import com.gennlife.rws.exception.DownLoadSystemException;
 import com.gennlife.rws.query.BuildIndexRws;
 import com.gennlife.rws.query.UqlQureyResult;
 import com.gennlife.rws.service.DownLoadService;
@@ -110,7 +111,12 @@ public class DownLoadServiceImpl implements DownLoadService {
         buildIndexRws.setAction(0);
         buildIndexRws.setUid(createId);
         String result = httpUtils.buildIndexRws(buildIndexRws);
-        return JSONObject.parseObject(result).getString("buildIndexID");
+        JSONObject resuObj = JSONObject.parseObject(result);
+        if(resuObj == null){
+            LOG.error("导出数据 请求 buildIndex 返回 参数 为："+result);
+            throw new DownLoadSystemException("300","导出数据 ");
+        }
+        return resuObj.getString("buildIndexID");
     }
 
     @Override
