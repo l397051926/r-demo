@@ -185,9 +185,9 @@ public class InputTaskServiceImpl implements InputTaskService {
             if(CortrastiveCache.getDelProjectOrPatientSetTaskSet().contains(taskId)){
                 continue;
             }
+            updateCencelDate(taskId);
             CortrastiveCache.getDelProjectOrPatientSetTaskSet().add(taskId);
             SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,userId));
-            updateCencelDate(taskId);
             Integer sum = patientsSetMapper.getSumCount(projectId);
             if(sum == null || sum == 0){
                 projectMapper.saveDatasource(projectId,"","");
@@ -205,6 +205,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         inputTask.setStatus(InputStratus.FAILURE);
         inputTask.setUpdateTime(new Date());
         inputTaskMapper.updateinputCancelDate(inputTask);
+        LOGGER.info("删除数据成功 ： taskid："+ taskId);
     }
 
     @Override
