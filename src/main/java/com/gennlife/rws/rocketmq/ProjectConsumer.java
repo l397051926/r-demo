@@ -11,11 +11,13 @@ import com.gennlife.rws.dao.SearchLogMapper;
 import com.gennlife.rws.entity.InputTask;
 import com.gennlife.rws.entity.PatientsSet;
 import com.gennlife.rws.entity.SearchLog;
+import com.gennlife.rws.query.BuildIndexRws;
 import com.gennlife.rws.service.InputTaskService;
 import com.gennlife.rws.service.PatientSetService;
 import com.gennlife.rws.service.RedisMapDataService;
 import com.gennlife.rws.service.SearchLogService;
 import com.gennlife.rws.util.GzipUtil;
+import com.gennlife.rws.util.HttpUtils;
 import com.gennlife.rws.util.LogUtil;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -60,6 +62,8 @@ public class ProjectConsumer {
     private SearchLogService searchLogService;
     @Autowired
     private ProjectMapper projectMapper;
+    @Autowired
+    private HttpUtils httpUtils;
 
     @PostConstruct
     public void defaultMQPushConsumer() {
@@ -126,7 +130,16 @@ public class ProjectConsumer {
                 return;
             }
             //如果已经是 失败 或者完成的任务 不在进行更新
-            if(task.getStatus() == InputStratus.FAILURE || task.getStatus() == InputStratus.FINISH ){
+            if(task.getStatus() == InputStratus.FAILURE ){
+//                BuildIndexRws buildIndexRws =  new BuildIndexRws();
+//                buildIndexRws.setBuildIndexID(taskId);
+//                buildIndexRws.setAction(2);
+//                buildIndexRws.setUid(userId);
+//                String result = httpUtils.buildIndexRws(buildIndexRws);
+//                LOGGER.info("取消任务 取消任务结果: "+result);
+                return;
+            }
+            if(task.getStatus() == InputStratus.FINISH ){
                 return;
             }
             InputTask inputTask = new InputTask(taskId,createTime,startTime,finishTime,status,progress,remainTime);
