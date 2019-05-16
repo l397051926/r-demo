@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 
@@ -178,7 +177,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         if(inputTask == null ){
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"任务id不存在");
         }
-        SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,createId));
+        SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,createId,inputTask.getProjectId(),inputTask.getCrfId(),false));
         Integer sum = patientsSetMapper.getSumCount(inputTask.getProjectId());
         if(sum == null || sum == 0){
             projectMapper.saveDatasource(inputTask.getProjectId(),"","");
@@ -201,19 +200,19 @@ public class InputTaskServiceImpl implements InputTaskService {
 
 
     @Override
-    public void cencelInputTasksOnDelPatSet(String patientsSetId,String userId,String projectId,String projectName) {
+    public void cencelInputTasksOnDelPatSet(String patientsSetId, String userId, String projectId, String projectName, String crfId) {
         List<String> taskIds  = inputTaskMapper.getInputIdsByPatientSetId(patientsSetId);
-        cencelInputTasks(userId, projectId, projectName, taskIds);
+        cencelInputTasks(userId, projectId, projectName, taskIds,crfId,false);
     }
 
-    private void cencelInputTasks(String userId, String projectId, String projectName, List<String> taskIds) {
+    private void cencelInputTasks(String userId, String projectId, String projectName, List<String> taskIds,String crfId,boolean isDeleteProject) {
         for (String taskId :taskIds){
             if(CortrastiveCache.getDelProjectOrPatientSetTaskSet().contains(taskId)){
                 continue;
             }
             updateCencelStatus(taskId,InputStratus.CANCEL);
             CortrastiveCache.getDelProjectOrPatientSetTaskSet().add(taskId);
-            SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,userId));
+            SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,userId, projectId,crfId,isDeleteProject));
             Integer sum = patientsSetMapper.getSumCount(projectId);
             if(sum == null || sum == 0){
                 projectMapper.saveDatasource(projectId,"","");
@@ -262,9 +261,9 @@ public class InputTaskServiceImpl implements InputTaskService {
     }
 
     @Override
-    public void cencelInputTasksOnDelProject(String userId, String projectId, String projectName) {
+    public void cencelInputTasksOnDelProject(String userId, String projectId, String projectName, String crfId) {
         List<String> taskIds  = inputTaskMapper.getInputIdsByProjectId(projectId);
-        cencelInputTasks(userId, projectId, projectName, taskIds);
+        cencelInputTasks(userId, projectId, projectName, taskIds,crfId,true);
     }
 
     @Override
@@ -277,7 +276,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         return new JSONObject().fluentPut("status",200).fluentPut("message","操作成功");
     }
 
-    private void cencelInputTaskByTaskId(String taskId,String createId) {
+    private void cencelInputTaskByTaskId(String taskId, String createId, String projectId, String crfId,Boolean isDeleteProject) {
 
         BuildIndexRws buildIndexRws =  new BuildIndexRws();
         buildIndexRws.setBuildIndexID(taskId);
@@ -297,6 +296,20 @@ public class InputTaskServiceImpl implements InputTaskService {
         }
         updateCencelDate(taskId);
         LOGGER.info("taskId: "+taskId +" 取消任务成功 返回结果："+result);
+
+        Integer inputCenterCount = inputTaskMapper.getCountByProjectIdAndStatus(projectId,InputStratus.CANCEL);
+        if(inputCenterCount > 0) {
+            return;
+        }
+        if(isDeleteProject){
+            projectService.deleteProjectIndex(projectId,crfId);
+        }else {
+            //判定患者集 如果总数为0 则删除 索引
+            Integer allCount = patientsSetMapper.getSumCount(projectId);
+            if(allCount != null && allCount==0){
+                projectService.deleteProjectIndex(projectId,crfId);
+            }
+        }
     }
 
 }

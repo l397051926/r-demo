@@ -14,13 +14,13 @@ public interface InputTaskService {
 
     AjaxObject cencelInputTasks(JSONObject object);
 
-    void cencelInputTasksOnDelPatSet(String patientsSetId,String userId,String projectId,String projectName);
+    void cencelInputTasksOnDelPatSet(String patientsSetId, String userId, String projectId, String projectName, String crfId);
 
     void updateCencelDate(String taskId);
 
     Object judgeInputTaskStatus(JSONObject object);
 
-    void cencelInputTasksOnDelProject(String userId, String projectId, String projectName);
+    void cencelInputTasksOnDelProject(String userId, String projectId, String projectName, String crfId);
 
     Object decideInputs(JSONObject object);
 }

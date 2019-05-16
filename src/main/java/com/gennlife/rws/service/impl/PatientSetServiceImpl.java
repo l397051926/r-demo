@@ -182,15 +182,9 @@ public class PatientSetServiceImpl implements PatientSetService {
 			String content = createName + "删除了患者集： " + patSet.getPatientsSetName();
 			logUtil.saveLog(patSet.getProjectId(), content, createId, createName);
 
-			//判定患者集 如果总数为0 则删除 索引
-			Integer allCount = patientsSetMapper.getSumCount(projectId);
-			if(allCount != null && allCount==0){
-				projectService.deleteProjectIndex(projectId,crfId);
-			}
-
 			//患者集删除 任务进行失败更改
 			if(StringUtils.isNotEmpty(projectId) && StringUtils.isNotEmpty(patientsSetId) && StringUtils.isNotEmpty(createId)){
-				inputTaskService.cencelInputTasksOnDelPatSet(patientsSetId,createId,projectId,projectName);
+				inputTaskService.cencelInputTasksOnDelPatSet(patientsSetId,createId,projectId,projectName,crfId);
 			}
 
 		}

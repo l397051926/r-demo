@@ -339,4 +339,15 @@
     </set>
     where input_id = #{inputId,jdbcType=VARCHAR}
   </update>
+
+
+  <select id="getCountByProjectIdAndStatus" resultType="java.lang.Integer"  parameterType="java.lang.String">
+    select
+    count(*)
+    from p_input_task
+    where
+    project_id = #{projectId,jdbcType=VARCHAR}
+    AND
+    status = #{status,jdbcType=INTEGER}
+  </select>
 </mapper>
