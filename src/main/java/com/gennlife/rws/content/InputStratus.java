@@ -7,5 +7,6 @@ public class InputStratus {
     public static final Integer FAILURE = 4;    //失败
     public static final Integer FINISH = 5;     //完成
     public static final Integer EXPIRED = 6;        //过期
+    public static final Integer CANCEL = 7;        //取消中
 
 }

@@ -183,10 +183,22 @@ public class InputTaskServiceImpl implements InputTaskService {
         if(sum == null || sum == 0){
             projectMapper.saveDatasource(inputTask.getProjectId(),"","");
         }
-        updateCencelDate(taskId);
+        updateCencelStatus(taskId,InputStratus.CANCEL);
         producerService.sendProExportField(createId,taskId,inputTask.getProjectId(),projectName);
         return new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
     }
+
+    private void updateCencelStatus(String taskId, Integer cancel) {
+        InputTask inputTask = new InputTask();
+        inputTask.setInputId(taskId);
+        inputTask.setRemainTime(null);
+        inputTask.setFinishTime(new Date(0));
+        inputTask.setStatus(cancel);
+        inputTask.setUpdateTime(new Date());
+        inputTaskMapper.updateinputCancelDate(inputTask);
+        LOGGER.info("取消任务i中。。。 ： taskid："+ taskId);
+    }
+
 
     @Override
     public void cencelInputTasksOnDelPatSet(String patientsSetId,String userId,String projectId,String projectName) {
@@ -199,7 +211,7 @@ public class InputTaskServiceImpl implements InputTaskService {
             if(CortrastiveCache.getDelProjectOrPatientSetTaskSet().contains(taskId)){
                 continue;
             }
-            updateCencelDate(taskId);
+            updateCencelStatus(taskId,InputStratus.CANCEL);
             CortrastiveCache.getDelProjectOrPatientSetTaskSet().add(taskId);
             SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,userId));
             Integer sum = patientsSetMapper.getSumCount(projectId);
@@ -283,6 +295,7 @@ public class InputTaskServiceImpl implements InputTaskService {
             LOGGER.info("taskId: "+taskId +" 取消任务失败 返回结果："+result + "重试第"+num+"次");
             num --;
         }
+        updateCencelDate(taskId);
         LOGGER.info("taskId: "+taskId +" 取消任务成功 返回结果："+result);
     }
 

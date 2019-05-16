@@ -130,7 +130,7 @@ public class ProjectConsumer {
                 return;
             }
             //如果已经是 失败 或者完成的任务 不在进行更新
-            if(task.getStatus() == InputStratus.FAILURE ){
+            if(task.getStatus() == InputStratus.FAILURE  ){
 //                BuildIndexRws buildIndexRws =  new BuildIndexRws();
 //                buildIndexRws.setBuildIndexID(taskId);
 //                buildIndexRws.setAction(2);
@@ -139,7 +139,7 @@ public class ProjectConsumer {
 //                LOGGER.info("接受消息 再次 发送取消任务申请  ---  取消任务 取消任务结果: "+result);
                 return;
             }
-            if(task.getStatus() == InputStratus.FINISH ){
+            if(task.getStatus() == InputStratus.FINISH  || task.getStatus() == InputStratus.CANCEL){
                 return;
             }
             InputTask inputTask = new InputTask(taskId,createTime,startTime,finishTime,status,progress,remainTime);
