@@ -154,7 +154,7 @@ public class ProjectServiceImpl implements ProjectService {
 		JSONObject paramObj = new JSONObject();
 		paramObj.put("indexName",indexName);
 		String result = httpUtils.deleteIndex(paramObj.toJSONString());
-		LOG.info("删除索引结果： "+ result);
+		LOG.info("删除索引结果： "+ result +"projectId : "+ projectId);
 	}
 
 	@Override
