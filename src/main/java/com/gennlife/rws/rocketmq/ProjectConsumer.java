@@ -131,12 +131,12 @@ public class ProjectConsumer {
             }
             //如果已经是 失败 或者完成的任务 不在进行更新
             if(task.getStatus() == InputStratus.FAILURE ){
-//                BuildIndexRws buildIndexRws =  new BuildIndexRws();
-//                buildIndexRws.setBuildIndexID(taskId);
-//                buildIndexRws.setAction(2);
-//                buildIndexRws.setUid(userId);
-//                String result = httpUtils.buildIndexRws(buildIndexRws);
-//                LOGGER.info("取消任务 取消任务结果: "+result);
+                BuildIndexRws buildIndexRws =  new BuildIndexRws();
+                buildIndexRws.setBuildIndexID(taskId);
+                buildIndexRws.setAction(2);
+                buildIndexRws.setUid(userId);
+                String result = httpUtils.buildIndexRws(buildIndexRws);
+                LOGGER.info("接受消息 再次 发送取消任务申请  ---  取消任务 取消任务结果: "+result);
                 return;
             }
             if(task.getStatus() == InputStratus.FINISH ){
