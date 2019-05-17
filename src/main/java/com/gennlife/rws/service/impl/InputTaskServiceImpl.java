@@ -177,13 +177,13 @@ public class InputTaskServiceImpl implements InputTaskService {
         if(inputTask == null ){
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"任务id不存在");
         }
-        SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,createId,inputTask.getProjectId(),inputTask.getCrfId(),false));
         Integer sum = patientsSetMapper.getSumCount(inputTask.getProjectId());
         if(sum == null || sum == 0){
             projectMapper.saveDatasource(inputTask.getProjectId(),"","");
         }
         updateCencelStatus(taskId,InputStratus.CANCEL);
         producerService.sendProExportField(createId,taskId,inputTask.getProjectId(),projectName);
+        SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,createId,inputTask.getProjectId(),inputTask.getCrfId(),false));
         return new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
     }
 
@@ -212,12 +212,12 @@ public class InputTaskServiceImpl implements InputTaskService {
             }
             updateCencelStatus(taskId,InputStratus.CANCEL);
             CortrastiveCache.getDelProjectOrPatientSetTaskSet().add(taskId);
-            SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,userId, projectId,crfId,isDeleteProject));
             Integer sum = patientsSetMapper.getSumCount(projectId);
             if(sum == null || sum == 0){
                 projectMapper.saveDatasource(projectId,"","");
             }
             producerService.sendProExportField(userId,taskId,projectId,projectName);
+            SingleExecutorService.getInstance().getCenterTaskeExecutor().submit(() -> cencelInputTaskByTaskId(taskId,userId, projectId,crfId,isDeleteProject));
         }
     }
 
@@ -298,6 +298,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         LOGGER.info("taskId: "+taskId +" 取消任务成功 返回结果："+result);
 
         Integer inputCenterCount = inputTaskMapper.getCountByProjectIdAndStatus(projectId,InputStratus.CANCEL);
+        LOGGER.info("此时正在 取消中的任务 数量 为 "+ inputCenterCount);
         if(inputCenterCount > 0) {
             return;
         }
@@ -310,6 +311,7 @@ public class InputTaskServiceImpl implements InputTaskService {
                 projectService.deleteProjectIndex(projectId,crfId);
             }
         }
+        LOGGER.info("取消任务完成 taskid：" + taskId );
     }
 
 }
