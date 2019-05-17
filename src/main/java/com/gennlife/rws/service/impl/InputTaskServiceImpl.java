@@ -1,5 +1,6 @@
 package com.gennlife.rws.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.catche.CortrastiveCache;
 import com.gennlife.rws.content.InputStratus;
@@ -284,18 +285,23 @@ public class InputTaskServiceImpl implements InputTaskService {
         buildIndexRws.setUid(createId);
 
         String result = httpUtils.buildIndexRws(buildIndexRws);
-        JSONObject object = JSONObject.parseObject(result);
-        Integer status = object.getInteger("status");
-        int num = 3;
-        while (status == 500 && num >0 ){
-             result = httpUtils.buildIndexRws(buildIndexRws);
-             object = JSONObject.parseObject(result);
-             status = object.getInteger("status");
-            LOGGER.info("taskId: "+taskId +" 取消任务失败 返回结果："+result + "重试第"+num+"次");
-            num --;
+        try {
+            JSONObject object = JSONObject.parseObject(result);
+            Integer status = object.getInteger("status");
+            int num = 3;
+            while (status == 500 && num >0 ){
+                result = httpUtils.buildIndexRws(buildIndexRws);
+                object = JSONObject.parseObject(result);
+                status = object.getInteger("status");
+                LOGGER.info("taskId: "+taskId +" 取消任务失败 返回结果："+result + "重试第"+num+"次");
+                num --;
+            }
+            updateCencelDate(taskId);
+            LOGGER.info("taskId: "+taskId +" 取消任务成功 返回结果："+result);
+        }catch (Exception e){
+            updateCencelDate(taskId);
+            LOGGER.error("taskId: "+taskId +" 取消任务异常 但仍修改任务状态 返回结果："+result);
         }
-        updateCencelDate(taskId);
-        LOGGER.info("taskId: "+taskId +" 取消任务成功 返回结果："+result);
 
         Integer inputCenterCount = inputTaskMapper.getCountByProjectIdAndStatus(projectId,InputStratus.CANCEL);
         LOGGER.info("此时正在 取消中的任务 数量 为 "+ inputCenterCount);

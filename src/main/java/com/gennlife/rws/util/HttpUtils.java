@@ -59,9 +59,9 @@ public class HttpUtils {
     private String esSearchUqlCompress;
 
     private RequestConfig requestConfig = RequestConfig.custom()
-            .setSocketTimeout(500000)
-            .setConnectTimeout(500000)
-            .setConnectionRequestTimeout(500000)
+            .setSocketTimeout(30*60*1000)
+            .setConnectTimeout(30*60*1000)
+            .setConnectionRequestTimeout(30*60*1000)
             .build();
     public HttpUtils(){}
 
