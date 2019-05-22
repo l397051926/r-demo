@@ -427,4 +427,16 @@ id, project_id, active_index_id,
 		where active_index_id like '%_tmp' limit 200
 	</delete>
 
+	<select id="getGroupIdsByActiveId" resultType="java.lang.String" parameterType="java.lang.String">
+		select
+		group_id
+		FROM p_active_sql_map
+		where active_index_id = #{activeId,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteByIndexId" parameterType="java.lang.String" >
+		delete from p_active_sql_map
+		where active_index_id = #{activeId,jdbcType=VARCHAR}
+	</delete>
+
 </mapper>

@@ -1084,10 +1084,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         int count = activeSqlMapMapper.getCountByActiveIndexId(R_activeIndexId,groupToId);
         Long mysqlStartTime = System.currentTimeMillis();
         if (count > 0) {
-            activeSqlMapMapper.updateByActiveId(activeSqlMap);
-        } else {
-            activeSqlMapMapper.insert(activeSqlMap);
+            activeSqlMapMapper.deleteByIndexId(R_activeIndexId);
         }
+        activeSqlMapMapper.insert(activeSqlMap);
         LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
         /*引用依赖计算*/
 //        getReferenceActiveIndex(id,resultOrderKey);
@@ -1187,10 +1186,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             Long mysqlStartTime = System.currentTimeMillis();
             Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(R_activeIndexId, indexResultValue,groupToId);
             if (count > 0) {
-                activeSqlMapMapper.updateByActiveIdAndIndexValue(activeSqlMap);
-            } else {
-                activeSqlMapMapper.insert(activeSqlMap);
+                activeSqlMapMapper.deleteByIndexId(R_activeIndexId);
             }
+            activeSqlMapMapper.insert(activeSqlMap);
             LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
 
         }
@@ -1945,10 +1943,10 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
         Long mysqlStartTime = System.currentTimeMillis();
         if (count > 0) {
-            activeSqlMapMapper.updateByActiveId(activeSqlMap);
-        } else {
-            activeSqlMapMapper.insert(activeSqlMap);
+//            activeSqlMapMapper.updateByActiveId(activeSqlMap);
+            activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
         }
+        activeSqlMapMapper.insert(activeSqlMap);
         LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
         /*引用依赖计算*/
         getReferenceActiveIndex(id,resultOrderKey,patientSetId,groupToId,groupFromId);

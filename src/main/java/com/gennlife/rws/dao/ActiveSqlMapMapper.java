@@ -41,4 +41,8 @@ public interface ActiveSqlMapMapper {
     Integer getCountByActiveAndsqlMd5(@Param("activeIndexId") String activeIndexId,@Param("sqlMd5") String sqlMd5 , @Param("groupId")String groupId);
 
     void deleteByTmpActiveId();
+
+    List<String> getGroupIdsByActiveId(String activeIdTmp);
+
+    void deleteByIndexId(@Param("activeId") String activeId);
 }
