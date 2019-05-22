@@ -63,10 +63,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     private GroupService groupService;
     @Autowired
     private GroupTypeMapper groupTypeMapper;
-    @Autowired
-    private SearchCrfByuqlService searchCrfByuqlService;
-    @Autowired
-    private SearchByuqlService searchByuqlService;
+
 
     @Override
     public AjaxObject getPatientGroupCondition(List<Group> groupList, List<GroupCondition> groupConditionList) {
@@ -177,15 +174,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         List<Integer> groupCounts = new ArrayList<>();
         {
             List<List<ActiveSqlMap>> conditions = activeIndexIds.stream()
-                .map(x ->{
-                    List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(x, UqlConfig.CORT_INDEX_ID);
-                    try {
-                        activeSqlMaps = getActiveSqlMapsByReferenceCalculate(projectId, crfId, x, activeSqlMaps);
-                    }catch (Exception e){
-                        return null;
-                    }
-                    return activeSqlMaps;
-                })
+                .map(x ->activeSqlMapMapper.getActiveSql(x, UqlConfig.CORT_INDEX_ID))
                 .collect(toList());
             List<Group> groups = maxLevelGroup;
             // group, item, num->""/enum->value, patients
@@ -388,17 +377,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         return ajaxObject;
     }
 
-    private List<ActiveSqlMap> getActiveSqlMapsByReferenceCalculate(String projectId, String crfId, String x, List<ActiveSqlMap> activeSqlMaps) throws ExecutionException, InterruptedException, IOException {
-        if(activeSqlMaps ==null || activeSqlMaps.size()==0 ){
-            if(StringUtils.isNotEmpty(crfId) && !"EMR".equals(crfId)){
-                searchCrfByuqlService.referenceCalculate(x,projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);
-            }else {
-                searchByuqlService.referenceCalculate(x,projectId, CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null);
-            }
-            activeSqlMaps = activeSqlMapMapper.getActiveSql(x,UqlConfig.CORT_INDEX_ID);
-        }
-        return activeSqlMaps;
-    }
 
     private List<Group> copeGroupList(List<Group> groupList) {
         List<Group> list = new ArrayList<>();
@@ -475,7 +453,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     }
 
     @Override
-    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException, ExecutionException, InterruptedException {
+    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException {
         Integer startNum = (pageNum-1)*pageSize;
         Integer endNum = pageSize;
         List<GroupCondition> groupConditionList = groupConditionMapper.getGroupByProjectId(uid,projectId,2);
@@ -541,7 +519,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
 //        }
         for (String activeIndexId : activeIndexIds){
             List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
-            activeSqlMaps = getActiveSqlMapsByReferenceCalculate(projectId, crfId, activeIndexId, activeSqlMaps);
             ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
             String activeName = activeIndexMapper.findActiveName(activeSqlMap.getActiveIndexId());
             String activeId = activeSqlMap.getActiveIndexId();
@@ -796,15 +773,13 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     }
 
     @Override
-    public Object snapshootActiveResult(JSONObject paramObj) throws InterruptedException, ExecutionException, IOException {
+    public Object snapshootActiveResult(JSONObject paramObj)  {
         String projectId = paramObj.getString("projectId");
         String taskId = paramObj.getString("taskId"); //导出项目id
         List<ActiveIndex> activeIndices = activeIndexMapper.getClasActiveIdsNameAndIdsByProjectId(projectId);
         for (ActiveIndex activeIndex : activeIndices){
             String activeIndexId = activeIndex.getId();
-            String crfId = activeIndex.getCrfId();
             List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId, UqlConfig.CORT_INDEX_ID);
-            activeSqlMaps = getActiveSqlMapsByReferenceCalculate(projectId, crfId, activeIndexId, activeSqlMaps);
             int count = activeSqlMapMapper.getCountByActiveIndexId(taskId+"_"+activeIndexId, UqlConfig.CORT_INDEX_ID);
             if(count >0){
                 continue;
@@ -826,7 +801,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             futures.add(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor().submit(() -> {
                 try {
                     List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId, UqlConfig.CORT_INDEX_ID);
-                    activeSqlMaps = getActiveSqlMapsByReferenceCalculate(projectId, crfId, activeIndexId, activeSqlMaps);
                     if(activeSqlMaps.size()<1){
                         return;
                     }
@@ -898,10 +872,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     }
                 } catch (IOException e) {
                     LOG.error("计算发生了错误！！！");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
                 }
             }));
         }
@@ -917,7 +887,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                 try {
                     Map<String, List<JSONObject>> resultMap = new HashMap<>();
                     List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId, UqlConfig.CORT_INDEX_ID);
-                    activeSqlMaps = getActiveSqlMapsByReferenceCalculate(projectId, crfId, activeIndexId, activeSqlMaps);
                     if(activeSqlMaps.size()<1){
                         return;
                     }
@@ -991,10 +960,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     redisMap.put(activeIndexId,resultMap);
                 } catch (IOException e) {
                     LOG.error("计算发生了错误！！！");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
                 }
             }));
         }

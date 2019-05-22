@@ -19,7 +19,7 @@ public interface CortrastiveAnalysisService {
     AjaxObject getPatientGroupCondition(List<Group> groupList, List<GroupCondition> groupConditionList);
     AjaxObject getContResult(String uid, String projectId, Integer cortType, boolean showSubGroup, String crfId, String s) throws ExecutionException, InterruptedException, IOException;
 
-    AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException, ExecutionException, InterruptedException;
+    AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException;
 
     AjaxObject saveGroupCondition(String uname, String uid, String projectId, JSONArray groupsIds, Integer cortType, String groupTypeId, String createId);
 
@@ -27,5 +27,5 @@ public interface CortrastiveAnalysisService {
 
     Object calculationResultOne(JSONObject paramObj) throws InterruptedException, ExecutionException, IOException;
 
-    Object snapshootActiveResult(JSONObject paramObj) throws InterruptedException, ExecutionException, IOException;
+    Object snapshootActiveResult(JSONObject paramObj);
 }

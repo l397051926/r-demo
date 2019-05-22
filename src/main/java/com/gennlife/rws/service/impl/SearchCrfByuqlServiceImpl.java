@@ -2441,7 +2441,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             });
         }
     }
-    @Override
+
     public void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey,JSONArray patientsSetId,String groupToId,String groupFromId,String crfId) throws ExecutionException, InterruptedException, IOException {
 
         ActiveIndex active = null;

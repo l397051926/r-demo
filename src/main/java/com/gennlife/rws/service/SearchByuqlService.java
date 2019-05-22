@@ -36,6 +36,4 @@ public interface SearchByuqlService {
     AjaxObject getPatientListByAllByPatientSetIds(JSONArray patientSetIdTmp, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, int i, String crfId);
 
     AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException;
-
-    void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey,JSONArray patientsSetId,String groupToId,String groupFromId) throws ExecutionException, InterruptedException, IOException ;
 }
