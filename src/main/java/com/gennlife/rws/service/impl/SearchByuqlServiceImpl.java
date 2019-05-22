@@ -1945,6 +1945,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if (count > 0) {
 //            activeSqlMapMapper.updateByActiveId(activeSqlMap);
             activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
+            referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null);
         }
         activeSqlMapMapper.insert(activeSqlMap);
         LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
@@ -2317,7 +2318,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             Integer activeType = activeIndex.getActiveType();
             SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
                 try {
-                    referenceCalculate(activeIdTmp,projectId,activeType,resultOrderKey, patientsSetId, groupToId, groupFromId);
+                    if("1".equals(activeIndex.getIsVariant())){
+                        referenceCalculate(activeIdTmp,projectId,activeType,resultOrderKey, null, UqlConfig.CORT_INDEX_ID, null);
+                    }else {
+                        referenceCalculate(activeIdTmp,projectId,activeType,resultOrderKey, patientsSetId, groupToId, groupFromId);
+                    }
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {

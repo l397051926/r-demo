@@ -2016,6 +2016,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
         if (count > 0) {
             activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
+            referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);
         }
         activeSqlMapMapper.insert(activeSqlMap);
         /*引用依赖计算*/
@@ -2425,7 +2426,11 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             Integer activeType = activeIndex.getActiveType();
             SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
                 try {
-                    referenceCalculate(activeIdTmp,projectId,activeType,resultOrderKey, patientsSetId, groupToId, groupFromId,crfId);
+                    if("1".equals(activeIndex.getIsVariant())){
+                        referenceCalculate(activeIdTmp,projectId,activeType,resultOrderKey, null, UqlConfig.CORT_INDEX_ID, null,crfId);
+                    }else {
+                        referenceCalculate(activeIdTmp,projectId,activeType,resultOrderKey, patientsSetId, groupToId, groupFromId,crfId);
+                    }
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
