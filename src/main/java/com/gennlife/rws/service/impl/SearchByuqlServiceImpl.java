@@ -2351,6 +2351,10 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         obj.put("groupToId",groupToId);
         obj.put("groupFromId",groupFromId);
         JSONArray configss = obj.getJSONArray("config");
+        if(configss.size() <1){
+            LOG.error("错误的数据 ： activeId" + activeId);
+            return;
+        }
         String indexTypeDesc = configss.getJSONObject(0).getString("indexTypeDesc");
         int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP ;
         activeType = active.getActiveType();
