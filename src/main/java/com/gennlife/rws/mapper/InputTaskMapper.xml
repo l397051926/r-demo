@@ -237,7 +237,7 @@
         select
         input_id
         from p_input_task
-        where patient_set_id = #{patientSetId,jdbcType=VARCHAR} and status != 5
+        where patient_set_id = #{patientSetId,jdbcType=VARCHAR} and (status = 2 or status = 3)
     </select>
 
   <update id="updateInputTaskByMap" parameterType="java.lang.String" >
