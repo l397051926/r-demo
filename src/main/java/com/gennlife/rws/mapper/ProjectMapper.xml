@@ -360,7 +360,7 @@
 	<select id="getProjectAttribute" resultMap="BaseResultMap" parameterType="java.lang.Object">
 		<include refid="Base_Column_Scient_List" />
 		where
-		1=1
+		is_delete='0'
 		<if test="userId != null and userId !='' ">
 			AND p.creator_id=#{userId}
 		</if>
