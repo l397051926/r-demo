@@ -163,6 +163,7 @@ public class ProjectConsumer {
                 searchLogService.saveSearchLog(obj);
                 String content = obj.getString("createName")+"向患者集"+obj.getString("patientName")+"导入"+obj.getLong("curenntCount")+"名患者";
                 logUtil.saveLog(obj.getString("projectId"),content,userId,obj.getString("createName"));
+                projectMapper.updateCrfId(obj.getString("projectId"),obj.getString("crfId"));
                 patientSetService.savePatientImport(obj);
                 String projectName = projectMapper.getProjectNameByProjectId(obj.getString("projectId"));
                 producerService.sendProExportSucceed(userId,projectName,obj.getString("projectId"),taskId);

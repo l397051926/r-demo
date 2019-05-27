@@ -56,4 +56,6 @@ public interface ProjectMapper {
     Integer getCountByProjectIdAndProjectName(@Param("projectId") String projectId, @Param("projectName") String projectName);
 
     String getCreateIdByTaskId(String taskId);
+
+	void updateCrfId(@Param("projectId") String projectId,@Param("crfId")  String crfId);
 }
