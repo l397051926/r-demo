@@ -51,4 +51,6 @@ public interface InputTaskMapper {
     void updateInputTaskRemainTime(InputTask inputTask);
 
     Integer getCountByProjectIdAndStatus(String projectId, Integer cancel);
+
+    InputTask getInputtaskAllByInputId(String taskId);
 }

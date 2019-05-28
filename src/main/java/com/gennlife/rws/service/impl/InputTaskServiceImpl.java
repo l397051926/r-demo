@@ -24,6 +24,7 @@ import com.gennlife.rws.web.WebAPIResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -134,11 +135,25 @@ public class InputTaskServiceImpl implements InputTaskService {
         }
         //导出任务项目数据
         JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));
-        String crfId = obj.getString("crfId");
-        String projectId = obj.getString("projectId");
-        JSONObject esJson = obj.getJSONObject("esJSon");
-        String createId = obj.getString("createId");
-        String crfName = obj.getString("crfName");
+        String crfId = null;
+        String projectId = null;
+        JSONObject esJson = null;
+        String createId = null;
+        String crfName = null;
+        if(obj == null ){
+            InputTask tasks = inputTaskMapper.getInputtaskAllByInputId(taskId);
+            crfId = tasks.getCrfId();
+            projectId = tasks.getProjectId();
+            esJson = JSONObject.parseObject(tasks.getEsJson());
+            crfName = tasks.getCrfName();
+            createId = tasks.getUid();
+        }else {
+            crfId = obj.getString("crfId");
+            projectId = obj.getString("projectId");
+            esJson = obj.getJSONObject("esJSon");
+            createId = obj.getString("createId");
+            crfName = obj.getString("crfName");
+        }
         projectService.saveDatasource(projectId,crfId,crfName);
 
         Integer quereCount = inputTaskMapper.getInputQueueTask(createId);

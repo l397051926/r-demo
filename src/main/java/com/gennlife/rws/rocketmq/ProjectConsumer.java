@@ -154,7 +154,8 @@ public class ProjectConsumer {
                 if(sum == null || sum == 0){
                     projectMapper.saveDatasource(inputTask.getProjectId(),"","");
                 }
-//                producerService.sendProExportField(obj.getString("createId"),taskId,obj.getString("projectId"),obj.getString("patientName"));
+                String projectName = projectMapper.getProjectNameByProjectId(task.getProjectId());
+                producerService.sendProExportField(task.getUid(),taskId,task.getProjectId(),projectName);
                 inputTaskService.updateCencelDate(taskId);
             }
 

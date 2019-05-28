@@ -39,6 +39,8 @@ public class InputTask {
     private Date updateTime;
     private Integer progress;
     private String crfId;
+    private String crfName;
+    private String esJson;
 
     public InputTask() {
     }
@@ -178,5 +180,21 @@ public class InputTask {
 
     public void setCrfId(String crfId) {
         this.crfId = crfId;
+    }
+
+    public String getCrfName() {
+        return crfName;
+    }
+
+    public void setCrfName(String crfName) {
+        this.crfName = crfName;
+    }
+
+    public String getEsJson() {
+        return esJson;
+    }
+
+    public void setEsJson(String esJson) {
+        this.esJson = esJson;
     }
 }
