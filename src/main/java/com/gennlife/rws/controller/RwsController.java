@@ -368,6 +368,9 @@ public class RwsController {
             if(CommonContent.ACTIVE_TYPE_INDEX == (active.getInteger("activeType"))){
                 String indexType = actives.getJSONArray("config").getJSONObject(0).getString("indexType");
                 String oindexType = activeIndexService.getindexType(active.getString("id"));
+                if(StringUtils.isEmpty(oindexType)){
+                    return ajaxObject;
+                }
                 List<String> activeName = activeIndexService.getActiveName(active.getString("id"));
                 String name = String.join(";",activeName);
                 if(!oindexType.equals(indexType) && activeName != null && activeName.size()!=0 ){

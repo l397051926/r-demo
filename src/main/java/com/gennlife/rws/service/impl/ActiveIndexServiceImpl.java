@@ -486,6 +486,7 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
     @Override
     public String getindexType(String id) {
         List<ActiveIndexConfig>  activeIndexConfigs =  activeIndexConfigMapper.findAllByActiveIndexId(id);
+        if(activeIndexConfigs.size() ==0) return null;
         return activeIndexConfigs.get(0).getIndexType();
     }
 
