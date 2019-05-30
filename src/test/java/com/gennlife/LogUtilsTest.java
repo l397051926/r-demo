@@ -73,8 +73,10 @@
 //
 //    @Test
 //    public void getCreateId(){
-//        String id = projectMapper.getCreateIdByTaskId("1bf2852d-85fa-42f8-ab94-bdc9d13e9906");
-//        System.out.println(id);
+////        String id = projectMapper.getCreateIdByTaskId("1bf2852d-85fa-42f8-ab94-bdc9d13e9906");
+////        System.out.println(id);
+//        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService("6f87691e-ab42-4649-bd7b-5914667a488a")));
+//        System.out.println(obj);
 //    }
 //
 //    @Test
@@ -189,7 +191,7 @@
 //        JSONObject msgObj = new JSONObject()
 //            .fluentPut("user_id", obj.getString("createId"))
 //            .fluentPut("msg", "导入" + obj.getString("patientName") + "项目的任务已完成");
-//        producerService.send(rocketMqContent.getTopicPro(), rocketMqContent.getRemoveProUserTag(), msgObj.toJSONString());
+////        producerService.send(rocketMqContent.getTopicPro(), rocketMqContent.getRemoveProUserTag(), msgObj.toJSONString());
 //    }
 //
 //    @Test

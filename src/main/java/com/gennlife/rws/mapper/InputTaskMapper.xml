@@ -20,6 +20,7 @@
     <result column="crf_id" property="crfId" jdbcType="VARCHAR" />
     <result column="crf_name" property="crfName" jdbcType="VARCHAR" />
     <result column="es_json" property="esJson" jdbcType="LONGVARCHAR" />
+    <result column="uq_query" property="uqQuery" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Base_Column_List">
    input_id, project_id, project_name, patient_set_id,
@@ -30,19 +31,19 @@
   <sql id="Base_Column_List_All">
    input_id, project_id, project_name, patient_set_id,
      patient_set_name, uid, patient_count, create_time, start_time,
-      finish_time, status, remain_time, update_time ,progress ,crf_id ,crf_name,es_json
+      finish_time, status, remain_time, update_time ,progress ,crf_id ,crf_name,es_json,uql_query
   </sql>
 
   <insert id="insert" parameterType="com.gennlife.rws.entity.InputTask" >
     insert into p_input_task (input_id, project_id, project_name, patient_set_id,
      patient_set_name, uid, patient_count, create_time, start_time,
-      finish_time, status, remain_time, update_time ,progress,crf_id,crf_name,es_json
+      finish_time, status, remain_time, update_time ,progress,crf_id,crf_name,es_json,uql_query
       )
     values (#{inputId,jdbcType=VARCHAR}, #{projectId,jdbcType=VARCHAR}, #{projectName,jdbcType=VARCHAR},
     #{patientSetId,jdbcType=VARCHAR}, #{patientSetName,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR},
     #{patientCount,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{startTime,jdbcType=TIMESTAMP},
     #{finishTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{remainTime,jdbcType=INTEGER},
-    #{updateTime,jdbcType=TIMESTAMP}, #{progress,jdbcType=INTEGER}, #{crfId,jdbcType=VARCHAR}, #{crfName,jdbcType=VARCHAR}, #{esJson,jdbcType=LONGVARCHAR}
+    #{updateTime,jdbcType=TIMESTAMP}, #{progress,jdbcType=INTEGER}, #{crfId,jdbcType=VARCHAR}, #{crfName,jdbcType=VARCHAR}, #{esJson,jdbcType=LONGVARCHAR}, #{uqlQuery,jdbcType=LONGVARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.gennlife.rws.entity.InputTask" >

@@ -16,6 +16,6 @@ public interface PreLiminaryService {
     void saveLogMoreData(long curenntCount, String searchConditio, String createId, String createName, String projectId, String patientName, String patientSetId,
                          String uqlQuery, String buildIndex, String crfId, JSONObject esJSon, Integer nowCount, String projectName,String crfName) throws IOException;
 
-    void saveInpuTask(Long count, String createId, String projectId, String patientName, String patientSetId, String inputTaskId, String crfId, String crfName, JSONObject esJSon);
+    void saveInpuTask(Long count, String createId, String projectId, String patientName, String patientSetId, String inputTaskId, String crfId, String crfName, JSONObject esJSon, String uqlQuery);
 
 }

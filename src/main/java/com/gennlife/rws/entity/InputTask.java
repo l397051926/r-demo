@@ -41,6 +41,7 @@ public class InputTask {
     private String crfId;
     private String crfName;
     private String esJson;
+    private String uqlQuery;
 
     public InputTask() {
     }
@@ -196,5 +197,13 @@ public class InputTask {
 
     public void setEsJson(String esJson) {
         this.esJson = esJson;
+    }
+
+    public String getUqlQuery() {
+        return uqlQuery;
+    }
+
+    public void setUqlQuery(String uqlQuery) {
+        this.uqlQuery = uqlQuery;
     }
 }

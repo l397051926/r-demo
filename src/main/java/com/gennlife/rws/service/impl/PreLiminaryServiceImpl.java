@@ -145,7 +145,7 @@ public class PreLiminaryServiceImpl implements PreLiminaryService {
     @Override
     public void saveLogMoreData(long curenntCount, String searchCondition, String createId, String createName,
                                 String projectId, String patientName, String patientSetId, String uqlQuery, String buildIndex, String crfId, JSONObject esJSon, Integer nowCount, String projectName,String crfName) throws IOException {
-        saveInpuTask(curenntCount,createId,projectId,patientName,patientSetId,buildIndex,crfId,crfName,esJSon);
+        saveInpuTask(curenntCount,createId,projectId,patientName,patientSetId,buildIndex,crfId,crfName,esJSon,uqlQuery);
 
         JSONObject object = new JSONObject()
                                     .fluentPut("curenntCount",curenntCount)
@@ -169,7 +169,7 @@ public class PreLiminaryServiceImpl implements PreLiminaryService {
     }
 
     @Override
-    public void saveInpuTask(Long count, String createId, String projectId, String patientName, String patientSetId, String inputTaskId, String crfId, String crfName, JSONObject esJSon) {
+    public void saveInpuTask(Long count, String createId, String projectId, String patientName, String patientSetId, String inputTaskId, String crfId, String crfName, JSONObject esJSon, String uqlQuery) {
         String projectName = projectMapper.getProjectNameByProjectId(projectId);
         InputTask inputTask = new InputTask();
         inputTask.setInputId(inputTaskId);
@@ -186,6 +186,7 @@ public class PreLiminaryServiceImpl implements PreLiminaryService {
         inputTask.setCrfId(crfId);
         inputTask.setCrfName(crfName);
         inputTask.setEsJson(esJSon.toJSONString());
+        inputTask.setUqlQuery(uqlQuery);
         inputTaskMapper.insert(inputTask);
     }
 

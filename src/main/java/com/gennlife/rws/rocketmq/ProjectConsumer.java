@@ -10,6 +10,7 @@ import com.gennlife.rws.dao.ProjectMapper;
 import com.gennlife.rws.dao.SearchLogMapper;
 import com.gennlife.rws.entity.InputTask;
 import com.gennlife.rws.entity.PatientsSet;
+import com.gennlife.rws.entity.Project;
 import com.gennlife.rws.entity.SearchLog;
 import com.gennlife.rws.query.BuildIndexRws;
 import com.gennlife.rws.service.InputTaskService;
@@ -161,6 +162,20 @@ public class ProjectConsumer {
 
             if(InputStratus.FINISH == status){//成功
                 JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));
+                if(obj == null ){
+                    Project project = projectMapper.selectByProjectId(task.getProjectId());
+                    InputTask taskAll = inputTaskMapper.getInputtaskAllByInputId(task.getInputId());
+                    obj = new JSONObject()
+                        .fluentPut("createId",taskAll.getUid())
+                        .fluentPut("patientSetId",taskAll.getPatientSetId())
+                        .fluentPut("searchCondition",taskAll.getEsJson())
+                        .fluentPut("createName",project.getCreatorName())
+                        .fluentPut("patientName",taskAll.getPatientSetName())
+                        .fluentPut("curenntCount",taskAll.getPatientSetName())
+                        .fluentPut("projectId",taskAll.getProjectId())
+                        .fluentPut("crfId",taskAll.getCrfId())
+                        .fluentPut("uqlQuery",taskAll.getUqlQuery());
+                }
                 searchLogService.saveSearchLog(obj);
                 String content = obj.getString("createName")+"向患者集"+obj.getString("patientName")+"导入"+obj.getLong("curenntCount")+"名患者";
                 logUtil.saveLog(obj.getString("projectId"),content,userId,obj.getString("createName"));
