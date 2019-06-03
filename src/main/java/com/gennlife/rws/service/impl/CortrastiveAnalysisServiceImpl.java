@@ -453,7 +453,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     }
 
     @Override
-    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException {
+    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException, ExecutionException, InterruptedException {
         Integer startNum = (pageNum-1)*pageSize;
         Integer endNum = pageSize;
         List<GroupCondition> groupConditionList = groupConditionMapper.getGroupByProjectId(uid,projectId,2);
@@ -518,65 +518,76 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
 //            resultMap.get(groupData.getPatientDocId()).put("GROUP_NAME",groupData.getGroupName());
 //        }
         for (String activeIndexId : activeIndexIds){
-            List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
-            if(activeSqlMaps.size()<=1){
-                //这里有问题 不应该查不到数据的 说明需要重新计算 后期增加
-                continue;
-            }
-            ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
-            String activeName = activeIndexMapper.findActiveName(activeSqlMap.getActiveIndexId());
-            String activeId = activeSqlMap.getActiveIndexId();
-            JSONObject obj = new JSONObject().fluentPut("id",activeId).fluentPut("name",activeName);
-            showColumns.add(obj);
-            String indexResultValue = activeSqlMap.getIndexResultValue();
-            Map<String, JSONObject> finalResultMap = resultMap;
-            if(StringUtils.isEmpty(indexResultValue)){//指标
-                activeSqlMap.setUncomSqlWhere("(" + activeSqlMap.getUncomSqlWhere()+") AND "+vistPatientSnQuery);
-                String result = httpUtils.querySearch(projectId,activeSqlMap.getUql(crfId),1,pageSize,null,new JSONArray(),crfId);
-                Map<String, Object> map = new KeyPath("hits", "hits")
-                    .resolveAsJSONArray(JSON.parseObject(result))
-                    .stream()
-                    .map(new KeyPath("_source", "select_field")::resolveAsJSONObject)
-                    .collect(toMap(o -> o.getString(IndexContent.getPatientDocId(crfId)), o -> o.get("condition")== null? "-":o.get("condition")));
-                foreach(map, (key, value) -> {
-                    if (!finalResultMap.containsKey(key)) {
-                        finalResultMap.put(key, new JSONObject());
-                    }
-                    if(String.valueOf(value).contains(".")){
-                        try {
-                            value = String.format("%.2f",  Double.parseDouble(String.valueOf(value)));
-                        }catch (Exception e){
+            Map<String, JSONObject> finalResultMap1 = resultMap;
+            futures.add(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor().submit(() ->{
+                List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
+                if(activeSqlMaps.size() > 0){
+                    //这里有问题 不应该查不到数据的 说明需要重新计算 后期增加
+                    ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
+                    String activeName = activeIndexMapper.findActiveName(activeSqlMap.getActiveIndexId());
+                    String activeId = activeSqlMap.getActiveIndexId();
+                    JSONObject obj = new JSONObject().fluentPut("id",activeId).fluentPut("name",activeName);
+                    showColumns.add(obj);
+                    String indexResultValue = activeSqlMap.getIndexResultValue();
+                    Map<String, JSONObject> finalResultMap = finalResultMap1;
+                    try {
+                        if(StringUtils.isEmpty(indexResultValue)){//指标
+
+                            activeSqlMap.setUncomSqlWhere("(" + activeSqlMap.getUncomSqlWhere()+") AND "+vistPatientSnQuery);
+
+                            String result = httpUtils.querySearch(projectId,activeSqlMap.getUql(crfId),1,pageSize,null,new JSONArray(),crfId);
+                            Map<String, Object> map = new KeyPath("hits", "hits")
+                                .resolveAsJSONArray(JSON.parseObject(result))
+                                .stream()
+                                .map(new KeyPath("_source", "select_field")::resolveAsJSONObject)
+                                .collect(toMap(o -> o.getString(IndexContent.getPatientDocId(crfId)), o -> o.get("condition")== null? "-":o.get("condition")));
+                            foreach(map, (key, value) -> {
+                                if (!finalResultMap.containsKey(key)) {
+                                    finalResultMap.put(key, new JSONObject());
+                                }
+                                if(String.valueOf(value).contains(".")){
+                                    try {
+                                        value = String.format("%.2f",  Double.parseDouble(String.valueOf(value)));
+                                    }catch (Exception e){
+                                    }
+                                }
+                                finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), value);
+                            });
+
+                        }else {//枚举
+                            Map<String,EnumResult> map = new HashMap<>();
+                            for (ActiveSqlMap activeSqlMap1 : activeSqlMaps){
+                                String indexValue = activeSqlMap1.getIndexResultValue();
+                                activeSqlMap1.setUncomSqlWhere("(" + activeSqlMap1.getUncomSqlWhere()+") AND "+vistPatientSnQuery);
+                                String result = httpUtils.querySearch(projectId,activeSqlMap1.getUql(crfId),1,pageSize,null,new JSONArray(),crfId);
+                                List<String> list = new KeyPath("hits", "hits", "_source", "select_field", IndexContent.getPatientDocId(crfId))
+                                    .fuzzyResolve(JSON.parseObject(result))
+                                    .stream()
+                                    .map(String.class::cast)
+                                    .collect(toList());
+                                for(String key : list){
+                                    if( !map.containsKey(key)){
+                                        map.put(key, new EnumResult());
+                                    }
+                                    map.get(key).add(indexValue);
+                                }
+                            }
+                            foreach(map, (key, value) -> {
+                                if (!finalResultMap.containsKey(key)) {
+                                    finalResultMap.put(key, new JSONObject());
+                                }
+                                finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(),value.toString());
+                            });
                         }
-                    }
-                    finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), value);
-                });
-            }else {//枚举
-                Map<String,EnumResult> map = new HashMap<>();
-                for (ActiveSqlMap activeSqlMap1 : activeSqlMaps){
-                    String indexValue = activeSqlMap1.getIndexResultValue();
-                    activeSqlMap1.setUncomSqlWhere("(" + activeSqlMap1.getUncomSqlWhere()+") AND "+vistPatientSnQuery);
-                    String result = httpUtils.querySearch(projectId,activeSqlMap1.getUql(crfId),1,pageSize,null,new JSONArray(),crfId);
-                    List<String> list = new KeyPath("hits", "hits", "_source", "select_field", IndexContent.getPatientDocId(crfId))
-                        .fuzzyResolve(JSON.parseObject(result))
-                        .stream()
-                        .map(String.class::cast)
-                        .collect(toList());
-                    for(String key : list){
-                        if( !map.containsKey(key)){
-                            map.put(key, new EnumResult());
-                        }
-                        map.get(key).add(indexValue);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
-                foreach(map, (key, value) -> {
-                    if (!finalResultMap.containsKey(key)) {
-                        finalResultMap.put(key, new JSONObject());
-                    }
-                    finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(),value.toString());
-                });
-            }
+            }));
         }
-
+        for (Future future :futures){
+            future.get();
+        }
         JSONArray data = new JSONArray();
         for (GroupData groupData : patientSns){
             String docId = groupData.getPatientDocId();
