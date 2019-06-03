@@ -133,6 +133,7 @@ public class HttpUtils {
         //        String result = httpPost(param, url);
         String result="";
         LOG.debug("访问 uql 查询param: " + param);
+        LOG.info("计算的sql 语句"+ newSql);
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
         }  catch (Exception e){
@@ -162,6 +163,7 @@ public class HttpUtils {
         //        String result = httpPost(param, url);
         String result="";
         LOG.debug("访问 uql 查询param: " + param);
+        LOG.info("访问 uql 计算sql: " + newSql);
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
         }  catch (Exception e){
