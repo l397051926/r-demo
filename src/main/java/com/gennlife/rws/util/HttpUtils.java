@@ -132,8 +132,8 @@ public class HttpUtils {
         String param = JSON.toJSONString(querySearch);
         //        String result = httpPost(param, url);
         String result="";
-        LOG.debug("访问 uql 查询param: " + param);
-        LOG.info("计算的sql 语句"+ newSql);
+//        LOG.debug("访问 uql 查询param: " + param);
+//        LOG.info("计算的sql 语句"+ newSql);
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
         }  catch (Exception e){
@@ -162,8 +162,8 @@ public class HttpUtils {
         String param = JSON.toJSONString(querySearch);
         //        String result = httpPost(param, url);
         String result="";
-        LOG.debug("访问 uql 查询param: " + param);
-        LOG.info("访问 uql 计算sql: " + newSql);
+//        LOG.debug("访问 uql 查询param: " + param);
+//        LOG.info("访问 uql 计算sql: " + newSql);
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
         }  catch (Exception e){
@@ -262,6 +262,9 @@ public class HttpUtils {
             post.setConfig(requestConfig);
             // 执行请求
             response = httpClient.execute(post);
+            if(response.getStatusLine().getStatusCode() == 504){
+                LOG.info("超时了 504 url 超时时间 getConnectTimeout" + requestConfig.getConnectTimeout()+" socketTimeout:  "+requestConfig.getSocketTimeout() + "result : " + EntityUtils.toString(response.getEntity()));
+            }
             entity = response.getEntity();
             responseContent = EntityUtils.toString(entity, "UTF-8");
         } catch (Exception e) {
