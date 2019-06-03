@@ -519,6 +519,10 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
 //        }
         for (String activeIndexId : activeIndexIds){
             List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
+            if(activeSqlMaps.size()<=1){
+                //这里有问题 不应该查不到数据的 说明需要重新计算 后期增加
+                continue;
+            }
             ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
             String activeName = activeIndexMapper.findActiveName(activeSqlMap.getActiveIndexId());
             String activeId = activeSqlMap.getActiveIndexId();
