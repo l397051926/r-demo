@@ -20,7 +20,7 @@
     <result column="crf_id" property="crfId" jdbcType="VARCHAR" />
     <result column="crf_name" property="crfName" jdbcType="VARCHAR" />
     <result column="es_json" property="esJson" jdbcType="LONGVARCHAR" />
-    <result column="uq_query" property="uqQuery" jdbcType="LONGVARCHAR" />
+    <result column="uql_query" property="uqlQuery" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Base_Column_List">
    input_id, project_id, project_name, patient_set_id,
