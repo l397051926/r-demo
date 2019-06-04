@@ -25,9 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.jnlp.DownloadService;
 import java.util.Date;
 import java.util.List;
 
@@ -52,6 +54,8 @@ public class InputTaskServiceImpl implements InputTaskService {
     private ProducerService producerService;
     @Autowired
     private ProjectService projectService;
+    @Autowired
+    private DownLoadServiceImpl downloadService;
     @Override
     public AjaxObject getAllInputTasks(JSONObject object) {
         JSONObject querObj = object.getJSONObject("query");
@@ -140,6 +144,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         JSONObject esJson = null;
         String createId = null;
         String crfName = null;
+        Long count = task.getPatientCount();
         if(obj == null ){
             InputTask tasks = inputTaskMapper.getInputtaskAllByInputId(taskId);
             crfId = tasks.getCrfId();
@@ -159,6 +164,13 @@ public class InputTaskServiceImpl implements InputTaskService {
         Integer quereCount = inputTaskMapper.getInputQueueTask(createId);
         if(quereCount >2){
             return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"排队已满3个， 无法导出数据") ;
+        }
+        Integer maxMember = downloadService.getMaxMember();
+        Integer allCount = patientsSetMapper.getSumCount(projectId) == null ? 0 :  patientsSetMapper.getSumCount(projectId);
+        Integer runTaskSumCount = inputTaskMapper.getRunTaskSumCountByProjcetId(projectId);
+        runTaskSumCount = runTaskSumCount == null ? 0 : runTaskSumCount;
+        if(allCount +runTaskSumCount + count >maxMember){
+            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"导出数据超过 "+ maxMember + "人， 无法导出数据") ;
         }
         //更新 input task mapper createTime
         InputTask inputTask = new InputTask();

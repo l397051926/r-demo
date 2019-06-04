@@ -215,4 +215,7 @@ public class DownLoadServiceImpl implements DownLoadService {
         return UqlQureyResult.getTotal(result);
     }
 
+    public Integer getMaxMember() {
+        return maxMember;
+    }
 }
