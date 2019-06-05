@@ -329,7 +329,7 @@
     where
     project_id = #{projectId,jdbcType=VARCHAR}
     AND
-    status =3
+    (status =3 OR status = 2)
   </select>
 
   <select id="getInputIdsByProjectId" resultType="java.lang.String"  parameterType="java.lang.String">
