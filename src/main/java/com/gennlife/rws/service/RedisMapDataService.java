@@ -13,11 +13,16 @@ import java.util.Set;
 public interface RedisMapDataService {
     String hmset(String key,Map<String, String> hash);
     public List<String> hmGet(String key, String ... field);
+    public Map<String,String> hmGetAll(String key);
     public Long delete(String key);
     public String getDataBykey(String key);
     String set(String key , String val);
     Long AddSet(String key,String val);
     boolean sismemberSet(String key,String val);
     Set<String> getAllSet(String key);
+    Long setOutTime(String key,Integer time);
 
+    Boolean exists(String key);
+
+    String hmGetKey(String concat, String key);
 }

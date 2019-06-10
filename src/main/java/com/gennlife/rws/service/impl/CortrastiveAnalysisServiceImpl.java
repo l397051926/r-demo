@@ -42,12 +42,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     @Autowired
     private GroupMapper groupMapper;
     @Autowired
-    private ContrastiveAnalysisPatientMapper contrastiveAnalysisPatientMapper;
-    @Autowired
-    private ContrastiveAnalysisCountMapper contrastiveAnalysisCountMapper;
-    @Autowired
-    private ContrastiveAnalysisCountResultMapper contrastiveAnalysisCountResultMapper;
-    @Autowired
     private GroupConditionMapper groupConditionMapper;
     @Autowired
     private GroupDataMapper groupDataMapper;
@@ -63,6 +57,10 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     private GroupService groupService;
     @Autowired
     private GroupTypeMapper groupTypeMapper;
+    @Autowired
+    private RedisMapDataService redisMapDataService;
+    @Autowired
+    private SearchByuqlService searchByuqlService;
 
 
     @Override
@@ -514,9 +512,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         }
 
         List<Future> futures = new ArrayList<>();
-//        for (GroupData groupData : patientSns){
-//            resultMap.get(groupData.getPatientDocId()).put("GROUP_NAME",groupData.getGroupName());
-//        }
+        LOG.info("time1");
+        long time1 = System.currentTimeMillis();
         for (String activeIndexId : activeIndexIds){
             Map<String, JSONObject> finalResultMap1 = resultMap;
             futures.add(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor().submit(() ->{
@@ -530,64 +527,32 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     showColumns.add(obj);
                     String indexResultValue = activeSqlMap.getIndexResultValue();
                     Map<String, JSONObject> finalResultMap = finalResultMap1;
-                    try {
-                        if(StringUtils.isEmpty(indexResultValue)){//指标
-
-                            activeSqlMap.setUncomSqlWhere("(" + activeSqlMap.getUncomSqlWhere()+") AND "+vistPatientSnQuery);
-
-                            String result = httpUtils.querySearch(projectId,activeSqlMap.getUql(crfId),1,pageSize,null,new JSONArray(),crfId);
-                            Map<String, Object> map = new KeyPath("hits", "hits")
-                                .resolveAsJSONArray(JSON.parseObject(result))
-                                .stream()
-                                .map(new KeyPath("_source", "select_field")::resolveAsJSONObject)
-                                .collect(toMap(o -> o.getString(IndexContent.getPatientDocId(crfId)), o -> o.get("condition")== null? "-":o.get("condition")));
-                            foreach(map, (key, value) -> {
-                                if (!finalResultMap.containsKey(key)) {
-                                    finalResultMap.put(key, new JSONObject());
-                                }
-                                if(String.valueOf(value).contains(".")){
-                                    try {
-                                        value = String.format("%.2f",  Double.parseDouble(String.valueOf(value)));
-                                    }catch (Exception e){
-                                    }
-                                }
-                                finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), value);
-                            });
-
-                        }else {//枚举
-                            Map<String,EnumResult> map = new HashMap<>();
-                            for (ActiveSqlMap activeSqlMap1 : activeSqlMaps){
-                                String indexValue = activeSqlMap1.getIndexResultValue();
-                                activeSqlMap1.setUncomSqlWhere("(" + activeSqlMap1.getUncomSqlWhere()+") AND "+vistPatientSnQuery);
-                                String result = httpUtils.querySearch(projectId,activeSqlMap1.getUql(crfId),1,pageSize,null,new JSONArray(),crfId);
-                                List<String> list = new KeyPath("hits", "hits", "_source", "select_field", IndexContent.getPatientDocId(crfId))
-                                    .fuzzyResolve(JSON.parseObject(result))
-                                    .stream()
-                                    .map(String.class::cast)
-                                    .collect(toList());
-                                for(String key : list){
-                                    if( !map.containsKey(key)){
-                                        map.put(key, new EnumResult());
-                                    }
-                                    map.get(key).add(indexValue);
-                                }
-                            }
-                            foreach(map, (key, value) -> {
-                                if (!finalResultMap.containsKey(key)) {
-                                    finalResultMap.put(key, new JSONObject());
-                                }
-                                finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(),value.toString());
-                            });
+                    if(redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId))){
+                        for (String key : finalResultMap.keySet()){
+                            String val = redisMapDataService.hmGetKey(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),key);
+                            finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(),val == null ? "-" : val );
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    }else {
+                        try {
+                            if(StringUtils.isEmpty(indexResultValue)){//指标
+                                Map<String,String> map = searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap,projectId,crfId,activeIndexId);
+                                foreach(finalResultMap.keySet(),key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), map.get(key)));
+                            }else {//枚举
+                                Map<String,String> map = searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMap,projectId,crfId,activeIndexId);
+                                foreach(finalResultMap.keySet(),key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), map.get(key)));
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }));
         }
         for (Future future :futures){
+            LOG.info("0---0");
             future.get();
         }
+        LOG.info("时间啊-----" + (System.currentTimeMillis()-time1));
         JSONArray data = new JSONArray();
         for (GroupData groupData : patientSns){
             String docId = groupData.getPatientDocId();
@@ -595,9 +560,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             object.put("GROUP_NAME",groupData.getGroupName());
             data.add(object);
         }
-//        foreach(resultMap, (key, value) -> {
-//            data.add(value);
-//        });
         AjaxObject.getReallyDataValue(data,showColumns);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
         ajaxObject.setData(data);
@@ -605,7 +567,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         WebAPIResult webAPIResult = new WebAPIResult(pageNum,pageSize,counts);
         ajaxObject.setWebAPIResult(webAPIResult);
         ajaxObject.setApplyOutCondition(applyOutCondition);
-//        ajaxObject.setColumns(colName);
         return ajaxObject;
     }
     @Override
@@ -806,6 +767,18 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             }
         }
         return null;
+    }
+
+    @Override
+    public void deleteActiveIndexVariable(String projectId) {
+        Map<String, Object> mapParam = new HashMap<>();
+        mapParam.put("projectId", projectId);
+        mapParam.put("isVariant", 1);
+        List<ActiveIndex> activeIndex = activeIndexMapper.getAllResearchVariable(mapParam);
+        for (ActiveIndex activeIndex1 : activeIndex){
+            String id = activeIndex1.getId();
+            redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(id));
+        }
     }
 
     @Autowired

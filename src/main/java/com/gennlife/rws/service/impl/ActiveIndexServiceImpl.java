@@ -560,18 +560,11 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
 
     @Override
     public AjaxObject getContrastiveActive(String uid, String projectId,Integer cortType) {
-//        List<String> activeIndexIds = contrastiveAnalysisActiveService.getActiveIndexes(uid, projectId,null);
-//       activeIndexIds = activeIndexIds.stream().distinct().collect(toList());
-//        if (activeIndexIds == null || activeIndexIds.size() == 0) {
-//            AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, "研究变量条件数据为空");
-//            ajaxObject.setData(new JSONArray());
-//            return ajaxObject;
-//        }
+
         Map<String, Object> mapParam = new HashMap<>();
         mapParam.put("projectId", projectId);
         mapParam.put("isVariant", 1);
         List<ActiveIndex> activeIndex = activeIndexMapper.getAllResearchVariable(mapParam);
-//        List<ActiveIndex> activeIndex = activeIndexMapper.findByActiveIds(activeIndexIds);
 
         return disPonseResearchVariable(activeIndex);
     }

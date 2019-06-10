@@ -2,12 +2,14 @@ package com.gennlife.rws.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.gennlife.rws.entity.ActiveSqlMap;
 import com.gennlife.rws.entity.GroupData;
 import com.gennlife.rws.entity.Patient;
 import com.gennlife.rws.util.AjaxObject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public interface SearchByuqlService {
@@ -15,7 +17,11 @@ public interface SearchByuqlService {
 
     String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch) throws ExecutionException, InterruptedException, IOException;
 
-     String SearchByExclude(JSONObject object,String resultOrderKey,Integer isSearch) throws ExecutionException, InterruptedException, IOException;
+    Map<String, String> saveEnumCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException;
+
+    Map<String,String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException;
+
+    String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch) throws ExecutionException, InterruptedException, IOException;
 
      String SearchByEnume(JSONObject obj, String resultOrderKey,Integer isSearch) throws ExecutionException, InterruptedException, IOException;
 

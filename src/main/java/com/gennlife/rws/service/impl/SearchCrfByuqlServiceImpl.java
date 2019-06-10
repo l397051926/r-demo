@@ -73,6 +73,8 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     private GroupDataMapper groupDataMapper;
     @Autowired
     private LogUtil logUtil;
+    @Autowired
+    private SearchByuqlServiceImpl searchByuqlService;
 
 
     public static Map<String, AbstractFieldAnalyzer> SCHEMAS = force(() -> {
@@ -1137,22 +1139,15 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             activeSqlMap.setIndexTypeValue(indexTypeValue);
             activeSqlMap.setSelectValue("patient_info.patient_basicinfo.DOC_ID ");
             activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
-//            if (isOther != null  && 1 ==isOther) {
-//                otherUql = uqlClass;
-//                otherActiveSqlMap = activeSqlMap;
-//                continue;
-//            }
-//            String allSql = "select visitinfo.PATIENT_SN from "+uqlClass.getFrom()+" where " +allWhere+" group by visitinfo.PATIENT_SN";
-//            String activeOtherPat = httpUtils.querySearch(projectId,allSql,1,Integer.MAX_VALUE-1,null,new JSONArray(),true);
-//            Set<String> allPats = asKeyPath("hits", "hits")
-//                .flatFuzzyResolve(JSON.parseObject(activeOtherPat))
-//                .stream()
-//                .map(JSONObject.class::cast)
-//                .flatMap(o -> asKeyPath("_id").fuzzyResolve(o).stream())
-//                .map(String.class::cast)
-//                .collect(toSet());
-//            enumPatients.addAll(allPats);
-//            activeSqlMaps.add(activeSqlMap);
+            if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
+                SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
+                    try {
+                        searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
             Long mysqlStartTime = System.currentTimeMillis();
             Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(R_activeIndexId, indexResultValue,groupToId);
             if (count > 0) {
@@ -1161,29 +1156,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             activeSqlMapMapper.insert(activeSqlMap);
             LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
         }
-//        if(!"1".equals(isVariant)){
-//            Set<String> patients = getProjectPatients(projectId,patientSql,crfId);
-//            String where = "";
-//
-//            if (patients.size() - enumPatients.size() > patients.size() / 2) {//使用 not in
-//                where = getEnumOtherWhere(" not in", enumPatients);
-//            } else {//使用 in
-//                patients.removeAll(enumPatients);
-//                where = getEnumOtherWhere(" in ", patients);
-//            }
-//            where = where +" and join_field = 'visitinfo'";
-//            otherUql.setWhere(where);
-//            otherActiveSqlMap.setActiveSql(GzipUtil.compress(otherUql.getSql()));
-//            otherActiveSqlMap.setUncomSqlWhere(where);
-//            otherActiveSqlMap.setIsOther(1);
-//            Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(otherActiveSqlMap.getActiveIndexId(), otherActiveSqlMap.getIndexResultValue());
-//            if (count > 0) {
-//                activeSqlMapMapper.updateByActiveIdAndIndexValue(otherActiveSqlMap);
-//            } else {
-//                activeSqlMapMapper.insert(otherActiveSqlMap);
-//            }
-//
-//        }
 
         return uqlClass.getCrfSql();
     }
@@ -1947,13 +1919,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             }else {
                 uqlClass.setNotAllWhere(function,order1,indexDate,schema);
             }
-//            if ("first".equals(function) || "last".equals(function)  || "index".equals(function) || "reverseindex".equals(function)  ) {
-//                if (schema.isPackagedField(indexDate)) {
-//                    uqlClass.setWhere(uqlClass.getWhere()+"haschild( " + indexDate + " IS NOT NULL ) AND ");
-//                } else {
-//                    uqlClass.setWhere(uqlClass.getWhere()+indexDate + " IS NOT NULL AND " );
-//                }
-//            }
             where.deleteHasChild();
             where.execute(SingleExecutorService.getInstance().getSearchUqlExecutorService());
             uqlClass.setWhere(uqlClass.getWhereNotNull() + " ( "+ where.toString()+" ) ");
@@ -2013,6 +1978,15 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         activeSqlMap.setSqlHaving(uqlClass.getHaving());
         activeSqlMap.setIndexTypeValue(indexTypeValue);
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
+        if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
+            SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
+                try {
+                    searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
         int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
         if (count > 0) {
             activeSqlMapMapper.deleteByIndexId(T_activeIndexId);

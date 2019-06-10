@@ -58,6 +58,18 @@ public class RedisMapDataServiceImpl implements RedisMapDataService{
         return res;
     }
     @Override
+    public Map<String,String> hmGetAll(String key){
+        JedisCluster jedis = null;
+        Map<String,String> res = null;
+        try {
+            jedis = jedisClusters.getJedisCluster();
+            res = jedis.hgetAll(key);
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+        }
+        return res;
+    }
+    @Override
     public Long delete(String key){
         JedisCluster jedis = null;
         Long del = 0l;
@@ -130,6 +142,44 @@ public class RedisMapDataServiceImpl implements RedisMapDataService{
         try {
             jedis = jedisClusters.getJedisCluster();
             res = jedis.smembers(key);
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+        }
+        return res;
+    }
+
+    @Override
+    public Long setOutTime(String key,Integer time){
+        JedisCluster jedis = null;
+        Long res = null;
+        try {
+            jedis = jedisClusters.getJedisCluster();
+            res = jedis.expire(key,time);
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+        }
+        return res;
+    }
+    @Override
+    public Boolean exists(String key){
+        JedisCluster jedis = null;
+        Boolean res = null;
+        try {
+            jedis = jedisClusters.getJedisCluster();
+            res = jedis.exists(key);
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+        }
+        return res;
+    }
+
+    @Override
+    public String hmGetKey(String key, String val) {
+        JedisCluster jedis = null;
+        String res = null;
+        try {
+            jedis = jedisClusters.getJedisCluster();
+            res = jedis.hget(key,val);
         } catch (Exception e) {
             LOG.error(e.getMessage());
         }

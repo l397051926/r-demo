@@ -28,4 +28,6 @@ public interface CortrastiveAnalysisService {
     Object calculationResultOne(JSONObject paramObj) throws InterruptedException, ExecutionException, IOException;
 
     Object snapshootActiveResult(JSONObject paramObj);
+
+    void deleteActiveIndexVariable(String projectId);
 }

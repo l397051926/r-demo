@@ -15,6 +15,7 @@ import com.gennlife.rws.entity.*;
 import com.gennlife.rws.query.UqlQureyResult;
 import com.gennlife.rws.service.ActiveIndexService;
 import com.gennlife.rws.service.GroupService;
+import com.gennlife.rws.service.RedisMapDataService;
 import com.gennlife.rws.service.SearchByuqlService;
 import com.gennlife.rws.uql.*;
 import com.gennlife.rws.uqlcondition.*;
@@ -33,6 +34,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collector;
 
 import static com.gennlife.darren.collection.Pair.makePair;
+import static com.gennlife.darren.controlflow.for_.Foreach.foreach;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.*;
 
@@ -64,6 +66,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     private LogUtil logUtil;
     @Autowired
     private GroupService groupService;
+    @Autowired
+    private RedisMapDataService redisMapDataService;
 
     @Override
     public AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns, String groupFromId, JSONArray patientSetId, String groupId, String isVariant) throws IOException, ExecutionException, InterruptedException {
@@ -1168,21 +1172,15 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                                                             "patient_info.DOC_ID",name);
             activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
             activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
-            /*  去掉枚举其他计算*/
-//            if (isOther != null && isOther==1) {
-//                otherUql = uqlClass;
-//                otherActiveSqlMap = activeSqlMap;
-//                continue;
-//            }
-//            String allSql = "select patient_info.DOC_ID from "+uqlClass.getFrom()+" where " +allWhere+" group by patient_info.DOC_ID";
-//            String activeOtherPat = httpUtils.querySearch(projectId,allSql,1,Integer.MAX_VALUE-1,null,new JSONArray(),true);
-//            Set<String> allPats = asKeyPath("hits", "hits", "_id")
-//                .fuzzyResolve(JSON.parseObject(activeOtherPat))
-//                .stream()
-//                .map(String.class::cast)
-//                .collect(toSet());
-//            enumPatients.addAll(allPats);
-//            activeSqlMaps.add(activeSqlMap);
+            if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
+                SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
+                    try {
+                        saveEnumCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
             Long mysqlStartTime = System.currentTimeMillis();
             Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(R_activeIndexId, indexResultValue,groupToId);
             if (count > 0) {
@@ -1192,30 +1190,59 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
 
         }
-//        if(!"1".equals(isVariant)){
-//            Set<String> patients = getProjectPatients(projectId,patientSql);
-//            String where = "";
-//
-//            if (patients.size() - enumPatients.size() > patients.size() / 2) {//使用 not in
-//                where = getEnumOtherWhere(" not in", enumPatients);
-//            } else {//使用 in
-//                patients.removeAll(enumPatients);
-//                where = getEnumOtherWhere(" in ", patients);
-//            }
-//            where = where +" and join_field = 'visit_info'";
-//            otherUql.setWhere(where);
-//            otherActiveSqlMap.setActiveSql(GzipUtil.compress(otherUql.getSql()));
-//            otherActiveSqlMap.setUncomSqlWhere(where);
-//            otherActiveSqlMap.setIsOther(1);
-//            Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(otherActiveSqlMap.getActiveIndexId(), otherActiveSqlMap.getIndexResultValue());
-//            if (count > 0) {
-//                activeSqlMapMapper.updateByActiveIdAndIndexValue(otherActiveSqlMap);
-//            } else {
-//                activeSqlMapMapper.insert(otherActiveSqlMap);
-//            }
-//
-//        }
         return uqlClass.getSql();
+    }
+    @Override
+    public Map<String, String> saveEnumCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException {
+        Map<String,EnumResult> map = new HashMap<>();
+        transforEnumCortrastiveResultRedisMap(activeSqlMap1,projectId,crfId,map);
+        Map<String,String> resMap = new HashMap<>();
+        foreach(map, (key,val) -> resMap.put(key,val.toString()));
+        String res= redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),resMap);
+        redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),24 * 60 * 60);
+        LOG.info(activeIndexId +" 插入 ---- redis" + res);
+        return resMap;
+    }
+
+    private void transforEnumCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap1, String projectId, String crfId, Map<String, EnumResult> map) throws IOException {
+        String indexValue = activeSqlMap1.getIndexResultValue();
+        activeSqlMap1.setUncomSqlWhere(activeSqlMap1.getUncomSqlWhere());
+        String result = httpUtils.querySearch(projectId,activeSqlMap1.getUql(crfId),1,Integer.MAX_VALUE-1,null,new JSONArray(),crfId);
+        List<String> list = new KeyPath("hits", "hits", "_source", "select_field", IndexContent.getPatientDocId(crfId))
+            .fuzzyResolve(JSON.parseObject(result))
+            .stream()
+            .map(String.class::cast)
+            .collect(toList());
+        for(String key : list){
+            if( !map.containsKey(key)){
+                map.put(key, new EnumResult());
+            }
+            map.get(key).add(indexValue);
+        }
+    }
+
+    @Override
+    public Map<String,String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException {
+        activeSqlMap.setUncomSqlWhere(activeSqlMap.getUncomSqlWhere());
+        String result = httpUtils.querySearch(projectId,activeSqlMap.getUql(crfId),1,Integer.MAX_VALUE-1,null,new JSONArray(),crfId);
+        Map<String, String> map = new KeyPath("hits", "hits")
+            .resolveAsJSONArray(JSON.parseObject(result))
+            .stream()
+            .map(new KeyPath("_source", "select_field")::resolveAsJSONObject)
+            .collect(toMap(o -> o.getString(IndexContent.getPatientDocId(crfId)), o -> {
+                String val =o.get("condition") == null ? "-":o.getString("condition");
+                if(val.contains(".")){
+                    try {
+                        val = String.format("%.2f",  Double.parseDouble(val));
+                    }catch (Exception e){
+                    }
+                }
+                return val;
+            }));
+        String res= redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),map);
+        redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),24 * 60 * 60);
+        LOG.info(activeIndexId +" 插入 ---- redis" + res);
+        return map;
     }
 
     private String getEnumOtherWhere(String cond, Set<String> enumPatients) {
@@ -1940,6 +1967,15 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
         activeSqlMap.setSqlHaving(uqlClass.getHaving());
+        if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
+            SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
+                try {
+                    saveCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
         int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
         Long mysqlStartTime = System.currentTimeMillis();
         if (count > 0) {

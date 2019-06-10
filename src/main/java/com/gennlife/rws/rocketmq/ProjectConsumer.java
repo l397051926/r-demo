@@ -13,10 +13,7 @@ import com.gennlife.rws.entity.PatientsSet;
 import com.gennlife.rws.entity.Project;
 import com.gennlife.rws.entity.SearchLog;
 import com.gennlife.rws.query.BuildIndexRws;
-import com.gennlife.rws.service.InputTaskService;
-import com.gennlife.rws.service.PatientSetService;
-import com.gennlife.rws.service.RedisMapDataService;
-import com.gennlife.rws.service.SearchLogService;
+import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.GzipUtil;
 import com.gennlife.rws.util.HttpUtils;
 import com.gennlife.rws.util.LogUtil;
@@ -42,7 +39,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class ProjectConsumer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProjectConsumer.class);
-//    public static BlockingQueue<String> blockingQueue = new LinkedBlockingDeque();
     @Autowired
     private RocketMqContent rocketMqContent;
     @Autowired
@@ -64,7 +60,7 @@ public class ProjectConsumer {
     @Autowired
     private ProjectMapper projectMapper;
     @Autowired
-    private HttpUtils httpUtils;
+    private CortrastiveAnalysisService cortrastiveAnalysisService;
 
     @PostConstruct
     public void defaultMQPushConsumer() {
@@ -181,6 +177,7 @@ public class ProjectConsumer {
                 logUtil.saveLog(obj.getString("projectId"),content,userId,obj.getString("createName"));
                 projectMapper.updateCrfId(obj.getString("projectId"),obj.getString("crfId"));
                 patientSetService.savePatientImport(obj);
+                cortrastiveAnalysisService.deleteActiveIndexVariable(obj.getString("projectId"));
                 String projectName = projectMapper.getProjectNameByProjectId(obj.getString("projectId"));
                 producerService.sendProExportSucceed(userId,projectName,obj.getString("projectId"),taskId);
 

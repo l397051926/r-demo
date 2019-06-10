@@ -17,6 +17,8 @@ public class UqlConfig {
      */
     public static final String CORT_INDEX_ID = "CORT_INDEX_ID";
 
+    public static final String CORT_INDEX_REDIS_KEY = "rws_cort_index_";
+
     public static final Map<String,String> RESULT_ORDER_KEY ;
     /**
      * 需要将true  改变是的字段
