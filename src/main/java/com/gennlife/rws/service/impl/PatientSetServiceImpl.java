@@ -71,9 +71,9 @@ public class PatientSetServiceImpl implements PatientSetService {
 		List<PatientsSet> patientsSetList = patientsSetMapper.getPatientsSetList(map);
 		for (PatientsSet patientsSet : patientsSetList){
 			String patientSetId = patientsSet.getPatientsSetId();
-			long count =getPatientSqlCount(patientSetId,projectId,crfId);
-			patientsSet.setPatientsCount(count);
-			patientsSetMapper.updatePatientsCountByPateintSetId(patientSetId,count);
+//			long count =getPatientSqlCount(patientSetId,projectId,crfId);
+//			patientsSet.setPatientsCount(count);
+//			patientsSetMapper.updatePatientsCountByPateintSetId(patientSetId,count);
 			Integer isFlush = patientsSet.getIsFlush() == null ? 0 : patientsSet.getIsFlush(); //1 是刷新并置为0 0是不刷新
 			if(isFlush != null && isFlush==0){
 				continue;
@@ -222,7 +222,10 @@ public class PatientSetServiceImpl implements PatientSetService {
 	@Override
 	public void savePatientImport(JSONObject obj) throws IOException {
 		Integer count = patientsSetMapper.getPatientSetCount(obj.getString("patientSetId"));
-		Integer allCount = getPatientSqlCount(obj.getString("patientSetId"),obj.getString("projectId"),obj.getString("crfId"),obj.getString("uqlQuery"));
+//		Integer allCount = getPatientSqlCount(obj.getString("patientSetId"),obj.getString("projectId"),obj.getString("crfId"),obj.getString("uqlQuery"));
+		String uql = obj.getString("uqlQuery");
+		Set<String> set = new HashSet<>(Arrays.asList(uql.split("\\|")));
+		Integer allCount = set.size();
 		Long currentCount = obj.getLong("curenntCount");
 		PatientsSet patientsSet = new PatientsSet();
 		patientsSet.setPatientsSetId(obj.getString("patientSetId"));
@@ -232,7 +235,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 		if(count ==0){
 			patientsSetMapper.insert(patientsSet);
 		}else {
-			patientsSetMapper.updatePatientsCountAndQuery(obj.getString("patientSetId"),Long.valueOf(allCount), GzipUtil.compress(obj.getString("uqlQuery")),5);
+			patientsSetMapper.updatePatientsCountAndQuery(obj.getString("patientSetId"),Long.valueOf(allCount), GzipUtil.compress(uql),5);
 		}
 	}
 

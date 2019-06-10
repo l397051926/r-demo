@@ -75,8 +75,10 @@
 //    public void getCreateId(){
 ////        String id = projectMapper.getCreateIdByTaskId("1bf2852d-85fa-42f8-ab94-bdc9d13e9906");
 ////        System.out.println(id);
-//        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService("6f87691e-ab42-4649-bd7b-5914667a488a")));
-//        System.out.println(obj);
+////        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService("6f87691e-ab42-4649-bd7b-5914667a488a")));
+//        PatientsSet patientsSet = patientsSetMapper.selectByPatSetId("25db522d740c41d8a2f1bda64429dd21");
+//        System.out.println();
+//
 //    }
 //
 //    @Test
