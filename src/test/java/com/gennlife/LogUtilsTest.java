@@ -97,22 +97,28 @@
 //    public void redisMapTest() {
 //
 //        Map<String, Object> mapParam = new HashMap<>();
-//        mapParam.put("projectId", "9ae8490e1a8c4501a8c62ea9653e1fee");
-//        mapParam.put("isVariant", 1);
-//        List<ActiveIndex> activeIndex = activeIndexMapper.getAllResearchVariable(mapParam);
-//        for (ActiveIndex activeIndex1 : activeIndex){
-//            String id = activeIndex1.getId();
-//            redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(id));
-//            System.out.println("删除 " + id);
-//        }
-////        Map<String,String> map = new HashMap();
-////        map.put("a","1");
-////        map.put("b","2");
-////        map.put("c","3");
-////        map.put("d","4");
-////        System.out.println(redisMapDataService.exists("rws_test_map"));
-////        String aaa= redisMapDataService.hmset("rws_test_map",map);
-////        System.out.println(redisMapDataService.exists("rws_test_map"));
+////        mapParam.put("projectId", "9ae8490e1a8c4501a8c62ea9653e1fee");
+////        mapParam.put("isVariant", 1);
+////        List<ActiveIndex> activeIndex = activeIndexMapper.getAllResearchVariable(mapParam);
+////        for (ActiveIndex activeIndex1 : activeIndex){
+////            String id = activeIndex1.getId();
+////            redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(id));
+////            System.out.println("删除 " + id);
+////        }
+//        Map<String,String> map = new HashMap();
+//        map.put("a","1");
+//        map.put("b","2");
+//        map.put("c","3");
+//        map.put("d","4");
+//        long a = redisMapDataService.delete("dfsdfsd");
+//        System.out.println(a);
+//        System.out.println(redisMapDataService.exists("rws_test_map"));
+//        String aaa= redisMapDataService.hmset("rws_test_map",map);
+//        System.out.println(redisMapDataService.exists("rws_test_map"));
+//        System.out.println(redisMapDataService.hmGetKey("rws_test_map","d"));
+//        map.put("a","sdfsdf");
+//        redisMapDataService.hmset("rws_test_map",map);
+//        System.out.println(redisMapDataService.hmGetKey("rws_test_map","a"));
 ////        redisMapDataService.setOutTime("rws_test_map",30);
 ////
 ////        System.out.println();

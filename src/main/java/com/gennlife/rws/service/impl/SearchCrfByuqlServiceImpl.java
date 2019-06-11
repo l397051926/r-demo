@@ -19,6 +19,7 @@ import com.gennlife.rws.schema.AbstractFieldAnalyzer;
 import com.gennlife.rws.schema.EmrFieldAnalyzer;
 import com.gennlife.rws.service.ActiveIndexService;
 import com.gennlife.rws.service.GroupService;
+import com.gennlife.rws.service.RedisMapDataService;
 import com.gennlife.rws.service.SearchCrfByuqlService;
 import com.gennlife.rws.uql.*;
 import com.gennlife.rws.uqlcondition.*;
@@ -75,6 +76,8 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     private LogUtil logUtil;
     @Autowired
     private SearchByuqlServiceImpl searchByuqlService;
+    @Autowired
+    private RedisMapDataService redisMapDataService;
 
 
     public static Map<String, AbstractFieldAnalyzer> SCHEMAS = force(() -> {
@@ -178,7 +181,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if(pasSn.size()==0){
             patSnWhere = "visitinfo.PATIENT_SN IN ('')";
         }else {
-            patSnWhere = "visitinfo.PATIENT_SN IN ( " + pasSn.stream().map(x -> "'" + x + "'").collect(joining(",")) + " )";
+            patSnWhere = "visitinfo.PATIENT_SN " + TransPatientSql.transForExtContain(pasSn);
         }
         LOG.info("处理结果"+(System.currentTimeMillis()-tmie2));
         Long tmie3 = System.currentTimeMillis();
@@ -263,6 +266,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         Object error = data.get("error");
         if (error != null) {
             LOG.error("发生异常了： " + error);
+            LOG.error("参数为： " + param);
         }
         return result;
     }
@@ -671,7 +675,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if(pasSn.size()==0){
             patSnWhere = "patient_info.patient_basicinfo.DOC_ID IN ('')";
         }else {
-            patSnWhere = "patient_info.patient_basicinfo.DOC_ID IN ( " + pasSn.stream().map(x -> "'" + x + "'").collect(joining(",")) + " )";
+            patSnWhere = "patient_info.patient_basicinfo.DOC_ID " +TransPatientSql.transForExtContain(pasSn);
         }
 
         for (int i = 0; i < refSize; i++) {
@@ -807,7 +811,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if (patients.isEmpty()) {
             result = "patient_info.patient_basicinfo.DOC_ID IN ('')";
         } else {
-            result = "patient_info.patient_basicinfo.DOC_ID IN ( " + patients.stream().map(s -> "'" + s + "'").collect(joining(",")) + " )";
+            result = "patient_info.patient_basicinfo.DOC_ID " +TransPatientSql.transForExtContain(patients);
         }
         return result;
     }
@@ -985,7 +989,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if (patients.isEmpty()) {
             otherResult = "";
         } else {
-            otherResult = patients.stream().map(s -> "'" + s + "'").collect(joining(","));
+            otherResult =String.join("$",patients);
         }
         ActiveSqlMap activeSqlMap = new ActiveSqlMap();
         LOG.info("新的sql------------------： " + newSql);
@@ -1071,7 +1075,8 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         int size = configs == null ? 0 : configs.size();
         activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
-
+        List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
+        redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(R_activeIndexId));
         for (int i = 0; i < size; i++) {
             uqlClass = new CrfEnumUqlClass(projectId, crfId);
             uqlClass.setActiveSelect(" patient_info.patient_basicinfo.DOC_ID as pSn  ");
@@ -1139,15 +1144,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             activeSqlMap.setIndexTypeValue(indexTypeValue);
             activeSqlMap.setSelectValue("patient_info.patient_basicinfo.DOC_ID ");
             activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
-            if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
-                SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
-                    try {
-                        searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
+            activeSqlMaps.add(activeSqlMap);
             Long mysqlStartTime = System.currentTimeMillis();
             Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(R_activeIndexId, indexResultValue,groupToId);
             if (count > 0) {
@@ -1156,7 +1153,15 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             activeSqlMapMapper.insert(activeSqlMap);
             LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
         }
-
+        if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
+            SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
+                try {
+                    searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMaps,projectId,"EMR",R_activeIndexId);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
         return uqlClass.getCrfSql();
     }
 
@@ -1908,7 +1913,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         UqlClass sqlresult = null;
         String sqlMd5 = "";
-
+        redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
         if(where.isSameGroup(visits)){
             uqlClass.setWhere(TransData.transDataNumber(order1) + " IS NOT NULL AND ");
             uqlClass.setInitialPatients(isVariant,patientSql);
@@ -1981,7 +1986,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
             SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
                 try {
-                    searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
+                    searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",T_activeIndexId);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -2259,7 +2264,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if(pasSn.size()==0){
             patSnWhere = "visitinfo.PATIENT_SN IN ('')";
         }else {
-            patSnWhere = "visitinfo.PATIENT_SN IN ( " + pasSn.stream().map(x -> "'" + x + "'").collect(joining(",")) + " )";
+            patSnWhere = "visitinfo.PATIENT_SN  " + TransPatientSql.transForExtContain(pasSn);
         }
         JSONArray source = new JSONArray();
         source.add("patient_info.patient_basicinfo.PATIENT_SN");
@@ -2337,7 +2342,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if(pats.size()==0){
             patsStr = "''";
         }else {
-            patsStr = pats.stream().map(sn -> "'" + sn + "'").collect(joining(","));
+            patsStr = TransPatientSql.transForExtContain(pats);
         }
         Map<String, Set<String>> resultMap = new ConcurrentHashMap<>();
         List<Future> futures = new ArrayList<>();
@@ -2470,7 +2475,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if (patients.isEmpty()) {
             result = IndexContent.getPatientDocId(crfId)+" IN ('')";
         } else {
-            result = IndexContent.getPatientDocId(crfId)+" IN ( " + patients.stream().map(s -> "'" + s + "'").collect(joining(",")) + " )";
+            result = IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(patients);
         }
         return result;
     }
@@ -2481,18 +2486,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if(groupDataMapper == null || groupDataPatSn.size()==0){
             query = "''";
         }else {
-            query = groupDataPatSn.stream().map( x ->"'" + x + "'").collect(joining(","));
+            query = TransPatientSql.transForExtContain(groupDataPatSn);
         }
-//        StringBuffer stringBuffer = new StringBuffer();
-//        for (int i = 0; i < groupDataPatSn.size(); i++) {
-//            if(i>0){
-//                stringBuffer.append(",");
-//            }
-//            stringBuffer.append("'");
-//            stringBuffer.append(groupDataPatSn.get(i));
-//            stringBuffer.append("'");
-//        }
-        return  " patient_info.patient_basicinfo.DOC_ID IN ("+query+")";
+        return  " patient_info.patient_basicinfo.DOC_ID "+query;
     }
 
     private Integer getPatientSqlCount(JSONArray patientSetId, String projectId,String crfId) {

@@ -82,12 +82,12 @@ public class HttpUtils {
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
         } catch (IOException e) {
-            LOG.error("发生异常了： " + param);
+            LOG.error("发生异常了： " + param);LOG.error("参数为： " + param);
         }
         LOG.info("搜索 --消耗时间为："+(System.currentTimeMillis() - startTime));
 //        LOG.info("访问 uql 查询param: " + param);
         if (result.contains("error")) {
-            LOG.info("发生异常了： " + JSONObject.parseObject(result).getString("error"));
+            LOG.info("发生异常了： " + JSONObject.parseObject(result).getString("error"));LOG.error("参数为： " + param);
         }
         return result;
     }
@@ -109,12 +109,13 @@ public class HttpUtils {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
         } catch (IOException e) {
             LOG.error("发生异常了： " + param);
+            LOG.error("参数为： " + param);
         }
         LOG.info("搜索 --消耗时间为：" + (System.currentTimeMillis() - startTime));
         JSONObject data = JSON.parseObject(result);
         Object error = data.get("error");
         if (error != null) {
-            LOG.error("发生异常了： " + error);
+            LOG.error("发生异常了： " + error);LOG.error("参数为： " + param);
         }
         return result;
     }
@@ -145,7 +146,7 @@ public class HttpUtils {
         JSONObject data = JSON.parseObject(result);
         Object error = data.get("error");
         if (error != null) {
-            LOG.error("发生异常了： " + error);
+            LOG.error("发生异常了： " + error);LOG.error("参数为： " + param);
         }
         return result;
     }
@@ -175,7 +176,7 @@ public class HttpUtils {
         JSONObject data = JSON.parseObject(result);
         Object error = data.get("error");
         if (error != null) {
-            LOG.error("发生异常了： " + error);
+            LOG.error("发生异常了： " + error);LOG.error("参数为： " + param);
         }
         return result;
     }

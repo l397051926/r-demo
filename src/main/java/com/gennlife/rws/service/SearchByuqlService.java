@@ -17,7 +17,7 @@ public interface SearchByuqlService {
 
     String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch) throws ExecutionException, InterruptedException, IOException;
 
-    Map<String, String> saveEnumCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException;
+    Map<String, String> saveEnumCortrastiveResultRedisMap(List<ActiveSqlMap> activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException;
 
     Map<String,String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException;
 

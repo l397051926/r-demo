@@ -117,15 +117,15 @@ public class IndexReferenceConditionUqlWhereElem extends UqlWhereElem {
 
         if(not){
             if (patients.isEmpty()) {//visitInfo +....
-                result = IndexContent.getPatientDocId(crfId)+" IN ("+this.activeOhterResult+")";
+                result = IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain("'"+this.activeOhterResult+"'");
             } else {
-                result = IndexContent.getPatientDocId(crfId)+" IN (" + patients.stream().map(s -> "'" + s + "'").collect(joining(",")) +","+this.activeOhterResult+ " )";
+                result = IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(" '" + patients.stream().collect(joining("$")) +"$"+this.activeOhterResult+ "'");
             }
         }else {
             if (patients.isEmpty()) {
                 result = IndexContent.getPatientDocId(crfId)+" IN ('')";
             } else {
-                result = IndexContent.getPatientDocId(crfId)+" IN (" + patients.stream().map(s -> "'" + s + "'").collect(joining(",")) + " )";
+                result = IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(patients);
             }
         }
     }

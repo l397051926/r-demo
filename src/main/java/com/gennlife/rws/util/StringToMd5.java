@@ -5,7 +5,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * @author liumingxin
+ * @author
  * @create 2018 30 9:24
  * @desc
  **/

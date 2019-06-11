@@ -145,7 +145,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if(pasSn.size()==0){
             patSnWhere = "patient_info.DOC_ID IN ('')";
         }else {
-            patSnWhere = "patient_info.DOC_ID IN ( " + pasSn.stream().map(x -> "'" + x + "'").collect(joining(",")) + " )";
+            patSnWhere = "patient_info.DOC_ID " + TransPatientSql.transForExtContain(pasSn);
         }
 //        LOG.info("处理结果"+(System.currentTimeMillis()-tmie2));
         Long tmie3 = System.currentTimeMillis();
@@ -650,9 +650,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         String patSnWhere = "";
         if(pasSn.size()==0){
-            patSnWhere = "patient_info.DOC_ID IN ('')";
+            patSnWhere = "patient_info.DOC_ID . ('')";
         }else {
-            patSnWhere = "patient_info.DOC_ID IN ( " + pasSn.stream().map(x -> "'" + x + "'").collect(joining(",")) + " )";
+            patSnWhere = "patient_info.DOC_ID " + TransPatientSql.transForExtContain(pasSn);
         }
 
         for (int i = 0; i < refSize; i++) {
@@ -1125,7 +1125,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         int size = configs == null ? 0 : configs.size();
         activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
-
+        redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(R_activeIndexId));
+        List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             uqlClass = new EnumeUqlClass(projectId);
             uqlClass.setActiveSelect(" patient_info.DOC_ID as pSn ");
@@ -1172,15 +1173,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                                                             "patient_info.DOC_ID",name);
             activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
             activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
-            if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
-                SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
-                    try {
-                        saveEnumCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
+            activeSqlMaps.add(activeSqlMap);
             Long mysqlStartTime = System.currentTimeMillis();
             Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(R_activeIndexId, indexResultValue,groupToId);
             if (count > 0) {
@@ -1188,14 +1181,24 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
             activeSqlMapMapper.insert(activeSqlMap);
             LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
-
+        }
+        if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
+            SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
+                try {
+                    saveEnumCortrastiveResultRedisMap(activeSqlMaps,projectId,"EMR",R_activeIndexId);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
         return uqlClass.getSql();
     }
     @Override
-    public Map<String, String> saveEnumCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException {
+    public Map<String, String> saveEnumCortrastiveResultRedisMap(List<ActiveSqlMap> activeSqlMaps, String projectId, String crfId, String activeIndexId) throws IOException {
         Map<String,EnumResult> map = new HashMap<>();
-        transforEnumCortrastiveResultRedisMap(activeSqlMap1,projectId,crfId,map);
+        for (ActiveSqlMap activeSqlMap : activeSqlMaps){
+            transforEnumCortrastiveResultRedisMap(activeSqlMap,projectId,crfId,map);
+        }
         Map<String,String> resMap = new HashMap<>();
         foreach(map, (key,val) -> resMap.put(key,val.toString()));
         String res= redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),resMap);
@@ -1604,7 +1607,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if (patients.isEmpty()) {
             result = IndexContent.getPatientDocId(crfId)+" IN ('')";
         } else {
-            result = IndexContent.getPatientDocId(crfId)+" IN ( " + patients.stream().map(s -> "'" + s + "'").collect(joining(",")) + " )";
+            result = IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(patients);
         }
         return result;
     }
@@ -1625,7 +1628,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if (patients.isEmpty()) {
             result = "patient_info.DOC_ID IN ('')";
         } else {
-            result = "patient_info.DOC_ID IN ( " + patients.stream().map(s -> "'" + s + "'").collect(joining(",")) + " )";
+            result = "patient_info.DOC_ID " + TransPatientSql.transForExtContain(patients);
         }
         return result;
     }
@@ -1647,7 +1650,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if (patients.isEmpty()) {
             result = "patient_info.DOC_ID IN ('')";
         } else {
-            result = "patient_info.DOC_ID IN ( " + patients.stream().map(s -> "'" + s + "'").collect(joining(",")) + " )";
+            result = "patient_info.DOC_ID " + TransPatientSql.transForExtContain(patients);
         }
         return result;
     }
@@ -1895,6 +1898,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId,groupToId,projectId,patientSetId);
         UqlClass sqlresult = null;
         String sqlMd5 = "";
+        redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
         /*------------------------------------------------------------------------------*/
         if(where.isSameGroup(visits)){
             uqlClass.setWhere(order1 + " IS NOT NULL AND ");
@@ -1970,7 +1974,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if(StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)){
             SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
                 try {
-                    saveCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",R_activeIndexId);
+                    saveCortrastiveResultRedisMap(activeSqlMap,projectId,"EMR",T_activeIndexId);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -2210,7 +2214,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if(pasSn.size()==0){
             patSnWhere = "patient_info.DOC_ID IN ('')";
         }else {
-            patSnWhere = "patient_info.DOC_ID IN ( " + pasSn.stream().map(x -> "'" + x + "'").collect(joining(",")) + " )";
+            patSnWhere = "patient_info.DOC_ID " +TransPatientSql.transForExtContain(pasSn);
         }
         JSONArray source = new JSONArray();
         source.add("patient_info.DOC_ID");
@@ -2288,7 +2292,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if(pats.size()==0){
              patsStr = "''";
         }else {
-            patsStr = pats.stream().map(sn -> "'" + sn + "'").collect(joining(","));
+            patsStr = TransPatientSql.transForExtContain(pats);
 
         }
 
@@ -2296,7 +2300,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         List<Future> futures = new ArrayList<>();
         for (ActiveSqlMap activeSqlMap : sqlList){
             String where = activeSqlMap.getUncomSqlWhere();
-            String newWhere = " patient_info.DOC_ID IN (" + patsStr +")  and ("+where+" )";
+            String newWhere = " patient_info.DOC_ID " + patsStr +" and ("+where+" )";
             activeSqlMap.setUncomSqlWhere(newWhere);
             String sql = activeSqlMap.getUql();
             JSONArray source= new JSONArray();

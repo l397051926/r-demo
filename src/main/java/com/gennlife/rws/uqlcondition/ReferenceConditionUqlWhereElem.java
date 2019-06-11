@@ -5,10 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.keypath.KeyPath;
 import com.gennlife.rws.schema.AbstractFieldAnalyzer;
-import com.gennlife.rws.util.ApplicationContextHelper;
-import com.gennlife.rws.util.GzipUtil;
-import com.gennlife.rws.util.HttpUtils;
-import com.gennlife.rws.util.StringUtils;
+import com.gennlife.rws.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +109,7 @@ public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
         if(visitSns ==null || visitSns.size() == 0){
             result = group + ".DOC_ID IN ('') ";
         }else {
-            result = group + ".DOC_ID IN ( " + visitSns.stream().map(s -> "'" + s + "'").collect(joining(",")) + " ) ";
+            result = group + ".DOC_ID " + TransPatientSql.transForExtContain(visitSns);
         }
     }
 

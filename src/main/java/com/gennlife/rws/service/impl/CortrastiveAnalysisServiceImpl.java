@@ -476,8 +476,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         String applyOutCondition = String.join(",",patSns);
 
         List<GroupData> patientSns =groupDataMapper.getPatientSnByGroupIds(groupIds,startNum,endNum);
-        String patientSnQuery =IndexContent.getPatientInfoPatientSn(crfId)+" IN ( " + patientSns.stream().map(s -> "'" + s.getPatientSn() + "'").collect(joining(",")) + " ) ";
-        String vistPatientSnQuery =IndexContent.getPatientSn(crfId)+" IN ( " + patientSns.stream().map(s -> "'" + s.getPatientSn() + "'").collect(joining(",")) + " ) ";
+        String patientSnQuery =IndexContent.getPatientInfoPatientSn(crfId)+TransPatientSql.transForExtContainForGroupData(patientSns);
+        String vistPatientSnQuery =IndexContent.getPatientSn(crfId)+TransPatientSql.transForExtContainForGroupData(patientSns);
         List<String> activeIndexIds = contrastiveAnalysisActiveService.getActiveIndexes(uid, projectId,2);
         Integer counts = groupDataMapper.getPatSetCountBygroupIds(groupIds);
         if (activeIndexIds == null || activeIndexIds.isEmpty()) {
@@ -530,16 +530,16 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     if(redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId))){
                         for (String key : finalResultMap.keySet()){
                             String val = redisMapDataService.hmGetKey(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),key);
-                            finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(),val == null ? "-" : val );
+                            finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(),StringUtils.isEmpty(val) ? "-" : val );
                         }
                     }else {
                         try {
                             if(StringUtils.isEmpty(indexResultValue)){//指标
                                 Map<String,String> map = searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap,projectId,crfId,activeIndexId);
-                                foreach(finalResultMap.keySet(),key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), map.get(key)));
+                                foreach(finalResultMap.keySet(),key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
                             }else {//枚举
-                                Map<String,String> map = searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMap,projectId,crfId,activeIndexId);
-                                foreach(finalResultMap.keySet(),key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), map.get(key)));
+                                Map<String,String> map = searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMaps,projectId,crfId,activeIndexId);
+                                foreach(finalResultMap.keySet(),key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -1088,35 +1088,15 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     public String getGroupsSql(Set<Group> groups,String crfId){
         List<String> groupDatPatSns = new ArrayList<>();
         for (Group group : groups){
-//            List<String> groupDataPatSn = groupDataMapper.getPatientSnList(group.getGroupId());
             List<String> groupDataPatSn = groupDataMapper.getPatientDocId(group.getGroupId());
             groupDatPatSns.addAll(groupDataPatSn);
         }
-        StringBuffer stringBuffer = new StringBuffer();
-        for (int i = 0; i < groupDatPatSns.size(); i++) {
-            if(i>0){
-                stringBuffer.append(",");
-            }
-            stringBuffer.append("'");
-            stringBuffer.append(groupDatPatSns.get(i));
-            stringBuffer.append("'");
-        }
-        return  " "+IndexContent.getPatientDocId(crfId)+" IN ("+stringBuffer.toString()+")";
+        return  " "+IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(groupDatPatSns);
     }
 
     public String getGroupSql(String groupId,String crfId){
-//        List<String> groupDataPatSn = groupDataMapper.getPatientSnList(groupId);
         List<String> groupDataPatSn = groupDataMapper.getPatientDocId(groupId);
-        StringBuffer stringBuffer = new StringBuffer();
-        for (int i = 0; i < groupDataPatSn.size(); i++) {
-            if(i>0){
-                stringBuffer.append(",");
-            }
-            stringBuffer.append("'");
-            stringBuffer.append(groupDataPatSn.get(i));
-            stringBuffer.append("'");
-        }
-        return  " "+IndexContent.getPatientDocId(crfId)+" IN ("+stringBuffer.toString()+")";
+        return  " "+IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(groupDataPatSn);
     }
 
     private JSONArray   getViewGroupTree(JSONArray grouArray,int maxLevel,JSONArray trueGroupArray) {

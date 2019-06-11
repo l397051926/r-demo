@@ -394,7 +394,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
             Integer counts = groupDataMapper.getPatSetAggregationCount(groupParentId);
             // 查找数据
             List<GroupData> groupDataList = groupDataMapper.getByGroupIdLimit(groupParentId, startNum, endNum, null);
-            String patientSns = IndexContent.getPatientSn(crfId)+" IN ( " + groupDataList.stream().map(x -> "'"+x.getPatientSn()+"'").collect(joining(","))+")";
+            String patientSns = IndexContent.getPatientSn(crfId)+TransPatientSql.transForExtContainForGroupData(groupDataList);
             String query = "select "+IndexContent.getPatientDocId(crfId)+" as patSn  from "+ IndexContent.getIndexName(crfId,projectId) + " where "+patientSns+IndexContent.getGroupBy(crfId);
             JSONArray source = new JSONArray();
             source.add("patient_info");
@@ -412,7 +412,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
             Integer endNum = pageSize;
             Integer counts = groupDataMapper.getPatSetAggregationCount(group.getGroupId());
             List<GroupData> groupDataList = groupDataMapper.getByGroupIdLimit(group.getGroupId(), startNum, endNum, null);
-            String patientSns = IndexContent.getPatientSn(crfId)+" IN ( " + groupDataList.stream().map( x -> "'"+x.getPatientSn()+"'").collect(joining(","))+")";
+            String patientSns = IndexContent.getPatientSn(crfId)+TransPatientSql.transForExtContainForGroupData(groupDataList);
             String query = "select "+IndexContent.getPatientDocId(crfId)+" as patSn  from "+ IndexContent.getIndexName(crfId,projectId) + " where "+patientSns+IndexContent.getGroupBy(crfId);
             JSONArray source = new JSONArray();
             source.add("patient_info");
