@@ -184,7 +184,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                 }else {
                     patsCondition = getGroupSql(group.getGroupId(),crfId);
                 }
-                int total = patsCondition.split(",").length;  // 需要存病人数
+                int total = patsCondition.split("\\$").length -1;  // 需要存病人数
                 Column column = new Column();
                 column.title = group.getGroupName();
                 for (List<ActiveSqlMap> condition: conditions) {
