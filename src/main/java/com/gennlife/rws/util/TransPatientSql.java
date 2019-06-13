@@ -73,8 +73,7 @@ public class TransPatientSql {
         if(array.length==1){
             return " patient_info.PATIENT_SN IN ('"+sql+"') ";
         }
-        String tmp = Arrays.stream(array).map(m -> "'"+m+"'").collect(joining(","));
-        return  " patient_info.PATIENT_SN IN ("+tmp+") ";
+        return  " patient_info.PATIENT_SN " + transForExtContainForArray(array);
     }
 
     public static String getSqlByPatSns(List<GroupData> groupDatas, String crfId){
@@ -113,6 +112,9 @@ public class TransPatientSql {
     public static String transForExtContainForDataType(Object val){
         return " " + EXT_CONTAIN + "(" + JSON.parseArray(val.toString()).stream().map(String.class::cast).collect(joining("$"))  +",'$') ";
     }
+    public static String transForExtContainForArray(String[] arrs){
+        return " " + EXT_CONTAIN + "(" +getExtSet_SqlForArray(arrs) +",'$') ";
+    }
     public static String getSet_Sql(Set<String> patients){
         return patients.stream().map(s -> "'" + s + "'").collect(joining(","));
     }
@@ -127,6 +129,12 @@ public class TransPatientSql {
             return "''";
         }
         return "'" + groupDataList.stream().map(x -> x.getPatientSn()).collect(joining("$")) + "'";
+    }
+    public static String getExtSet_SqlForArray(String [] arrs){
+        if(arrs.length == 0){
+            return "''";
+        }
+        return "'" +  Arrays.stream(arrs).collect(joining("$")) + "'";
     }
 
 }

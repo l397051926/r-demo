@@ -724,22 +724,14 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         Map<String,String> actieveIndexType = new HashMap<>();
         Map<String,List<JSONObject>> resultMap = new HashMap<>();
 
-
         JSONObject data = new JSONObject();
         for (String activeId : activeIndexIds){
-            if(!CortrastiveCache.getRedisMap().containsKey(activeId)){
-                calculateAll(activeIndexIds,projectId,crfId,activeNames,activeNames,CortrastiveCache.getRedisMap());
+            if(!redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeId))){
+                calculateAll(activeIndexIds,projectId,crfId,activeNames,activeNames);
             }
-            Map<String, List<JSONObject>> map = CortrastiveCache.getRedisMap().get(activeId);
             for (String docId : patDocIds){
-                List<JSONObject> list = map.get(docId);
-                if(list == null ) {
-                    continue;
-                }
-                for (JSONObject object : list){
-                    String val = object.getString("val");
-                    data.put(activeId,val);
-                }
+                String val = redisMapDataService.hmGetKey(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeId),docId);
+                data.put(activeId,StringUtils.isEmpty(val) ? "-" : val);
             }
         }
         return new JSONObject()
@@ -868,12 +860,11 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         }
     }
 
-    private void calculateAll(List<String> activeIndexIds, String projectId, String crfId, Map<String, String> activeNames, Map<String,String> actieveIndexType ,Map<String,Map<String, List<JSONObject>>> redisMap) throws IOException, ExecutionException, InterruptedException {
+    private void calculateAll(List<String> activeIndexIds, String projectId, String crfId, Map<String, String> activeNames, Map<String,String> actieveIndexType) throws IOException, ExecutionException, InterruptedException {
         List<Future> futures = new ArrayList<>();
         for (String activeIndexId : activeIndexIds) {
             futures.add(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor().submit(() -> {
                 try {
-                    Map<String, List<JSONObject>> resultMap = new HashMap<>();
                     List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId, UqlConfig.CORT_INDEX_ID);
                     if(activeSqlMaps.size()<1){
                         return;
@@ -897,55 +888,12 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     JSONObject obj = new JSONObject().fluentPut("activeId", activeIndexId).fluentPut("activeName", activeName).fluentPut("type",transForIndexType(type));
                     String indexResultValue = activeSqlMap.getIndexResultValue();
 
-                    if (StringUtils.isEmpty(indexResultValue)) {//指标
-                        activeSqlMap.setUncomSqlWhere("(" + activeSqlMap.getUncomSqlWhere() + ") ");
-                        String result = httpUtils.querySearch(projectId, activeSqlMap.getUql(crfId), 1, Integer.MAX_VALUE-1, null, new JSONArray(), crfId);
-                        Map<String, Object> map = new KeyPath("hits", "hits")
-                            .resolveAsJSONArray(JSON.parseObject(result))
-                            .stream()
-                            .map(new KeyPath("_source", "select_field")::resolveAsJSONObject)
-                            .collect(toMap(o -> o.getString(IndexContent.getPatientDocId(crfId)), o -> o.get("condition") == null ? "-" : o.get("condition")));
-                        foreach(map, (key, value) -> {
-                            if (!resultMap.containsKey(key)) {
-                                resultMap.put(key, new ArrayList<>());
-                            }
-                            if (String.valueOf(value).contains(".")) {
-                                try {
-                                    value = String.format("%.2f", Double.parseDouble(String.valueOf(value)));
-                                } catch (Exception e) {
-                                }
-                            }
-                            JSONObject tmpObj = JSONObject.parseObject(obj.toJSONString());
-                            tmpObj.put("val", value);
-                            resultMap.get(key).add(tmpObj);
-                        });
-                    } else {//枚举
-                        Map<String, EnumResult> map = new HashMap<>();
-                        for (ActiveSqlMap activeSqlMap1 : activeSqlMaps) {
-                            String indexValue = activeSqlMap1.getIndexResultValue();
-                            activeSqlMap1.setUncomSqlWhere("(" + activeSqlMap1.getUncomSqlWhere() + ") " );
-                            String result = httpUtils.querySearch(projectId, activeSqlMap1.getUql(crfId), 1, Integer.MAX_VALUE-1, null, new JSONArray(), crfId);
-                            List<String> list = new KeyPath("hits", "hits", "_source", "select_field", IndexContent.getPatientDocId(crfId))
-                                .fuzzyResolve(JSON.parseObject(result))
-                                .stream()
-                                .map(String.class::cast)
-                                .collect(toList());
-                            for (String key : list) {
-                                if (!map.containsKey(key)) {
-                                    map.put(key, new EnumResult());
-                                }
-                                map.get(key).add(indexValue);
-                            }
-                        }
-                        foreach(map, (key, value) -> {
-                            if (!resultMap.containsKey(key)) {
-                                resultMap.put(key, new ArrayList<>());
-                            }
-                            obj.put("val", value.toString());
-                            resultMap.get(key).add(obj);
-                        });
+                    if(StringUtils.isEmpty(indexResultValue)){//指标
+                        Map<String,String> map = searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap,projectId,crfId,activeIndexId);
+                    }else {//枚举
+                        Map<String,String> map = searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMaps,projectId,crfId,activeIndexId);
                     }
-                    redisMap.put(activeIndexId,resultMap);
+
                 } catch (IOException e) {
                     LOG.error("计算发生了错误！！！");
                 }

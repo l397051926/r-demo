@@ -1573,18 +1573,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if(groupDataPatSn ==null || groupDataPatSn.size()==0){
             query = "''";
         }else {
-            query = groupDataPatSn.stream().map( x ->"'" + x + "'").collect(joining(","));
+            query = TransPatientSql.transForExtContain(groupDataPatSn);
         }
-//        StringBuffer stringBuffer = new StringBuffer();
-//        for (int i = 0; i < groupDataPatSn.size(); i++) {
-//            if(i>0){
-//                stringBuffer.append(",");
-//            }
-//            stringBuffer.append("'");
-//            stringBuffer.append(groupDataPatSn.get(i));
-//            stringBuffer.append("'");
-//        }
-        return  " visit_info.PATIENT_SN IN ("+query+")";
+        return  " visit_info.PATIENT_SN " + query;
     }
 
 
