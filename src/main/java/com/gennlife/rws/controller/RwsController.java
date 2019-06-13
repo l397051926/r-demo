@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author liuzhen
@@ -89,6 +90,20 @@ public class RwsController {
             String createName = active.getString("createName");
             String name = active.getString("name");
             String activeId = active.getString("id");
+
+            if(isSearch == CommonContent.ACTIVE_TYPE_TEMP_SAVEAS){
+                Map<String, Object> params = new HashMap<String, Object>();
+                params.put("projectId", projectId);
+                params.put("name", name);
+                params.put("isTmp", 0);
+                params.put("isVariant",isVariant);
+                List<ActiveIndex> activeIndexList = activeIndexService.findeByActiveName(params);
+                if (activeIndexList != null && !activeIndexList.isEmpty()) {
+                    if(Objects.nonNull(isVariant) && Objects.equals(1,isVariant)){
+                        return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "同一个项目内的研究变量名称不能重复");
+                    }
+                }
+            }
             Boolean isClsUpdate  =active.getBoolean("isClsUpdate") == null ? false : active.getBoolean("isClsUpdate");
             if(isClsUpdate){
                 activeIndexService.deleteByActiveId(activeId);
