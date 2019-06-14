@@ -7,10 +7,10 @@ public class SingleExecutorService {
 
     private volatile static SingleExecutorService instance;
 
-    private final ExecutorService searchUqlExecutorService = Executors.newFixedThreadPool(200);
+    private final ExecutorService searchUqlExecutorService = Executors.newFixedThreadPool(100);
     private final ExecutorService cortrastiveAnalysisExecutor = Executors.newFixedThreadPool(8);
-    private final ExecutorService referenceActiveExecutor = Executors.newFixedThreadPool(200);
-    private final ExecutorService flushCountGroupExecutor = Executors.newFixedThreadPool(200);
+    private final ExecutorService referenceActiveExecutor = Executors.newFixedThreadPool(100);
+    private final ExecutorService flushCountGroupExecutor = Executors.newFixedThreadPool(20);
     private final ExecutorService centerTaskeExecutor = Executors.newFixedThreadPool(10);
 
     private SingleExecutorService(){}
