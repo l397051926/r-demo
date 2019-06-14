@@ -773,6 +773,27 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         }
     }
 
+    @Override
+    public List<Group> getCortastiveGroupList(String uid, String projectId) {
+        List<GroupCondition> groupConditionList = groupConditionMapper.getGroupByProjectId(uid,projectId,2);
+        List<Group> groupList = groupService.getGroupByProjectId("001",projectId);
+        for (GroupCondition groupCondition : groupConditionList) {
+            String groupId = groupCondition.getGroupId();
+            for (Group group : groupList) {
+                if (group.getGroupId().equals(groupId)) {
+                    group.setCheckable(true);
+                }
+            }
+        }
+        int maxLevel= groupList.stream()
+            .mapToInt(Group :: getGroupLevel)
+            .max().getAsInt();
+        JSONArray grouArray = getGroupTree(groupList,maxLevel);
+        List<Group> maxLevelGroup = new ArrayList<>(); //获取最底层的组数据
+        getGrouMxLevel(grouArray,maxLevelGroup);
+        return maxLevelGroup;
+    }
+
     @Autowired
     private ActiveIndexConfigMapper activeIndexConfigMapper;
     private void calculate(List<String> activeIndexIds, String patientSnQuery, String projectId, String crfId, Map<String, List<JSONObject>> resultMap, Map<String, String> activeNames, Map<String,String> actieveIndexType) throws IOException, ExecutionException, InterruptedException {

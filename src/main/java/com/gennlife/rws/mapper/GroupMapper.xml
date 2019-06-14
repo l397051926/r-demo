@@ -382,4 +382,15 @@
 		</if>
 		)
 	</select>
+
+	<select id="getGroupListByGroupIds" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from p_group
+		where is_delete='0'
+	  	and group_id in
+		<foreach item="item" index="index" open="(" separator="," close=")" collection="groupList">
+			#{item}
+		</foreach>
+	</select>
 </mapper>

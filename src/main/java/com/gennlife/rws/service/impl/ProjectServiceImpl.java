@@ -8,6 +8,7 @@ import com.gennlife.exception.CustomerStatusEnum;
 import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
+import com.gennlife.rws.service.CortrastiveAnalysisService;
 import com.gennlife.rws.service.GroupService;
 import com.gennlife.rws.service.InputTaskService;
 import com.gennlife.rws.service.ProjectService;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 import static com.gennlife.rws.query.BuildIndexCrf.PROJECT_INDEX_NAME_PREFIX;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Transactional(rollbackFor = RuntimeException.class)
@@ -161,19 +163,24 @@ public class ProjectServiceImpl implements ProjectService {
 	public Integer getCountByProjectIdAndProjectName(String projectId, String projectName) {
 		return projectMapper.getCountByProjectIdAndProjectName(projectId,projectName);
 	}
+	@Autowired
+	private CortrastiveAnalysisService cortrastiveAnalysisService;
 
 	@Override
 	public AjaxObject getCortastivePatientSn(JSONObject object) {
 		String uid = object.getString("uid");
 		String projectId = object.getString("projectId");
-		List<String> groupList = groupConditionMapper.getGroupIdByProjectIdAndUid(uid,projectId,2);
+//		List<String> groupList = groupConditionMapper.getGroupIdByProjectIdAndUid(uid,projectId,2);
+//		List<Group> groups = groupMapper.getGroupListByGroupIds(groupList);
+		List<Group> groupList = cortrastiveAnalysisService.getCortastiveGroupList(uid,projectId);
 		if (groupList == null || groupList.size() ==0){
 			return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有符合的分组数据");
 		}
 		JSONObject data = new JSONObject();
-		for (String groupId : groupList){
+		for (Group group : groupList){
+			String groupId = group.getGroupId();
 			List<String> patSns = groupDataMapper.getPatientSnList(groupId);
-			String groupName = groupDataMapper.getGroupName(groupId);
+			String groupName = group.getGroupName();
 			String groupPath = groupService.getGroupNamePath(groupId,groupName);
 			data.put(groupPath,patSns);
 		}

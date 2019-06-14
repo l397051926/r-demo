@@ -65,4 +65,6 @@ public interface GroupMapper {
 	Integer selectCountByGroupIdAndUid(@Param("groupId") String groupId, @Param("uid") String uid);
 
 	List<Group> getGroupListByGroupCondition(@Param("uid") String uid, @Param("projectId") String projectId, @Param("cortType")Integer cortType);
+
+    List<Group> getGroupListByGroupIds(List<String> groupList);
 }

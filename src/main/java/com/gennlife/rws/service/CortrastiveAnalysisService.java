@@ -30,4 +30,6 @@ public interface CortrastiveAnalysisService {
     Object snapshootActiveResult(JSONObject paramObj);
 
     void deleteActiveIndexVariable(String projectId);
+
+    List<Group> getCortastiveGroupList(String uid, String projectId);
 }
