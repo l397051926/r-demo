@@ -1202,7 +1202,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         Map<String,String> resMap = new HashMap<>();
         foreach(map, (key,val) -> resMap.put(key,val.toString()));
         String res= redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),resMap);
-        redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),24 * 60 * 60);
+        redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),7 * 24 * 60 * 60);
         LOG.info(activeIndexId +" 插入 ---- redis" + res);
         return resMap;
     }
@@ -1243,7 +1243,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 return val;
             }));
         String res= redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),map);
-        redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),24 * 60 * 60);
+        redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),7 * 24 * 60 * 60);
         LOG.info(activeIndexId +" 插入 ---- redis" + res);
         return map;
     }

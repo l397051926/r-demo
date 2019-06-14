@@ -359,7 +359,7 @@ public class ProjectServiceImpl implements ProjectService {
 				.fluentPut("message","操作成功")
 				.fluentPut("code",1);
 		}
-		JSONObject data = new JSONObject().fluentPut("creatorName",project.getCreatorName());
+		JSONObject data = new JSONObject().fluentPut("creatorName",project.getCreatorName()).fluentPut("crfId",project.getCrfId());
 		Integer projectUserCount = projectUserMapMapper.selectCountByProjectIdAndUid(uid,projectId);
 		if(projectUserCount<1){
 			return  new JSONObject()
