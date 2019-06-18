@@ -902,7 +902,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     private void calculateAll(List<String> activeIndexIds, String projectId, String crfId, Map<String, String> activeNames, Map<String,String> actieveIndexType) throws IOException, ExecutionException, InterruptedException {
         List<Future> futures = new ArrayList<>();
         for (String activeIndexId : activeIndexIds) {
-            if(!redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId))){
+            if(redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId))){
                 continue;
             }
             futures.add(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor().submit(() -> {
