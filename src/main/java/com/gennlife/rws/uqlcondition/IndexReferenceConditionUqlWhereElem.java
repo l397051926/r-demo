@@ -47,15 +47,11 @@ public class IndexReferenceConditionUqlWhereElem extends UqlWhereElem {
         this.type = type;
         this.countValue = countValue;
         this.crf = crf;
-        this.visitInfo = crf ? "visitinfo" : "visit_info";
         this.crfId = crfId;
+        this.visitInfo = crf ? "visitinfo" : "visit_info";
     }
-    public IndexReferenceConditionUqlWhereElem(String value, String indexName,
-                                               String whereCondition, String havingSign,
-                                               Object havingValue, DataType type,boolean not,
-                                               String activeOhterResult,boolean isActiveFirst,String countValue,
-                                               boolean crf,
-                                               String crfId) {
+    public IndexReferenceConditionUqlWhereElem(String value, String indexName,String whereCondition, String havingSign, Object havingValue, DataType type,boolean not,
+                                               String activeOhterResult,boolean isActiveFirst,String countValue,boolean crf,String crfId) {
         super(null);
         this.value = value;
         this.indexName = indexName;
@@ -102,13 +98,14 @@ public class IndexReferenceConditionUqlWhereElem extends UqlWhereElem {
             }
         }
         String response = null;
-//        response = client.httpPost(query.toJSONString(), client.getEsSearchUql());
+        Long startTime = System.currentTimeMillis();
         try {
             response = GzipUtil.uncompress(client.httpPost(GzipUtil.compress(query.toJSONString()), client.getEsSearchUqlCompress()).trim());
         } catch (IOException e) {
             LOGGER.error("请求uql发生异常");
         }
-        LOGGER.info("查询引用指标的数据 query："+query.toJSONString());
+        LOGGER.info("搜索 -- 引用 耗时："+(System.currentTimeMillis() - startTime));
+//        LOGGER.info("查询引用指标的数据 query："+query.toJSONString());
         Set<String> patients = new KeyPath("hits", "hits", "_id")
             .fuzzyResolve(JSON.parseObject(response))
             .stream()

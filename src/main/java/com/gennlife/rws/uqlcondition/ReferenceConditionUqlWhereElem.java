@@ -87,13 +87,13 @@ public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
                 .fluentPut("source", nears.stream().map(s -> s + " AS result").collect(toCollection(JSONArray::new)));
         query.put("source_filter","t1.count>0 and t2.jocount>0");
         String response = null;
-//        response = client.httpPost(query.toJSONString(), client.getEsSearchUql());
+        Long startTime = System.currentTimeMillis();
         try {
             response = GzipUtil.uncompress(client.httpPost(GzipUtil.compress(query.toJSONString()), client.getEsSearchUqlCompress()).trim());
         } catch (IOException e) {
             LOGGER.error("请求uql发生异常");
         }
-//        LOGGER.info("查找的引用指标的 queryL "+query.toJSONString());
+        LOGGER.info("搜索 -- 引用 耗时："+(System.currentTimeMillis() - startTime));
         List<String> visitSns = JSON.parseObject(response)
                 .getJSONObject("hits")
                 .getJSONArray("hits")
