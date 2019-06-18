@@ -19,6 +19,10 @@ public class UqlConfig {
 
     public static final String CORT_INDEX_REDIS_KEY = "rws_cort_index_";
 
+    public static final String CORT_CONT_ENUM_REDIS_KEY ="rws_cont_enum_index_";
+
+    public static final String CORT_CONT_ACTIVE_REDIS_KEY = "rws_cont_active_index_";
+
     public static final Map<String,String> RESULT_ORDER_KEY ;
     /**
      * 需要将true  改变是的字段

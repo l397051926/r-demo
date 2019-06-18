@@ -1124,8 +1124,14 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 //        Set<String> enumPatients = new HashSet<>();
 
         int size = configs == null ? 0 : configs.size();
-        activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(R_activeIndexId));
+        List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(R_activeIndexId);
+        if(delList.size()>0){
+            for (ActiveSqlMap src : delList){
+                redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId());
+            }
+        }
+        activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
         List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             uqlClass = new EnumeUqlClass(projectId);
@@ -1890,6 +1896,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
+        redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(T_activeIndexId));
         /*------------------------------------------------------------------------------*/
         if(where.isSameGroup(visits)){
             uqlClass.setWhere(order1 + " IS NOT NULL AND ");

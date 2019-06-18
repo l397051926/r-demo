@@ -25,4 +25,6 @@ public interface RedisMapDataService {
     Boolean exists(String key);
 
     String hmGetKey(String concat, String key);
+
+    Long setSets(String key,Set<String> sets);
 }

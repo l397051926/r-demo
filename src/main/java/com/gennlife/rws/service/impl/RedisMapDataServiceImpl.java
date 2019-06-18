@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.JedisCluster;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,19 @@ public class RedisMapDataServiceImpl implements RedisMapDataService{
         try {
             jedis = jedisClusters.getJedisCluster();
             res = jedis.hmset(key,hash);
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+        }
+        return res;
+    }
+    @Override
+    public Long setSets(String key,Set<String> sets){
+        JedisCluster jedis = null;
+        Long res = null;
+        try {
+            jedis = jedisClusters.getJedisCluster();
+            String[] arr = sets.toArray(new String[sets.size()]);
+            res = jedis.sadd(key, arr);
         } catch (Exception e) {
             LOG.error(e.getMessage());
         }

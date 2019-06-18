@@ -1074,9 +1074,15 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 //        Set<String> enumPatients = new HashSet<>();
 
         int size = configs == null ? 0 : configs.size();
-        activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
         List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(R_activeIndexId));
+        List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(R_activeIndexId);
+        if(delList.size()>0){
+            for (ActiveSqlMap src : delList){
+                redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId());
+            }
+        }
+        activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
         for (int i = 0; i < size; i++) {
             uqlClass = new CrfEnumUqlClass(projectId, crfId);
             uqlClass.setActiveSelect(" patient_info.patient_basicinfo.DOC_ID as pSn  ");
@@ -1914,6 +1920,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
+        redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(T_activeIndexId));
         if(where.isSameGroup(visits)){
             uqlClass.setWhere(TransData.transDataNumber(order1) + " IS NOT NULL AND ");
             uqlClass.setInitialPatients(isVariant,patientSql);

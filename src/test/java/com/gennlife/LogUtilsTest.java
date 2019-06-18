@@ -143,12 +143,19 @@
 //
 //    @Test
 //    public void RedisSet(){
-//        Long a = redisMapDataService.AddSet("demo_rws","aaa");
-//        Long b = redisMapDataService.AddSet("demo_rws","bbb");
-//        Long c = redisMapDataService.AddSet("demo_rws","ccc");
-//        Long d = redisMapDataService.AddSet("demo_rws","ccc");
+////        Long a = redisMapDataService.AddSet("demo_rws","aaa");
+////        Long b = redisMapDataService.AddSet("demo_rws","bbb");
+////        Long c = redisMapDataService.AddSet("demo_rws","ccc");
+////        Long d = redisMapDataService.AddSet("demo_rws","ccc");
+//        Set<String> set = new HashSet<>();
+//        set.add("a");
+//        set.add("b");
+//        set.add("c");
+//        set.add("d");
+//        Long ls  = redisMapDataService.setSets("demo_rws",set);
 //        Set<String> stringSet = redisMapDataService.getAllSet("demo_rws");
 //        boolean df = redisMapDataService.sismemberSet("demo_rws","aaa");
+//        redisMapDataService.delete("demo_rws");
 //        System.out.println(df);
 //    }
 //

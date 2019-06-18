@@ -201,12 +201,21 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                         item.suffix = " — 人数（百分比）";
                         for (ActiveSqlMap src: condition) {
                             DiscreteCell cell = new DiscreteCell();
+                            cell.redisMapDataService =redisMapDataService;
                             cell.projectId = projectId;
                             cell.indexName = src.getSqlFrom();
                             cell.where = src.getUncomSqlWhere();
                             cell.patsCondition = patsCondition;
                             cell.crfId = crfId;
-                            futures.add(cell.execute(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor()));
+                            String redisKey = UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId();
+                            if(redisMapDataService.exists(redisKey)){
+                                LOG.info("从缓存获取数据");
+                                cell.patients = redisMapDataService.getAllSet(redisKey);
+                            }else {
+                                LOG.info("没有走缓存 进行redis 缓存");
+                                cell.redisKey = redisKey;
+                                futures.add(cell.execute(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor()));
+                            }
                             item.cells.add(cell);
                             item.enumTitles.add(src.getIndexResultValue());
                         }
@@ -214,6 +223,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                         item = new ContinuousItem();
                         item.suffix = " — 均值 ± 标准差 / 范围 / 中位数";
                         ContinuousCell cell = new ContinuousCell();
+                        cell.redisMapDataService = redisMapDataService;
+                        cell.activeId = source.getActiveIndexId();
                         cell.projectId = projectId;
                         cell.indexName = source.getSqlFrom();
                         cell.having = source.getSqlHaving();
@@ -770,6 +781,13 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         for (ActiveIndex activeIndex1 : activeIndex){
             String id = activeIndex1.getId();
             redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(id));
+            redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(id));
+            List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(id);
+            if(delList.size()>0){
+                for (ActiveSqlMap src : delList){
+                    redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId());
+                }
+            }
         }
     }
 
@@ -1239,6 +1257,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         abstract String serialize(int total);
     }
     static class DiscreteCell extends Cell {
+        String redisKey;
         String projectId;
         String indexName;
         String where;
@@ -1246,6 +1265,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         String patsCondition;
         Set<String> patients;
         String crfId;
+        RedisMapDataService redisMapDataService;
         @Override
         Future execute(ExecutorService es) {
             String newsql = "SELECT "+IndexContent.getPatientDocId(crfId)+" FROM " + indexName + " WHERE (" + where + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
@@ -1270,6 +1290,9 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     .stream()
                     .map(String.class::cast)
                     .collect(toSet());
+                redisMapDataService.setSets(redisKey,patients);
+                redisMapDataService.setOutTime(redisKey,5 * 24 * 60 * 60);
+                LOG.info("插入 redis 缓存 成功 " + redisKey);
             });
         }
         @Override
@@ -1296,6 +1319,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         Long count = null;
         SummaryStatistics summary = null;
         double median = Double.NaN;
+        RedisMapDataService redisMapDataService;
+        String activeId;
         @Override
         Future execute(ExecutorService es) {
             String newsql = "SELECT " + select + " FROM " + indexName + " WHERE (" + where + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
@@ -1304,19 +1329,27 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             }
             String finalNewsql = newsql;
             return es.submit(() -> {
-                JSONObject response = JSON.parseObject(ApplicationContextHelper
-                    .getBean(HttpUtils.class)
-                    .querySearch(
-                        projectId,
-                        finalNewsql,
-                        1,
-                        Integer.MAX_VALUE - 1,
-                        null,
-                        null,
-                        crfId,
-                        true));
-                JSONArray arr = new KeyPath("hits", "hits", "_source", "select_field", varName).fuzzyResolve(response);
-                Long countNumber = new KeyPath("hits", "total").tryResolveAsLong(response);
+                JSONArray arr = null;
+                if(redisMapDataService.exists(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId))){
+                    String val = redisMapDataService.getDataBykey(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId));
+                    arr = JSONArray.parseArray(val);
+                }else {
+                    JSONObject response = JSON.parseObject(ApplicationContextHelper
+                        .getBean(HttpUtils.class)
+                        .querySearch(
+                            projectId,
+                            finalNewsql,
+                            1,
+                            Integer.MAX_VALUE - 1,
+                            null,
+                            null,
+                            crfId,
+                            true));
+                    arr = new KeyPath("hits", "hits", "_source", "select_field", varName).fuzzyResolve(response);
+                    redisMapDataService.set(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId),arr.toJSONString());
+                    redisMapDataService.setOutTime(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY,5 * 24 * 60 * 60);
+                    LOG.info("插入 redis 缓存 成功 " + UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId) );
+                }
                 if (arr.isEmpty() || !arr.stream().allMatch(o -> o instanceof Number || o instanceof String && doublePresentable((String)o))) {
                     summary = null;
                     median = Double.NaN;

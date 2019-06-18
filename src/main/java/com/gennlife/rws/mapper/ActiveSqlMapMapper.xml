@@ -439,4 +439,11 @@ id, project_id, active_index_id,
 		where active_index_id = #{activeId,jdbcType=VARCHAR}
 	</delete>
 
+	<select id="getDelRedisActiveSql" resultMap="BaseResultMap" parameterType="java.lang.String">
+		select
+		id,active_index_id
+		FROM p_active_sql_map
+		where  active_index_id = #{activeId,jdbcType=VARCHAR}
+	</select>
+
 </mapper>
