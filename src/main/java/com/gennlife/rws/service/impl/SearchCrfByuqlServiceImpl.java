@@ -2088,7 +2088,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if (StringUtils.isEmpty(key)) {
             key = "visitinfo.DOC_ID";
         }
-        return key + " in " + visitSnAll;
+        return key + " " + visitSnAll;
     }
 
     private void disposeBooleanCondition(StringBuffer resultBuffer, String value, String condition, String sourceTagName) {

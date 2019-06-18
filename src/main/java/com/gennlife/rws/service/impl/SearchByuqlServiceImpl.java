@@ -2025,10 +2025,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String result = httpUtils.querySearch(projectId,sql,1,Integer.MAX_VALUE-1,null,source,true);
         JSONObject jsonData = JSONObject.parseObject(result);
         String visitSnAll = UqlQureyResult.getVisitSnAll(jsonData);
-//        String key = SearchUqlVisitSn.getSearchUqlVisitSn(indexColumn.substring(0, indexColumn.lastIndexOf(".")));
-//        if (StringUtils.isEmpty(key)) {
-//        }
-        return "visit_info.DOC_ID in " + visitSnAll;
+        return "visit_info.DOC_ID " + visitSnAll;
     }
 
     private void disposeBooleanCondition(StringBuffer resultBuffer, String value, String condition, String sourceTagName) {

@@ -13,7 +13,8 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.gennlife.rws.service.impl.SearchCrfByuqlServiceImpl.SCHEMAS;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReferenceConditionUqlWhereElem.class);
@@ -92,6 +93,9 @@ public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
             response = GzipUtil.uncompress(client.httpPost(GzipUtil.compress(query.toJSONString()), client.getEsSearchUqlCompress()).trim());
         } catch (IOException e) {
             LOGGER.error("请求uql发生异常");
+        }
+        if(System.currentTimeMillis() - startTime > 30000 ){
+            LOGGER.warn("处理慢的条件: " + query.toJSONString() );
         }
         LOGGER.info("搜索 -- 引用 耗时："+(System.currentTimeMillis() - startTime));
         List<String> visitSns = JSON.parseObject(response)

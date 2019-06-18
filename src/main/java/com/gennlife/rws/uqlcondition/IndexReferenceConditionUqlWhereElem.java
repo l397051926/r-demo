@@ -104,6 +104,9 @@ public class IndexReferenceConditionUqlWhereElem extends UqlWhereElem {
         } catch (IOException e) {
             LOGGER.error("请求uql发生异常");
         }
+        if(System.currentTimeMillis() - startTime > 30000 ){
+            LOGGER.warn("处理慢的条件: " + query.toJSONString() );
+        }
         LOGGER.info("搜索 -- 引用 耗时："+(System.currentTimeMillis() - startTime));
 //        LOGGER.info("查询引用指标的数据 query："+query.toJSONString());
         Set<String> patients = new KeyPath("hits", "hits", "_id")

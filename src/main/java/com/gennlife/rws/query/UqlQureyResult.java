@@ -4,14 +4,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.util.StringUtils;
-import org.omg.CORBA.PUBLIC_MEMBER;
-import scala.util.parsing.combinator.testing.Str;
+import com.gennlife.rws.util.TransPatientSql;
 
-import javax.sound.midi.Soundbank;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -369,20 +365,9 @@ public class UqlQureyResult {
         }
     }
 
-    public static String getPatSnByNum(String result, int num) {
-        JSONArray hits = getHitsArray(result);
-        return hits.getJSONObject(num).getString("_id");
-    }
-
-    public static JSONObject getPatientInfoByNum(String result, int num) {
-        JSONArray hits = getHitsArray(result);
-        return hits.getJSONObject(num).getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0);
-    }
-
     public static String getVisitSnAll(JSONObject jsonData) {
         JSONArray hitst = getHitsArray(jsonData);
         int size = hitst == null ? 0 : hitst.size();
-        StringBuffer stringBuffer = new StringBuffer();
         Set<String> visSet =  new HashSet<>();
 
         for (int i = 0; i < size; i++) {
@@ -391,20 +376,8 @@ public class UqlQureyResult {
             String[] vistArray = visitSn.split(",");
             Arrays.stream(vistArray).forEach(x -> visSet.add(x));
         }
-        int num = 0;
-        stringBuffer.append("( ");
-        for (String set : visSet){
-            if(num>0){
-                stringBuffer.append(",");
-            }
-            stringBuffer.append("'");
-            stringBuffer.append(set);
-            stringBuffer.append("'");
-            num++;
-        }
-        if (size == 0) stringBuffer.append("''");
-        stringBuffer.append(")");
-        return stringBuffer.toString();
+
+        return TransPatientSql.transForExtContain(visSet);
     }
 
     public static JSONObject getSelectField(JSONObject object) {
