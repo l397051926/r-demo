@@ -875,7 +875,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     public List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId) throws IOException {
         List<Patient> patientList = new LinkedList<>();
         String patientSetQuery = getPatientSql(patientSetId,projectId,crfId);
-        String query = "select "+IndexContent.getPatientDocId(crfId)+"  from "+ IndexContent.getIndexName(crfId, projectId) + " where "+patientSetQuery+IndexContent.getGroupBy(crfId);
+        String query = "select "+IndexContent.getPatientDocId(crfId)+"  from "+ IndexContent.getIndexName(crfId, projectId) + " where join_field = 'patient_info' and "+patientSetQuery;
         JSONArray source = new JSONArray();
         source.add("patient_info");
         JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,query,0,Integer.MAX_VALUE-1,null,source,crfId));
@@ -1594,7 +1594,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         JSONArray sourceFilter = new JSONArray();
 //        sourceFilter.add("patient_info");
         String result = null;
-        String newSql = "select  "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)+" where join_field = 'patient_info' and "+newpatientSetSql+IndexContent.getGroupBy(crfId);
+        String newSql = "select  "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)+" where join_field = 'patient_info' and "+newpatientSetSql ;
         String response = httpUtils.querySearch(projectId,newSql,1,Integer.MAX_VALUE-1,null,sourceFilter,crfId,true);
         Set<String> patients = new KeyPath("hits", "hits", "_id")
             .fuzzyResolve(JSON.parseObject(response))
@@ -2420,7 +2420,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         source.add("patient_info");
         JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,newSql,pageNum,pageSize,null,source,crfId));
         JSONArray data = UqlQureyResult.getQueryData(jsonData,crfId);
-        Integer total = UqlQureyResult.getTotal(jsonData);
+        Integer total = patientSetSql.split("\\|").length;
         WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         AjaxObject.getReallyDataValue(data,showColumns);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);

@@ -64,8 +64,7 @@ public class TransPatientSql {
         if(array.length==1){
             return " "+ IndexContent.getPatientInfoPatientSn(crfId)+" IN ('"+sql+"') ";
         }
-        String tmp = Arrays.stream(array).map(m -> "'"+m+"'").collect(joining(","));
-        return " "+ IndexContent.getPatientInfoPatientSn(crfId)+" IN ("+tmp+") ";
+        return " "+ IndexContent.getPatientInfoPatientSn(crfId)+" "+ transForExtContainForArray(array) + " ";
     }
 
     public static String getAllPatientSql(String sql) {
