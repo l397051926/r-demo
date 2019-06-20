@@ -74,7 +74,7 @@ public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
     public void execute() {
         HttpUtils client = ApplicationContextHelper.getBean(HttpUtils.class);
         String querySql = "SELECT t1.count,t2.jocount,t1.values, t2.condition FROM ( SELECT  count(" + visitInfo + ".DOC_ID) as count,all_value(" + group + ".DOC_ID, " + field + ") as values,"
-                + " " + patientInfo + ".DOC_ID as pSn FROM " + indexName + " WHERE " + field + " IS NOT NULL " +" AND " +initPatientSql
+                + " " + patientInfo + ".DOC_ID as pSn FROM " + indexName + " WHERE " + field + " IS NOT NULL " + (StringUtils.isEmpty(initPatientSql) ? "" : " AND " + initPatientSql)
                 + " GROUP BY " + patientInfo + ".DOC_ID ) AS t1 JOIN ( " + ref + " ) AS t2 ON t1.pSn = t2.pSn";
         if(StringUtils.isNotEmpty(this.adjoint)){
             querySql = querySql +" adjoint t2."+this.adjoint;
