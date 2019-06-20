@@ -1981,15 +1981,28 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
         Long mysqlStartTime = System.currentTimeMillis();
         if (count > 0) {
-//            activeSqlMapMapper.updateByActiveId(activeSqlMap);
             activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
-            referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null);
+            RunReferenceCalculate(T_activeIndexId,projectId);
         }
         activeSqlMapMapper.insert(activeSqlMap);
         LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
         /*引用依赖计算*/
         getReferenceActiveIndex(id,resultOrderKey,patientSetId,groupToId,groupFromId);
         return sqlresult.getSql();
+    }
+
+    private void RunReferenceCalculate(String T_activeIndexId, String projectId) {
+        SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
+            try {
+                referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private void disposeDataCondition(String value, String condition, String sourceTagName, StringBuffer stringBuffer) {
@@ -2395,13 +2408,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeType = active.getActiveType();
         String sql = "";
         if (3 == activeType) {//那排
-            sql =  this.SearchByExclude(obj, resultOrderKey,isSearch);
+             this.SearchByExclude(obj, resultOrderKey,isSearch);
         } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-            sql =   this.SearchByEnume(obj, resultOrderKey,isSearch);
+            this.SearchByEnume(obj, resultOrderKey,isSearch);
         } else if(2 == activeType) {//指标
-            sql =   this.SearchByIndex(obj, resultOrderKey,isSearch);
+            this.SearchByIndex(obj, resultOrderKey,isSearch);
         }else  if(1 == activeType){ //事件
-            sql =   this.searchByActive(obj, resultOrderKey,isSearch);
+            this.searchByActive(obj, resultOrderKey,isSearch);
         }
 
     }

@@ -2002,6 +2002,10 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
         if (count > 0) {
             activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
+            if (count > 0) {
+                activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
+                RunReferenceCalculate(T_activeIndexId,projectId,crfId);
+            }
             referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);
         }
         activeSqlMapMapper.insert(activeSqlMap);
@@ -2427,7 +2431,19 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             });
         }
     }
-
+    private void RunReferenceCalculate(String T_activeIndexId, String projectId,String crfId) {
+        SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
+            try {
+                referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null,crfId);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
     public void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey,JSONArray patientsSetId,String groupToId,String groupFromId,String crfId) throws ExecutionException, InterruptedException, IOException {
 
         ActiveIndex active = null;
