@@ -921,7 +921,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         uqlClass.setActiveSelect(uqlClass.getSelect() + hasCount);
 
         JSONObject contitionObj = contitions.getJSONObject(0);
-        transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, SCHEMAS.get(crfId),crfId,groupToId,projectId,patientSetId);
+        transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, SCHEMAS.get(crfId),crfId,groupToId,projectId,patientSetId,patientSql);
 
         UqlClass sqlresult = null;
         String sqlMd5 = "";
@@ -1115,7 +1115,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             UqlWhere where = new UqlWhere();
             JSONObject contitionObj = contitions.getJSONObject(0);
 
-            transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, SCHEMAS.get(crfId),crfId,groupToId,projectId,patientSetId);
+            transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, SCHEMAS.get(crfId),crfId,groupToId,projectId,patientSetId, patientSql);
             uqlClass.setWhereIsEmpty(where,null,isVariant,patientSql, schema);
 
             String hasCount = " ,count(visitinfo.DOC_ID) as jocount ";
@@ -1186,14 +1186,14 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     }
 
     private void transforEnumCondition(JSONObject contitionObj, UqlClass uqlClass, UqlWhere where, String activeIndexId,
-                                       AbstractFieldAnalyzer schema,String crfId,String groupId, String projectId,JSONArray patientSetId) throws IOException, ExecutionException, InterruptedException {
+                                       AbstractFieldAnalyzer schema, String crfId, String groupId, String projectId, JSONArray patientSetId, String patientSql) throws IOException, ExecutionException, InterruptedException {
         String operatorSign = contitionObj.getString("operatorSign");
         JSONArray details = contitionObj.getJSONArray("details");
         JSONArray inner = contitionObj.getJSONArray("inner");
         JSONObject sortObj = sortForDetailAndInner(details,inner);
         details = sortObj.getJSONArray("detail");
         inner = sortObj.getJSONArray("inner");
-        transforEnumDetails(details, uqlClass, operatorSign, where, activeIndexId, schema,crfId,groupId,projectId,patientSetId);
+        transforEnumDetails(details, uqlClass, operatorSign, where, activeIndexId, schema,crfId,groupId,projectId,patientSetId,patientSql);
         int innerSize = inner == null ? 0 : inner.size();
         for (int i = 0; i < innerSize; i++) {
             if(where.needsOperator()){
@@ -1201,7 +1201,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             }
             where.addElem(new LiteralUqlWhereElem("("));
             JSONObject tmpObj = inner.getJSONObject(i);
-            transforEnumCondition(tmpObj, uqlClass, where, activeIndexId, schema,crfId,groupId,projectId,patientSetId);
+            transforEnumCondition(tmpObj, uqlClass, where, activeIndexId, schema,crfId,groupId,projectId,patientSetId, patientSql);
             where.addElem(new LiteralUqlWhereElem(")"));
         }
     }
@@ -1258,7 +1258,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         return result;
     }
     private void transforEnumDetails(JSONArray details, UqlClass uqlClass, String operatorSign, UqlWhere where, String activeIndexId,
-                                     AbstractFieldAnalyzer schema,String crfId, String groupId, String projectId,JSONArray patientSetId) throws IOException, ExecutionException, InterruptedException {
+                                     AbstractFieldAnalyzer schema, String crfId, String groupId, String projectId, JSONArray patientSetId, String patientSql) throws IOException, ExecutionException, InterruptedException {
         List<List<UqlWhereElem>> elemLists = new ArrayList<>();
         int detailSize = details == null ? 0 : details.size();
 
@@ -1275,11 +1275,11 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             if (strongRefSize > 0) {
                 elems.add(new LiteralUqlWhereElem("("));
             }
-            transforEnumDetailModel(detailObj, detailOperatorSign, elems, uqlClass, activeIndexId, schema, crfId,groupId,projectId,patientSetId);
+            transforEnumDetailModel(detailObj, detailOperatorSign, elems, uqlClass, activeIndexId, schema, crfId,groupId,projectId,patientSetId,patientSql);
             if (strongRefSize > 0) {
                 elems.add(new LiteralUqlWhereElem("AND"));
 //                where.addElem(new LiteralUqlWhereElem("("));
-                transforEnumStrongRef(strongRef, strongRefSize, uqlClass, elems, activeIndexId, schema, crfId, groupId,projectId,patientSetId);
+                transforEnumStrongRef(strongRef, strongRefSize, uqlClass, elems, activeIndexId, schema, crfId, groupId,projectId,patientSetId,patientSql);
                 elems.add(new LiteralUqlWhereElem(")"));
             }
             elemLists.add(elems);
@@ -1539,16 +1539,16 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     }
 
     private void transforEnumStrongRef(JSONArray strongRef, int strongRefSize, UqlClass uqlClass, List<UqlWhereElem> elems,
-                                       String activeIndexId, AbstractFieldAnalyzer schema, String crfId,String groupId,String projectId,JSONArray patientSetId) throws IOException, ExecutionException, InterruptedException {
+                                       String activeIndexId, AbstractFieldAnalyzer schema, String crfId, String groupId, String projectId, JSONArray patientSetId, String patientSql) throws IOException, ExecutionException, InterruptedException {
         for (int i = 0; i < strongRefSize; i++) {
             if(i>0) elems.add(new LiteralUqlWhereElem("AND"));
             JSONObject tmpObj = strongRef.getJSONObject(i);
-            transforEnumDetailModel(tmpObj, "and", elems, uqlClass, activeIndexId, schema ,crfId,groupId,projectId,patientSetId);
+            transforEnumDetailModel(tmpObj, "and", elems, uqlClass, activeIndexId, schema ,crfId,groupId,projectId,patientSetId, patientSql);
         }
     }
 
     private void transforEnumDetailModel(JSONObject detailObj, String detailOperatorSign, List<UqlWhereElem> elems, UqlClass uqlClass,
-                                         String activeIndexId, AbstractFieldAnalyzer schema, String crfId,String groupId,String projectId,JSONArray patientSetId) throws IOException, ExecutionException, InterruptedException {
+                                         String activeIndexId, AbstractFieldAnalyzer schema, String crfId, String groupId, String projectId, JSONArray patientSetId, String patientSql) throws IOException, ExecutionException, InterruptedException {
         StringBuffer stringBuffer = new StringBuffer();
         String stitching = detailObj.getString("Stitching");
         if (StringUtils.isEmpty(stitching)) {
@@ -1596,7 +1596,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 default:
                     throw new RuntimeException("未知的jsonType");
             }
-            elems.add(new ReferenceConditionUqlWhereElem(sql, singletonList(sourceValue), sourceTagName, uqlClass.getFrom(), detailOperatorSign, true,crfId));
+            elems.add(new ReferenceConditionUqlWhereElem(sql, singletonList(sourceValue), sourceTagName, uqlClass.getFrom(), detailOperatorSign, true,crfId,patientSql));
             return;
         }
 
@@ -1915,7 +1915,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         uqlClass.setActiveSelect(uqlClass.getSelect() + hasCount);
         //处理 条件
-        transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId, schema,crfId,groupToId,projectId,patientSetId);
+        transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId, schema,crfId,groupToId,projectId,patientSetId, patientSql);
 
         UqlClass sqlresult = null;
         String sqlMd5 = "";

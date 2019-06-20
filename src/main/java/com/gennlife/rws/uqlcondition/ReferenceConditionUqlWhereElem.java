@@ -30,8 +30,9 @@ public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
     String visitInfo;
     String patientInfo;
     String crfId;
+    String initPatientSql;
 
-    public ReferenceConditionUqlWhereElem(String ref, List<String> nears, String field, String indexName, String operator, boolean crf,String crfId) {
+    public ReferenceConditionUqlWhereElem(String ref, List<String> nears, String field, String indexName, String operator, boolean crf,String crfId,String initPatientSql) {
         super(operator);
         this.adjoint = adjoint;
         this.ref = ref;
@@ -40,6 +41,7 @@ public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
         this.field = field;
         this.crf = crf;
         this.crfId = crfId;
+        this.initPatientSql = initPatientSql;
         if (crf) {
             visitInfo = "visitinfo";
             patientInfo = "patient_info.patient_basicinfo";
@@ -72,8 +74,8 @@ public class ReferenceConditionUqlWhereElem extends UqlWhereElem {
     public void execute() {
         HttpUtils client = ApplicationContextHelper.getBean(HttpUtils.class);
         String querySql = "SELECT t1.count,t2.jocount,t1.values, t2.condition FROM ( SELECT  count(" + visitInfo + ".DOC_ID) as count,all_value(" + group + ".DOC_ID, " + field + ") as values,"
-                + " " + patientInfo + ".DOC_ID as pSn FROM " + indexName + " WHERE " + field + " IS NOT NULL "
-                + "GROUP BY " + patientInfo + ".DOC_ID ) AS t1 JOIN ( " + ref + " ) AS t2 ON t1.pSn = t2.pSn";
+                + " " + patientInfo + ".DOC_ID as pSn FROM " + indexName + " WHERE " + field + " IS NOT NULL " +" AND " +initPatientSql
+                + " GROUP BY " + patientInfo + ".DOC_ID ) AS t1 JOIN ( " + ref + " ) AS t2 ON t1.pSn = t2.pSn";
         if(StringUtils.isNotEmpty(this.adjoint)){
             querySql = querySql +" adjoint t2."+this.adjoint;
         }
