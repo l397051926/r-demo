@@ -1008,7 +1008,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getSql();
             /*开始搞 MD5 替换sql*/
-            LOG.info("输出sql： " + sqlNew);
+//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(R_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -1034,7 +1034,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getHavingSql();
             /*开始搞 MD5 替换sql*/
-            LOG.info("输出sql： " + sqlNew);
+//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(R_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -1163,7 +1163,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             where.execute(SingleExecutorService.getInstance().getSearchUqlExecutorService());
             uqlClass.setWhere(uqlClass.getWhereNotNull() + " ( " + where.toString()+" ) ");
             String sqlNew = uqlClass.getSql();
-            LOG.info("输出sql： " + sqlNew);
+//            LOG.info("输出sql： " + sqlNew);
 //            String allWhere = uqlClass.getWhere();
             UqlClass sqlresult = null;
             if (StringUtils.isNotEmpty(indexColumn)) {
@@ -1892,7 +1892,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         uqlClass.setActiveSelect(uqlClass.getSelect() + hasCount);
 
         //处理 条件
+        long tranStartTime = System.currentTimeMillis();
         transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId,groupToId,projectId,patientSetId, patientSql);
+        LOG.info("transforEnum use time "+ (System.currentTimeMillis()-tranStartTime));
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
@@ -1912,7 +1914,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getHavingSql();
             /*开始搞 MD5 替换sql*/
-            LOG.info("输出sql： " + sqlNew);
+//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(T_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -1935,7 +1937,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getHavingSql();
             /*开始搞 MD5 替换sql*/
-            LOG.info("输出sql： " + sqlNew);
+//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(T_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
