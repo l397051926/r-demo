@@ -2002,11 +2002,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
         if (count > 0) {
             activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
-            if (count > 0) {
-                activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
-                RunReferenceCalculate(T_activeIndexId,projectId,crfId);
-            }
-            referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);
+            RunReferenceCalculate(T_activeIndexId,projectId,crfId);
         }
         activeSqlMapMapper.insert(activeSqlMap);
         /*引用依赖计算*/
@@ -2434,7 +2430,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     private void RunReferenceCalculate(String T_activeIndexId, String projectId,String crfId) {
         SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
             try {
-                referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null,crfId);
+                referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);
             } catch (ExecutionException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
