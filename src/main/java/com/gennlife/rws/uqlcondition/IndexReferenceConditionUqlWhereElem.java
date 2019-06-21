@@ -101,6 +101,9 @@ public class IndexReferenceConditionUqlWhereElem extends UqlWhereElem {
         Long startTime = System.currentTimeMillis();
         try {
             response = GzipUtil.uncompress(client.httpPost(GzipUtil.compress(query.toJSONString()), client.getEsSearchUqlCompress()).trim());
+        }catch (IllegalArgumentException e){
+            LOGGER.error("gzip 解析失败 传统方式 重新请求");
+            response = client.httpPost(query.toJSONString(),client.getEsSearchUql());
         } catch (IOException e) {
             LOGGER.error("请求uql发生异常");
         }

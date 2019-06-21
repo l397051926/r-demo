@@ -81,6 +81,9 @@ public class HttpUtils {
         String result="";
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
+        }catch (IllegalArgumentException e){
+            LOG.error("gzip 解析失败 传统方式 重新请求");
+            result = httpPost(param,getEsSearchUql());
         } catch (IOException e) {
             LOG.error("发生异常了： " + param);LOG.error("参数为： " + param);
         }
@@ -107,6 +110,9 @@ public class HttpUtils {
         String result="";
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
+        }catch (IllegalArgumentException e){
+            LOG.error("gzip 解析失败 传统方式 重新请求");
+            result = httpPost(param,getEsSearchUql());
         } catch (IOException e) {
             LOG.error("发生异常了： " + param);
             LOG.error("参数为： " + param);
@@ -137,6 +143,9 @@ public class HttpUtils {
 //        LOG.info("计算的sql 语句"+ newSql);
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
+        }catch (IllegalArgumentException e){
+            LOG.error("gzip 解析失败 传统方式 重新请求");
+            result = httpPost(param,getEsSearchUql());
         }  catch (Exception e){
             LOG.error("f生计算问题！： " + param);
             throw new RuntimeException("计算发生问题");
@@ -167,6 +176,9 @@ public class HttpUtils {
 //        LOG.info("访问 uql 计算sql: " + newSql);
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
+        }catch (IllegalArgumentException e){
+            LOG.error("gzip 解析失败 传统方式 重新请求");
+            result = httpPost(param,getEsSearchUql());
         }  catch (Exception e){
             LOG.error("f生计算问题！： " + param);
             throw new RuntimeException("计算发生问题");
