@@ -1124,11 +1124,15 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 //        Set<String> enumPatients = new HashSet<>();
 
         int size = configs == null ? 0 : configs.size();
+        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(R_activeIndexId));
-        List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(R_activeIndexId);
-        if(delList.size()>0){
-            for (ActiveSqlMap src : delList){
-                redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId());
+        for (Group group : groupList){
+            String groupId = group.getGroupId();
+            List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(R_activeIndexId);
+            if(delList.size()>0){
+                for (ActiveSqlMap src : delList){
+                    redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" +groupId);
+                }
             }
         }
         activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
@@ -1898,7 +1902,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
-        redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(T_activeIndexId));
+        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
+        for (Group group : groupList){
+            String groupId = group.getGroupId();
+            redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(T_activeIndexId+"_"+groupId));
+        }
         /*------------------------------------------------------------------------------*/
         if(where.isSameGroup(visits)){
             uqlClass.setWhere(order1 + " IS NOT NULL AND ");

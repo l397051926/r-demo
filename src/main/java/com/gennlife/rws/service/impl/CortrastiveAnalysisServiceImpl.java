@@ -201,7 +201,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                             cell.where = src.getUncomSqlWhere();
                             cell.patsCondition = patsCondition;
                             cell.crfId = crfId;
-                            String redisKey = UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId();
+                            String redisKey = UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" +group.getGroupId();
                             if(redisMapDataService.exists(redisKey)){
                                 LOG.info("从缓存获取数据");
                                 cell.patients = redisMapDataService.getAllSet(redisKey);
@@ -768,14 +768,18 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         mapParam.put("projectId", projectId);
         mapParam.put("isVariant", 1);
         List<ActiveIndex> activeIndex = activeIndexMapper.getAllResearchVariable(mapParam);
+        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
         for (ActiveIndex activeIndex1 : activeIndex){
             String id = activeIndex1.getId();
             redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(id));
-            redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(id));
-            List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(id);
-            if(delList.size()>0){
-                for (ActiveSqlMap src : delList){
-                    redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId());
+            for (Group group : groupList){
+                String groupId = group.getGroupId();
+                redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(id+"_"+groupId));
+                List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(id);
+                if(delList.size()>0){
+                    for (ActiveSqlMap src : delList){
+                        redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" +groupId);
+                    }
                 }
             }
         }
@@ -1322,7 +1326,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             return es.submit(() -> {
                 JSONArray arr = null;
                 if(redisMapDataService.exists(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId+"_"+groupId))){
-                    String val = redisMapDataService.getDataBykey(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId));
+                    String val = redisMapDataService.getDataBykey(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId+"_"+groupId));
                     arr = JSONArray.parseArray(val);
                 }else {
                     JSONObject response = JSON.parseObject(ApplicationContextHelper
@@ -1337,9 +1341,9 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                             crfId,
                             true));
                     arr = new KeyPath("hits", "hits", "_source", "select_field", varName).fuzzyResolve(response);
-                    redisMapDataService.set(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId),arr.toJSONString());
-                    redisMapDataService.setOutTime(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY,5 * 24 * 60 * 60);
-                    LOG.info("插入 redis 缓存 成功 " + UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId) );
+                    redisMapDataService.set(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId+"_"+groupId),arr.toJSONString());
+                    redisMapDataService.setOutTime(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId+"_"+groupId),5 * 24 * 60 * 60);
+                    LOG.info("插入 redis 缓存 成功 " + UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId+"_"+groupId) );
                 }
                 if (arr.isEmpty() || !arr.stream().allMatch(o -> o instanceof Number || o instanceof String && doublePresentable((String)o))) {
                     summary = null;

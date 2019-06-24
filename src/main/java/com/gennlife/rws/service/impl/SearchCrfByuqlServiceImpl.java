@@ -9,10 +9,7 @@ import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
-import com.gennlife.rws.entity.ActiveIndex;
-import com.gennlife.rws.entity.ActiveIndexTask;
-import com.gennlife.rws.entity.ActiveSqlMap;
-import com.gennlife.rws.entity.EnumResult;
+import com.gennlife.rws.entity.*;
 import com.gennlife.rws.query.QuerySearch;
 import com.gennlife.rws.query.UqlQureyResult;
 import com.gennlife.rws.schema.AbstractFieldAnalyzer;
@@ -1074,15 +1071,19 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 //        Set<String> enumPatients = new HashSet<>();
 
         int size = configs == null ? 0 : configs.size();
-        List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
+        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(R_activeIndexId));
-        List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(R_activeIndexId);
-        if(delList.size()>0){
-            for (ActiveSqlMap src : delList){
-                redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId());
+        for (Group group : groupList){
+            String groupId = group.getGroupId();
+            List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(R_activeIndexId);
+            if(delList.size()>0){
+                for (ActiveSqlMap src : delList){
+                    redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" +groupId);
+                }
             }
         }
         activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
+        List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             uqlClass = new CrfEnumUqlClass(projectId, crfId);
             uqlClass.setActiveSelect(" patient_info.patient_basicinfo.DOC_ID as pSn  ");
@@ -1920,7 +1921,11 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
-        redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(T_activeIndexId));
+        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
+        for (Group group : groupList){
+            String groupId = group.getGroupId();
+            redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(T_activeIndexId+"_"+groupId));
+        }
         if(where.isSameGroup(visits)){
             uqlClass.setWhere(TransData.transDataNumber(order1) + " IS NOT NULL AND ");
             uqlClass.setInitialPatients(isVariant,patientSql);
