@@ -1233,7 +1233,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     @Override
     public Map<String,String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException {
         activeSqlMap.setUncomSqlWhere(activeSqlMap.getUncomSqlWhere());
-        String result = httpUtils.querySearch(projectId,activeSqlMap.getUql(crfId),1,Integer.MAX_VALUE-1,null,new JSONArray(),crfId);
+        String result = httpUtils.querySearch(projectId,activeSqlMap.getUncomActiveSql(),1,Integer.MAX_VALUE-1,null,new JSONArray(),crfId);
         Map<String, String> map = new KeyPath("hits", "hits")
             .resolveAsJSONArray(JSON.parseObject(result))
             .stream()

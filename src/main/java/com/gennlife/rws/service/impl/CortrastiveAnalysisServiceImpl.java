@@ -101,7 +101,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     }
     @Override
     public AjaxObject getContResult(String createId, String projectId, Integer cortType, boolean showSubGroup, String crfId, String uid) throws ExecutionException, InterruptedException, IOException {
-//        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
         List<Group> groupList = groupService.getGroupByProjectId("001",projectId);
         List<GroupCondition> groupConditionList = groupConditionMapper.getGroupByProjectId(uid, projectId,1);
         if(groupConditionList==null || groupConditionList.size()==0){
@@ -150,12 +149,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         getGrouMxLevel(trueGroupArray,trueLevelGroup);
         List<Group> maxLevelGroup = new ArrayList<>(); //获取最底层的组数据
         getGrouMxLevel(grouArray,maxLevelGroup);
-//        List<Set<Group>> allGroups = getGroups(groupList);
         Map<String,Set<Group>> groupMaps = getBigGroups(groupList,trueLevel);
-//        for (int i = 0; i < maxLevelGroup.size(); i++) {
-//            Group group = maxLevelGroup.get(i);
-//            String sql = getGroupSql(group.getGroupId(),crfId);
-//        }
         int relayMaxLevel = maxLevelGroup.stream().mapToInt(Group :: getGroupLevel).max().getAsInt();
         List<String> groupIds = trueLevelGroup.stream().map(Group::getGroupId).collect(toList());
         
@@ -302,11 +296,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                                     counts[j] = Arrays.copyOf(counts[j],counts[j].length-1);
                                 }
                             }
-//                            long counts[][] = result.stream()
-//                                .map(column -> column.items.get(x).cells.stream()
-//                                    .mapToLong(Cell::count)
-//                                    .toArray())
-//                                .toArray(long[][]::new);
                             rowObject.put("p_value", new ChiSquareTest().chiSquareTest(transpose(counts)));
                             rowObject.put("conflicted", false);
                         }
