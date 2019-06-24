@@ -227,6 +227,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                         cell.select = source.getSqlSelect();
                         cell.varName = "condition";
                         cell.crfId = crfId;
+                        cell.groupId = group.getGroupId();
                         futures.add(cell.execute(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor()));
                         item.cells.add(cell);
                         item.enumTitles.add("");
@@ -1310,6 +1311,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         double median = Double.NaN;
         RedisMapDataService redisMapDataService;
         String activeId;
+        String groupId;
         @Override
         Future execute(ExecutorService es) {
             String newsql = "SELECT " + select + " FROM " + indexName + " WHERE (" + where + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
@@ -1319,7 +1321,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             String finalNewsql = newsql;
             return es.submit(() -> {
                 JSONArray arr = null;
-                if(redisMapDataService.exists(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId))){
+                if(redisMapDataService.exists(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId+"_"+groupId))){
                     String val = redisMapDataService.getDataBykey(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId));
                     arr = JSONArray.parseArray(val);
                 }else {
