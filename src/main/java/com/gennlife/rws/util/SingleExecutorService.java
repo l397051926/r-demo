@@ -14,6 +14,8 @@ public class SingleExecutorService {
     private final ExecutorService referenceActiveExecutor = Executors.newFixedThreadPool(100,new TestThreadFactory("referenceActiveExecutor"));
     private final ExecutorService flushCountGroupExecutor = Executors.newFixedThreadPool(20,new TestThreadFactory("flushCountGroupExecutor"));
     private final ExecutorService centerTaskeExecutor = Executors.newFixedThreadPool(10,new TestThreadFactory("centerTaskeExecutor"));
+    private final ExecutorService autoCortrastiveExecutor = Executors.newFixedThreadPool(3,new TestThreadFactory("autoCortrastiveExecutor"));
+    private final ExecutorService backgroundVariantExecutor = Executors.newFixedThreadPool(10,new TestThreadFactory("backgroundVariantExecutor"));
 
     private SingleExecutorService(){}
 
@@ -46,6 +48,14 @@ public class SingleExecutorService {
 
     public ExecutorService getCenterTaskeExecutor() {
         return centerTaskeExecutor;
+    }
+
+    public ExecutorService getAutoCortrastiveExecutor() {
+        return autoCortrastiveExecutor;
+    }
+
+    public ExecutorService getBackgroundVariantExecutor() {
+        return backgroundVariantExecutor;
     }
 
     static class TestThreadFactory implements ThreadFactory {

@@ -16,6 +16,7 @@ import com.gennlife.rws.service.RedisMapDataService;
 import com.gennlife.rws.service.SearchByuqlService;
 import com.gennlife.rws.util.GzipUtil;
 import com.gennlife.rws.util.LogUtil;
+import com.gennlife.rws.util.SingleExecutorService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,10 +26,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 
 /**
@@ -92,6 +90,25 @@ public class LogUtilsTest {
 //        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService("6f87691e-ab42-4649-bd7b-5914667a488a")));
         PatientsSet patientsSet = patientsSetMapper.selectByPatSetId("25db522d740c41d8a2f1bda64429dd21");
         System.out.println();
+
+    }
+    @Test
+    public void testThread() throws InterruptedException, ExecutionException, TimeoutException {
+            Future future = SingleExecutorService.getInstance().getAutoCortrastiveExecutor().submit(() -> {
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("this is threaddddd");
+            });
+            for (int i = 0; i < 20; i++) {
+                Thread.sleep(1000);
+                System.out.println(future.isDone());
+            }
+            System.out.println("this is endddddd");
+            Thread.sleep(13000);
+            System.out.println(future.isDone());
 
     }
 

@@ -16,6 +16,7 @@ import com.gennlife.rws.entity.ActiveIndexConfigCondition;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.AjaxObject;
 import com.gennlife.rws.util.LogUtil;
+import com.gennlife.rws.util.SingleExecutorService;
 import com.gennlife.rws.util.StringUtils;
 import com.gennlife.rws.vo.CustomerStatusEnum;
 import io.swagger.annotations.*;
@@ -27,10 +28,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author liuzhen
@@ -173,28 +178,17 @@ public class RwsController {
                 }
             }
             //引用计算
-            if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
-                if (3 == activeType) {//那排
-                    sql =  searchCrfByuqlService.SearchByExclude(obj, resultOrderKey,isSearch,crfId);
-                } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-                    sql =   searchCrfByuqlService.SearchByEnume(obj, resultOrderKey,isSearch,crfId);
-                } else if(2 == activeType) {//指标
-                    sql =   searchCrfByuqlService.SearchByIndex(obj, resultOrderKey,isSearch,crfId);
-                }else  if(1 == activeType){ //事件
-                    sql =   searchCrfByuqlService.searchByActive(obj, resultOrderKey,isSearch,crfId);
-                }
+            if(isVariant !=null && 1==isVariant){
+                SingleExecutorService.getInstance().getBackgroundVariantExecutor().submit(() -> {
+                    try {
+                        searchByUqlService(sql,crfId,activeType,obj,resultOrderKey,isSearch,indexTypeDesc);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
             }else {
-                if (3 == activeType) {//那排
-                    sql =  searchByuqlService.SearchByExclude(obj, resultOrderKey,isSearch);
-                } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-                    sql =   searchByuqlService.SearchByEnume(obj, resultOrderKey,isSearch);
-                } else if(2 == activeType) {//指标
-                    sql =   searchByuqlService.SearchByIndex(obj, resultOrderKey,isSearch);
-                }else  if(1 == activeType){ //事件
-                    sql =   searchByuqlService.searchByActive(obj, resultOrderKey,isSearch);
-                }
+                searchByUqlService(sql,crfId,activeType,obj,resultOrderKey,isSearch,indexTypeDesc);
             }
-
             ActiveIndex data = (ActiveIndex) ajaxObject.getData();
             data = data == null ? new ActiveIndex() : data;
             JSONObject o = (JSONObject) JSONObject.toJSON(data);
@@ -237,7 +231,29 @@ public class RwsController {
 
         return ajaxObject;
     }
-
+    private void searchByUqlService(String sql,String crfId,Integer activeType,JSONObject obj,String resultOrderKey,Integer isSearch,String indexTypeDesc) throws ExecutionException, InterruptedException, IOException {
+        if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
+            if (3 == activeType) {//那排
+                sql =  searchCrfByuqlService.SearchByExclude(obj, resultOrderKey,isSearch,crfId);
+            } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
+                sql =   searchCrfByuqlService.SearchByEnume(obj, resultOrderKey,isSearch,crfId);
+            } else if(2 == activeType) {//指标
+                sql =   searchCrfByuqlService.SearchByIndex(obj, resultOrderKey,isSearch,crfId);
+            }else  if(1 == activeType){ //事件
+                sql =   searchCrfByuqlService.searchByActive(obj, resultOrderKey,isSearch,crfId);
+            }
+        }else {
+            if (3 == activeType) {//那排
+                sql =  searchByuqlService.SearchByExclude(obj, resultOrderKey,isSearch);
+            } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
+                sql =   searchByuqlService.SearchByEnume(obj, resultOrderKey,isSearch);
+            } else if(2 == activeType) {//指标
+                sql =   searchByuqlService.SearchByIndex(obj, resultOrderKey,isSearch);
+            }else  if(1 == activeType){ //事件
+                sql =   searchByuqlService.searchByActive(obj, resultOrderKey,isSearch);
+            }
+        }
+    }
     /**
      * 更新活动定义信息
      *
