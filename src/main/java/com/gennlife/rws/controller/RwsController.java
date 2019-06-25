@@ -163,15 +163,15 @@ public class RwsController {
             if(isVariant !=null && 1==isVariant){
                 if(StringUtils.isEmpty(active.getString("id")) && !isClsUpdate ){
                     String content = createName + "新增 研究变量 ： " + oldName;
-                    contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
+//                    contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
                     logUtil.saveLog(projectId, content, create_user, createName);
                 }else if(isSearch == 2 && !isClsUpdate ){
                     String content = createName + "新增 研究变量 ： " + name;
-                    contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
+//                    contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
                     logUtil.saveLog(projectId, content, create_user, createName);
                 }else {
                     if(isClsUpdate){
-                        contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
+//                        contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
                     }
                     String content = createName + "编辑 研究变量 ： " + oldName;
                     logUtil.saveLog(projectId, content, create_user, createName);
