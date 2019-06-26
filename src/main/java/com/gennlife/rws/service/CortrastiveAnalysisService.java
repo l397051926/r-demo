@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutionException;
  **/
 public interface CortrastiveAnalysisService {
     AjaxObject getPatientGroupCondition(List<Group> groupList, List<GroupCondition> groupConditionList);
+
     AjaxObject getContResult(String createId, String projectId, Integer cortType, boolean showSubGroup, String crfId, String uid, boolean autoCort) throws ExecutionException, InterruptedException, IOException;
 
     AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException, ExecutionException, InterruptedException;

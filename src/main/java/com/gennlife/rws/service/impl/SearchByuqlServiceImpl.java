@@ -904,7 +904,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     @Override
     public JSONArray getPatientListByPatientSn(List<GroupData> groupDataList, JSONArray columns, Integer activeType, String projectId, String crfId) {
         String where = getGroupPatientSn(groupDataList,crfId);
-        String query = "select "+IndexContent.getPatientDocId(crfId)+" as patSn  from "+ IndexContent.getIndexName(crfId,projectId) + " where "+where+IndexContent.getGroupBy(crfId);
+        String query = "select "+IndexContent.getPatientDocId(crfId)+" as patSn  from "+ IndexContent.getIndexName(crfId,projectId) + " where "+where + " and  join_field='patient_info'";
         JSONArray source = new JSONArray();
         source.add(IndexContent.getPatientInfo(crfId));
         JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,query,0,Integer.MAX_VALUE-1,null,source,crfId));
@@ -913,19 +913,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     private String getGroupPatientSn(List<GroupData> groupDataList,String crfId) {
-        StringBuffer stringBuffer = new StringBuffer();
-        int num = 0;
-        stringBuffer.append(IndexContent.getPatientInfoPatientSn(crfId)+" in (");
-        for (GroupData groupData : groupDataList){
-            String patientSn = groupData.getPatientSn();
-            stringBuffer.append("'");
-            stringBuffer.append(patientSn);
-            stringBuffer.append("'");
-            if(num<groupDataList.size()-1) stringBuffer.append(",");
-            num++;
-        }
-        stringBuffer.append(")");
-        return stringBuffer.toString();
+        return IndexContent.getPatientInfoPatientSn(crfId) + TransPatientSql.transForExtContainForGroupData(groupDataList);
     }
 
     @Override
@@ -1017,7 +1005,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             allWhere = uqlClass.getWhere();
             sqlresult = uqlClass;
             eventWhere = sqlresult.getWhere().contains("join_field") ?sqlresult.getWhere():sqlresult.getWhere()+" and join_field='visit_info'";
-            if("inspection_reports".equals(visits)){
+            if(parts.length>2 && parts[0].equals("visits") && parts[1].equals("inspection_reports") && parts[2].equals("sub_inspection")){
                 sqlresult.setWhere(sqlresult.getWhere()+" AND join_field = 'sub_inspection'");
             }else {
                 sqlresult.setWhere(sqlresult.getWhere()+" AND join_field = '"+visits+"'");
@@ -1053,7 +1041,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(StringUtils.isNotEmpty(andGroupCondition)){
                 sqlresult.setWhere(sqlresult.getWhere() + " and ("+andGroupCondition+")");
             }
-            if("inspection_reports".equals(visits)){
+            if(parts.length>2 && parts[0].equals("visits") && parts[1].equals("inspection_reports") && parts[2].equals("sub_inspection")){
                 sqlresult.setWhere(sqlresult.getWhere()+" AND join_field = 'sub_inspection'");
             }else {
                 sqlresult.setWhere(sqlresult.getWhere()+" AND join_field = '"+visits+"'");
