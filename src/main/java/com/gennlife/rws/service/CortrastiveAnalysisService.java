@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.Group;
 import com.gennlife.rws.entity.GroupCondition;
+import com.gennlife.rws.entity.Project;
 import com.gennlife.rws.util.AjaxObject;
 
 import java.io.IOException;
@@ -17,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  **/
 public interface CortrastiveAnalysisService {
     AjaxObject getPatientGroupCondition(List<Group> groupList, List<GroupCondition> groupConditionList);
-    AjaxObject getContResult(String uid, String projectId, Integer cortType, boolean showSubGroup, String crfId, String s) throws ExecutionException, InterruptedException, IOException;
+    AjaxObject getContResult(String createId, String projectId, Integer cortType, boolean showSubGroup, String crfId, String uid, boolean autoCort) throws ExecutionException, InterruptedException, IOException;
 
     AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException, ExecutionException, InterruptedException;
 
@@ -32,4 +33,6 @@ public interface CortrastiveAnalysisService {
     void deleteActiveIndexVariable(String projectId);
 
     List<Group> getCortastiveGroupList(String uid, String projectId);
+
+    void autoBackgroundCecort(List<Project> object);
 }

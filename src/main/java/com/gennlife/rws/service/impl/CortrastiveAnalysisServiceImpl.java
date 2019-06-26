@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.keypath.KeyPath;
-import com.gennlife.rws.catche.CortrastiveCache;
-import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
@@ -100,7 +98,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         return ajaxObject;
     }
     @Override
-    public AjaxObject getContResult(String createId, String projectId, Integer cortType, boolean showSubGroup, String crfId, String uid) throws ExecutionException, InterruptedException, IOException {
+    public AjaxObject getContResult(String createId, String projectId, Integer cortType, boolean showSubGroup, String crfId, String uid, boolean autoCort) throws ExecutionException, InterruptedException, IOException {
         List<Group> groupList = groupService.getGroupByProjectId("001",projectId);
         List<GroupCondition> groupConditionList = groupConditionMapper.getGroupByProjectId(uid, projectId,1);
         if(groupConditionList==null || groupConditionList.size()==0){
@@ -203,12 +201,15 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                             cell.crfId = crfId;
                             String redisKey = UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" +group.getGroupId();
                             if(redisMapDataService.exists(redisKey)){
+                                if(autoCort){
+                                    return null;
+                                }
                                 LOG.info("从缓存获取数据");
                                 cell.patients = redisMapDataService.getAllSet(redisKey);
                             }else {
                                 LOG.info("没有走缓存 进行redis 缓存");
                                 cell.redisKey = redisKey;
-                                futures.add(cell.execute(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor()));
+                                futures.add(cell.execute(SingleExecutorService.getInstance().getCortrastiveCountResultExecutor()));
                             }
                             item.cells.add(cell);
                             item.enumTitles.add(src.getIndexResultValue());
@@ -228,7 +229,10 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                         cell.varName = "condition";
                         cell.crfId = crfId;
                         cell.groupId = group.getGroupId();
-                        futures.add(cell.execute(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor()));
+                        if(redisMapDataService.exists(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(source.getActiveIndexId()+"_"+ group.getGroupId())) && autoCort){
+                            return null;
+                        }
+                        futures.add(cell.execute(SingleExecutorService.getInstance().getCortrastiveCountResultExecutor()));
                         item.cells.add(cell);
                         item.enumTitles.add("");
                     } else {
@@ -357,10 +361,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             pObj.put("key","PID");
             columns.add(pObj);
 
-//            String resultData = "{\"code\":1,\"data\":{\"data\":[{\"col_name\":\"patient_info.GENDER\",\"col_append\":\"--人数（百分比）\",\"grp\":[\"广泛性焦虑障碍\",\"惊恐障碍\",\"抑郁症对照组\",\"主要抑郁症和广泛性焦虑\",\"主要抑郁症和惊恐障碍\"],\"discrete\":{\"tmp_grp\":[\"女\",\"男\"],\"Freq1\":[39,68],\"Freq2\":[7,12],\"Freq3\":[39,68],\"Freq4\":[7,12],\"Freq5\":[1,0]},\"p_value\":\"0.4239\"},{\"col_name\":\"patient_info.ETHNIC\",\"col_append\":\"--人数（百分比）\",\"grp\":[\"广泛性焦虑障碍\",\"惊恐障碍\",\"抑郁症对照组\",\"主要抑郁症和广泛性焦虑\",\"主要抑郁症和惊恐障碍\"],\"discrete\":{\"tmp_grp\":[\"回族\",\"汉族\"],\"Freq1\":[1,106],\"Freq2\":[0,19],\"Freq3\":[1,106],\"Freq4\":[0,19],\"Freq5\":[0,1]},\"p_value\":\"0.9101\"},{\"col_name\":\"patient_info.HEIGHT\",\"grp\":[\"广泛性焦虑障碍\",\"惊恐障碍\",\"抑郁症对照组\",\"主要抑郁症和广泛性焦虑\",\"主要抑郁症和惊恐障碍\"],\"num_stat\":[\"168.20±3.19/164~172/169.00\",\"NaN±NA/Inf~-Inf/NA\",\"168.20±3.19/164~172/169.00\",\"NaN±NA/Inf~-Inf/NA\",\"160.00±NA/160~160/160.00\"],\"p_vlaue\":\"0.0790\"}],\"grp_cnt\":[107,19,107,19,1]}}";
-//            JSONObject obj = JSONObject.parseObject(resultData);
-//            JSONArray data = parseData(obj);
-
             //生生的拼接data
             JSONArray data = parseData(new JSONObject()
                 .fluentPut("code", 1)
@@ -430,25 +430,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             }
         }
         return resultMap;
-    }
-
-    private List<Set<Group>> getGroups(List<Group> groupList) {
-        List<Set<Group>> result = new ArrayList<>();
-        Map<String,Set<Group>> maps = new HashMap<>();
-        for (Group group : groupList){
-            String groupTypeId = group.getGroupTypeId();
-            Boolean checkAble = group.getCheckable();
-            if(checkAble == null || !checkAble){
-                continue;
-            }
-            if(!maps.containsKey(groupTypeId)){
-                Set<Group> tmpSet = new HashSet<>();
-                maps.put(groupTypeId,tmpSet);
-            }
-            maps.get(groupTypeId).add(group);
-        }
-        maps.forEach( (x,y) -> result.add(y));
-        return result;
     }
 
     @Override
@@ -804,6 +785,46 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         List<Group> maxLevelGroup = new ArrayList<>(); //获取最底层的组数据
         getGrouMxLevel(grouArray,maxLevelGroup);
         return maxLevelGroup;
+    }
+
+    @Override
+    public void autoBackgroundCecort(List<Project> projectList) {
+        for (Project project : projectList){
+            String projectId = project.getProjectId();
+            String crfId = project.getCrfId();
+            String uid = project.getCreatorId();
+            if(StringUtils.isEmpty(uid) || StringUtils.isEmpty(crfId)){
+                continue;
+            }
+            List<String> activeIndexIds = contrastiveAnalysisActiveService.getActiveIndexes(uid,projectId,2);
+            for (String activeIndexId :activeIndexIds){
+                SingleExecutorService.getInstance().getAutoCortrastiveExecutor().submit(() ->{
+                    try {
+                        if(!redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId))){
+                            LOG.info("患者列表开始缓存计算----activeIndexId: " + activeIndexId + "projectId: " + projectId);
+                            List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
+                            ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
+                            String indexResultValue = activeSqlMap.getIndexResultValue();
+                            if(StringUtils.isEmpty(indexResultValue)){//指标
+                                searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap,projectId,crfId,activeIndexId);
+                            }else {//枚举
+                                searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMaps,projectId,crfId,activeIndexId);
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+            SingleExecutorService.getInstance().getAutoCortrastiveExecutor().submit(() -> {
+                try {
+                    LOG.info("图形列表 开始缓存计算----" + projectId);
+                    getContResult(uid,projectId,1,true,crfId,uid,true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 
     @Autowired

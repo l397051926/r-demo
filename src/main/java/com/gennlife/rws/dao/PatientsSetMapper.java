@@ -69,4 +69,6 @@ public interface PatientsSetMapper {
 	void updateIsFlush(@Param("isFlush") Integer isFlush, @Param("patientSetId") String patientSetId);
 
     void updatePatientsCountByPateintSetId(@Param("patientSetId") String patientSetId, @Param("curenntCount") long curenntCount);
+
+	List<PatientsSet> getPatientSetByProjectIdRemoveQuery(String projectId);
 }

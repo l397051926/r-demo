@@ -470,7 +470,7 @@ public class ProjectServiceImpl implements ProjectService {
 			project.setProMemberNum(listMember.size());
 		}
 		// 获取患者集信息
-		List<PatientsSet> listPatients = patientsSetMapper.getPatientSetByProjectId(project.getProjectId());
+		List<PatientsSet> listPatients = patientsSetMapper.getPatientSetByProjectIdRemoveQuery(project.getProjectId());
 		project.setPatientsNum(0);
 		if (listPatients != null && !listPatients.isEmpty()) {
 			project.setPatientsSetList(listPatients);

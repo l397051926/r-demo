@@ -9,13 +9,14 @@ public class SingleExecutorService {
 
     private volatile static SingleExecutorService instance;
 
-    private final ExecutorService searchUqlExecutorService = Executors.newFixedThreadPool(100,new TestThreadFactory("searchUqlExecutorService"));
+    private final ExecutorService searchUqlExecutorService = Executors.newFixedThreadPool(80,new TestThreadFactory("searchUqlExecutorService"));
     private final ExecutorService cortrastiveAnalysisExecutor = Executors.newFixedThreadPool(8,new TestThreadFactory("cortrastiveAnalysisExecutor"));
-    private final ExecutorService referenceActiveExecutor = Executors.newFixedThreadPool(100,new TestThreadFactory("referenceActiveExecutor"));
-    private final ExecutorService flushCountGroupExecutor = Executors.newFixedThreadPool(20,new TestThreadFactory("flushCountGroupExecutor"));
-    private final ExecutorService centerTaskeExecutor = Executors.newFixedThreadPool(10,new TestThreadFactory("centerTaskeExecutor"));
-    private final ExecutorService autoCortrastiveExecutor = Executors.newFixedThreadPool(3,new TestThreadFactory("autoCortrastiveExecutor"));
-    private final ExecutorService backgroundVariantExecutor = Executors.newFixedThreadPool(10,new TestThreadFactory("backgroundVariantExecutor"));
+    private final ExecutorService referenceActiveExecutor = Executors.newFixedThreadPool(80,new TestThreadFactory("referenceActiveExecutor"));
+    private final ExecutorService flushCountGroupExecutor = Executors.newFixedThreadPool(24,new TestThreadFactory("flushCountGroupExecutor"));
+    private final ExecutorService centerTaskeExecutor = Executors.newFixedThreadPool(8,new TestThreadFactory("centerTaskeExecutor"));
+    private final ExecutorService autoCortrastiveExecutor = Executors.newFixedThreadPool(4,new TestThreadFactory("autoCortrastiveExecutor"));
+    private final ExecutorService backgroundVariantExecutor = Executors.newFixedThreadPool(4,new TestThreadFactory("backgroundVariantExecutor"));
+    private final ExecutorService cortrastiveCountResultExecutor = Executors.newFixedThreadPool(8,new TestThreadFactory("cortrastiveCountResultExecutor"));
 
     private SingleExecutorService(){}
 
@@ -56,6 +57,10 @@ public class SingleExecutorService {
 
     public ExecutorService getBackgroundVariantExecutor() {
         return backgroundVariantExecutor;
+    }
+
+    public ExecutorService getCortrastiveCountResultExecutor() {
+        return cortrastiveCountResultExecutor;
     }
 
     static class TestThreadFactory implements ThreadFactory {

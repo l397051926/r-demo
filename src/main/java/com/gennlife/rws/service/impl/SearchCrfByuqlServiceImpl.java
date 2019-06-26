@@ -2100,13 +2100,17 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONArray values = JSONArray.parseArray(value);
         int size = values == null ? 0 : values.size();
         for (int i = 0; i < size; i++) {
-            if (size > 1) resultBuffer.append(" and ");
-            resultBuffer.append(TransData.transDataNumber(sourceTagName));
+            if(size > 1 && i==0 ) resultBuffer.append("(");
+            if (i > 0) resultBuffer.append(" OR ");
+            resultBuffer.append(sourceTagName);
             resultBuffer.append(condition);
             String val = values.getString(i);
             val = "否".equals(val) ? "false" : val;
             val = "是".equals(val) ? "true" : val;
             resultBuffer.append(val);
+        }
+        if(size>1){
+            resultBuffer.append(")");
         }
 
     }

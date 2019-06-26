@@ -150,7 +150,7 @@ public class CortrastiveAnalysisController {
             if(StringUtils.isEmpty(createId) || "undefined".equals(createId)){
                 createId = uid;
             }
-            ajaxObject =  cortrastiveAnalysisService.getContResult(createId,projectId,cortType,showSubGroup,crfId,uid);
+            ajaxObject =  cortrastiveAnalysisService.getContResult(createId,projectId,cortType,showSubGroup,crfId,uid, false);
         } catch (Exception e) {
             LOG.error("获取计算结果 的统计图形列表，异常信息{}",e);
             ajaxObject = new AjaxObject();

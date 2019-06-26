@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.OperLogs;
 import com.gennlife.rws.entity.PcientificResearchType;
 import com.gennlife.rws.entity.Project;
+import com.gennlife.rws.service.CortrastiveAnalysisService;
 import com.gennlife.rws.service.PcientificResearchTypeService;
 import com.gennlife.rws.service.ProjectService;
 import com.gennlife.rws.util.AjaxObject;
@@ -56,6 +57,8 @@ public class ProjectController {
 			return ajaxObject;
 		}
 	}
+	@Autowired
+	private CortrastiveAnalysisService cecortrastiveAnalysisService;
 
 	@RequestMapping(value = "/getProjectList", method = { RequestMethod.POST, RequestMethod.GET })
 	public AjaxObject getProjectList(@RequestBody String param) {
@@ -70,6 +73,7 @@ public class ProjectController {
 				return ajaxObject;
 			}
 			List<Project> list = projectService.getProjectList(object);
+			cecortrastiveAnalysisService.autoBackgroundCecort(list);
 			ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
 			ajaxObject.setData(list);
 			return ajaxObject;

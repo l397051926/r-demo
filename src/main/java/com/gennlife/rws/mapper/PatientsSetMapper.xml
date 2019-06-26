@@ -207,6 +207,16 @@
 		#{projectId,jdbcType=VARCHAR}
 	</select>
 
+	<select id="getPatientSetByProjectIdRemoveQuery" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List_remove_query" />
+		from p_patients_set
+		where is_delete='0'
+		and project_id =
+		#{projectId,jdbcType=VARCHAR}
+	</select>
+
 	<select id="getPatientsSetList" resultMap="BaseResultMap"
 		parameterType="java.util.Map">
 		select

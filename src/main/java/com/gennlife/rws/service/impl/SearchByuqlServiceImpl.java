@@ -1211,6 +1211,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         Map<String,String> resMap = new HashMap<>();
         foreach(map, (key,val) -> resMap.put(key,val.toString()));
+        if(resMap.size()==0){
+            resMap.put("rws_tmp","rws_tmp");
+        }
         String res= redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),resMap);
         redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),7 * 24 * 60 * 60);
         LOG.info(activeIndexId +" 插入 ---- redis" + res);
@@ -1252,6 +1255,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 }
                 return val;
             }));
+        if(map.size()==0){
+            map.put("rws_tmp","rws_tmp");
+        }
         String res= redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),map);
         redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),7 * 24 * 60 * 60);
         LOG.info(activeIndexId +" 插入 ---- redis" + res);
@@ -2055,13 +2061,17 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         JSONArray values = JSONArray.parseArray(value);
         int size = values == null ? 0 : values.size();
         for (int i = 0; i < size; i++) {
-            if (size > 1) resultBuffer.append(" and ");
+            if(size > 1 && i==0 ) resultBuffer.append("(");
+            if (i > 0) resultBuffer.append(" OR ");
             resultBuffer.append(sourceTagName);
             resultBuffer.append(condition);
             String val = values.getString(i);
             val = "否".equals(val) ? "false" : val;
             val = "是".equals(val) ? "true" : val;
             resultBuffer.append(val);
+        }
+        if(size>1){
+            resultBuffer.append(")");
         }
 
     }

@@ -8,11 +8,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.gennlife.rws.content.CommonContent;
+import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
 import com.gennlife.rws.service.ActiveIndexService;
 import com.gennlife.rws.service.ActiveIndexTaskService;
 import com.gennlife.rws.service.ContrastiveAnalysisActiveService;
+import com.gennlife.rws.service.RedisMapDataService;
 import com.gennlife.rws.util.AjaxObject;
 import com.gennlife.rws.util.CodeToDesc;
 import com.gennlife.rws.util.StringUtils;
@@ -63,6 +65,8 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
 //    private CallPackagingServerService serverService;
     @Autowired
     private ContrastiveAnalysisActiveMapper contrastiveAnalysisActiveMapper;
+    @Autowired
+    private RedisMapDataService redisMapDataService;
 
 
     private JSONObject jsonOrderKeys;
@@ -522,6 +526,7 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
                 JSONObject object = new JSONObject();
                 String id = index.getId();
                 object.put("activeId", id);
+                object.put("calculate",redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(id)));
                 object.put("activeName", index.getName());
                 object.put("type", CodeToDesc.activeTypeToDesc(index.getActiveType()));
                 JSONArray dataMap = new JSONArray();
