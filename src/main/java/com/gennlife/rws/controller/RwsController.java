@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.ActiveIndexMapper;
+import com.gennlife.rws.dao.ActiveSqlMapMapper;
 import com.gennlife.rws.dao.ContrastiveAnalysisActiveMapper;
 import com.gennlife.rws.entity.ActiveIndex;
 import com.gennlife.rws.entity.ActiveIndexConfigCondition;
@@ -66,6 +67,8 @@ public class RwsController {
     private ContrastiveAnalysisActiveMapper contrastiveAnalysisActiveMapper;
     @Autowired
     private ProjectService projectService;
+    @Autowired
+    private ActiveSqlMapMapper activeSqlMapMapper;
 
     @RequestMapping(value = "/saveActiveIndex", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "RWS 配置信息保存", notes = "根据前端提交的信息保存RWS 保存活动/指标/入排条件的定义 Created by liuzhen.")
@@ -161,6 +164,7 @@ public class RwsController {
                 oldName = name;
             }
             if(isVariant !=null && 1==isVariant){
+                activeSqlMapMapper.deleteByActiveIndexId(active.getString("id"), UqlConfig.CORT_INDEX_ID );
                 if(StringUtils.isEmpty(active.getString("id")) && !isClsUpdate ){
                     String content = createName + "新增 研究变量 ： " + oldName;
 //                    contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
