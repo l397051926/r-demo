@@ -173,6 +173,7 @@ public class RwsController {
                     if(isClsUpdate){
 //                        contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
                     }
+                    contrastiveAnalysisActiveService.deleteContrastiveActiveById(obj.getString("id"),projectId);
                     String content = createName + "编辑 研究变量 ： " + oldName;
                     logUtil.saveLog(projectId, content, create_user, createName);
                 }

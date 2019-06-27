@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -96,6 +97,14 @@ public class ContrastiveAnalysisActiveServiceImpl implements ContrastiveAnalysis
         }
         contrastiveAnalysisActive.setCortType(2);
         contrastiveAnalysisActiveMapper.insert(contrastiveAnalysisActive);
+    }
+
+    @Override
+    public void deleteContrastiveActiveById(String id, String projectId) {
+        Map<String,Object> paramMap = new HashMap<>();
+        paramMap.put("activeIndexId",id);
+        paramMap.put("projectId",projectId);
+        contrastiveAnalysisActiveMapper.deleteByActiveId(paramMap);
     }
 
 

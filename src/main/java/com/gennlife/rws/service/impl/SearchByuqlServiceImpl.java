@@ -2390,6 +2390,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
     }
 
+    @Override
     public void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey,JSONArray patientsSetId,String groupToId,String groupFromId) throws ExecutionException, InterruptedException, IOException {
 
         ActiveIndex active = null;

@@ -29,4 +29,6 @@ public interface ContrastiveAnalysisActiveService {
     AjaxObject deleteContrastiveActive(JSONObject paramObj);
 
     void saveContrastiveNewActive(String id, String create_user, String projectId, String type);
+
+    void deleteContrastiveActiveById(String id, String projectId);
 }

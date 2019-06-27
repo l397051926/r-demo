@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.keypath.KeyPath;
+import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
@@ -11,10 +12,12 @@ import com.gennlife.rws.entity.*;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.*;
 import com.gennlife.rws.web.WebAPIResult;
+import com.google.common.collect.Lists;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.apache.commons.math3.stat.inference.OneWayAnova;
 import org.apache.commons.math3.stat.inference.TTest;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +62,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     private RedisMapDataService redisMapDataService;
     @Autowired
     private SearchByuqlService searchByuqlService;
+    @Autowired
+    private SearchCrfByuqlService searchCrfByuqlService;
 
 
     @Override
@@ -164,7 +169,12 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         List<Integer> groupCounts = new ArrayList<>();
         {
             List<List<ActiveSqlMap>> conditions = activeIndexIds.stream()
-                .map(x ->activeSqlMapMapper.getActiveSql(x, UqlConfig.CORT_INDEX_ID))
+                .map(x ->{
+                    List<ActiveSqlMap> activeSqlMaps =activeSqlMapMapper.getActiveSql(x, UqlConfig.CORT_INDEX_ID);
+                    activeSqlMaps = referenceCalculateSearch(projectId, crfId, x, activeSqlMaps);
+                    return activeSqlMaps;
+                    }
+                )
                 .collect(toList());
             List<Group> groups = maxLevelGroup;
             // group, item, num->""/enum->value, patients
@@ -376,6 +386,24 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         return ajaxObject;
     }
 
+    @Nullable
+    private List<ActiveSqlMap> referenceCalculateSearch(String projectId, String crfId, String activeIndexId, List<ActiveSqlMap> activeSqlMaps) {
+        if(activeSqlMaps ==null || activeSqlMaps.size()==0 ){
+            try {
+                if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
+                    searchCrfByuqlService.referenceCalculate(activeIndexId,projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);
+                }else {
+                    searchByuqlService.referenceCalculate(activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null);
+                }
+                activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
+            } catch (Exception e) {
+                contrastiveAnalysisActiveService.deleteContrastiveActiveById(activeIndexId,projectId);
+                e.printStackTrace();
+            }
+        }
+        return activeSqlMaps;
+    }
+
 
     private List<Group> copeGroupList(List<Group> groupList) {
         List<Group> list = new ArrayList<>();
@@ -500,6 +528,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
             Map<String, JSONObject> finalResultMap1 = resultMap;
             futures.add(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor().submit(() ->{
                 List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
+                activeSqlMaps = referenceCalculateSearch(projectId, crfId, activeIndexId, activeSqlMaps);
                 if(activeSqlMaps.size() > 0){
                     //这里有问题 不应该查不到数据的 说明需要重新计算 后期增加
                     ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
