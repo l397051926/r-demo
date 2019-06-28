@@ -195,7 +195,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             String[] patSqls = patSql.split("where");
             String where = patSqls[1];
             String newWhere = patSnWhere + " and " + where;
-            String patSnResult = querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, sourceFilter, source, crfId);
+            String patSnResult = httpUtils.querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, sourceFilter, source, crfId);
             JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
             int tmpHitsSize = tmpHits.size();
             for (int j = 0; j < tmpHitsSize; j++) {
@@ -243,29 +243,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         ajaxObject.setData(data);
 
         return ajaxObject;
-    }
-
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId) {
-        Long startTime = System.currentTimeMillis();
-        QuerySearch querySearch = new QuerySearch();
-        querySearch.setIndexName(PROJECT_INDEX_NAME_PREFIX.get(crfId) + projectId);//换成 projectId
-        querySearch.setQuery(newSql);
-        querySearch.setPage(pageNum);
-        querySearch.setSize(pageSize);
-        querySearch.setSource_filter(sourceFilter);
-        querySearch.setSource(source);
-        String url = httpUtils.getEsSearchUql();
-        String param = JSON.toJSONString(querySearch);
-        String result = httpUtils.httpPost(param, url);
-        LOG.info("搜索 --消耗时间为："+(System.currentTimeMillis() - startTime));
-        LOG.info("访问 uql 查询param: " + param);
-        JSONObject data = JSON.parseObject(result);
-        Object error = data.get("error");
-        if (error != null) {
-            LOG.error("发生异常了： " + error);
-            LOG.error("参数为： " + param);
-        }
-        return result;
     }
 
     private void saveActiveIndexTask(String activeId, String projectId, Integer total) {
@@ -717,7 +694,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 String[] patSqls = patSql.split("where");
                 String where = patSqls[1];
                 String newWhere = patSnWhere + " and " + where;
-                String patSnResult = querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, "", source, crfId);
+                String patSnResult = httpUtils.querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, "", source, crfId);
                 JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
                 int tmpHitsSize = tmpHits.size();
                 for (int j = 0; j < tmpHitsSize; j++) {
@@ -934,7 +911,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         boolean isGetVisisn = !where.isEmpty();
         String sqlNew = uqlClass.getHavingSql();
         /*开始搞 MD5 替换sql*/
-        LOG.info("输出sql： " + sqlNew);
         sqlMd5 = StringToMd5.stringToMd5(sqlNew);
         Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(R_activeIndexId,sqlMd5,groupToId);
         if(sqlMd5count>0) return null;
@@ -972,7 +948,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         Set<String> patients= getProjectPatients(projectId,patientSql,crfId);
 
         String allSql = "select patient_info.patient_basicinfo.DOC_ID from "+uqlClass.getFrom()+" where " +allWhere+" group by patient_info.patient_basicinfo.DOC_ID";
-        String activeOtherPat = querySearch(projectId,allSql,1,Integer.MAX_VALUE-1,null,new JSONArray(),crfId);
+        String activeOtherPat = httpUtils.querySearch(projectId,allSql,1,Integer.MAX_VALUE-1,null,new JSONArray(),crfId);
 //        Set<String> patients= getProjectPatients(projectId, crfId);
         Set<String> allPats = new KeyPath("hits", "hits")
             .flatFuzzyResolve(JSON.parseObject(activeOtherPat))
@@ -989,7 +965,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             otherResult =String.join("$",patients);
         }
         ActiveSqlMap activeSqlMap = new ActiveSqlMap();
-        LOG.info("新的sql------------------： " + newSql);
         activeSqlMap.setProjectId(projectId);
         activeSqlMap.setActiveIndexId(R_activeIndexId);
         activeSqlMap.setActiveSql(GzipUtil.compress(newSql));
@@ -1126,7 +1101,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             uqlClass.setWhere(uqlClass.getWhereNotNull() + " ( " + where.toString()+" ) ");
 
             String sqlNew = uqlClass.getCrfSql();
-            LOG.info("输出sql： " + sqlNew);
 //            String allWhere = uqlClass.getWhere();
             UqlClass sqlresult = null;
             if (StringUtils.isNotEmpty(indexColumn)) {
@@ -1135,7 +1109,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 sqlresult = uqlClass;
             }
             String newSql = sqlresult.getCrfSql();
-            LOG.info("新的sql： " + newSql);
             ActiveSqlMap activeSqlMap = new ActiveSqlMap();
 
             activeSqlMap.setProjectId(projectId);
@@ -1175,7 +1148,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     public Set<String> getProjectPatients(String projectId,String patientSql, String crfId) {
         String sql = "select  patient_info.patient_basicinfo.DOC_ID as pSn from " + PROJECT_INDEX_NAME_PREFIX.get(crfId) + projectId + " where "+patientSql+ " group by patient_info.patient_basicinfo.DOC_ID";
         JSONArray source = new JSONArray();
-        String result = querySearch(projectId,sql,1,Integer.MAX_VALUE-1,null,source,crfId);
+        String result = httpUtils.querySearch(projectId,sql,1,Integer.MAX_VALUE-1,null,source,crfId);
         Set<String> patients = new KeyPath("hits", "hits")
             .flatFuzzyResolve(JSON.parseObject(result))
             .stream()
@@ -1940,7 +1913,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             where.execute(SingleExecutorService.getInstance().getSearchUqlExecutorService());
             uqlClass.setWhere(uqlClass.getWhereNotNull() + " ( "+ where.toString()+" ) ");
             String sqlNew = uqlClass.getHavingSql();
-            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(T_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -1955,12 +1927,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getHavingSql();
-            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(T_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
-
-            LOG.info("index -------------where : "+ where);
             if (StringUtils.isNotEmpty(indexColumn) && isGetVisisn) {
                 sqlresult = getIndexSql(uqlClass, function, functionParam, indexColumn, indexType, indexDate, projectId,hasCount,crfId);
             } else {
@@ -1980,7 +1949,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         ActiveSqlMap activeSqlMap = new ActiveSqlMap();
 
-        LOG.info("新的sql： " + newSql);
         activeSqlMap.setProjectId(projectId);
         activeSqlMap.setActiveIndexId(T_activeIndexId);
         activeSqlMap.setActiveSql(GzipUtil.compress(newSql));
@@ -2299,7 +2267,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             String[] patSqls = patSql.split("where");
             String where = patSqls[1];
             String newWhere = patSnWhere + " and " + where;
-            String patSnResult = querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, "", source, crfId);
+            String patSnResult = httpUtils.querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, "", source, crfId);
             JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
             int tmpHitsSize = tmpHits.size();
             for (int j = 0; j < tmpHitsSize; j++) {

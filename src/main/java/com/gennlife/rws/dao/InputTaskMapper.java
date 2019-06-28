@@ -53,4 +53,6 @@ public interface InputTaskMapper {
     Integer getCountByProjectIdAndStatus(String projectId, Integer cancel);
 
     InputTask getInputtaskAllByInputId(String taskId);
+
+    void updateInputTaskOnDecideStatus(InputTask inputTask);
 }

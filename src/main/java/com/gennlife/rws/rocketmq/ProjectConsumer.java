@@ -78,9 +78,7 @@ public class ProjectConsumer {
             //设置广播消费
 //            consumer.setMessageModel(MessageModel.BROADCASTING);
 
-            consumer.registerMessageListener((MessageListenerOrderly) (list, context) -> {
-                // 设置自动提交
-                context.setAutoCommit(true);
+            consumer.registerMessageListener((MessageListenerConcurrently) (list, context) -> {
                 try {
                     for (MessageExt messageExt : list) {
                         //避免重复消费工作
@@ -102,9 +100,9 @@ public class ProjectConsumer {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
+                    return ConsumeConcurrentlyStatus.RECONSUME_LATER;
                 }
-                return ConsumeOrderlyStatus.SUCCESS;
+                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             });
             consumer.start();
             System.out.println("[Consumer 已启动]");
@@ -136,10 +134,8 @@ public class ProjectConsumer {
                 return;
             }
             InputTask inputTask = new InputTask(taskId,createTime,startTime,finishTime,status,progress,remainTime);
-            if( !Objects.equals(task.getStatus(),status)){
-                inputTask.setUpdateTime(new Date());
-            }
-            inputTaskMapper.updateInputTask(inputTask);
+            inputTask.setUpdateTime(new Date());
+            inputTaskMapper.updateInputTaskOnDecideStatus(inputTask);
 
             if(InputStratus.FAILURE == status){//失败
                 JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));

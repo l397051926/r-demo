@@ -75,9 +75,9 @@ public class HttpUtils {
         querySearch.setSource_filter(sourceFilter);
         querySearch.setSource(source);
         querySearch.setFetchAllGroupByResult(fetchAllGroupByResult);
+
         String url = getEsSearchUqlCompress();
         String param = JSON.toJSONString(querySearch);
-//        String result = httpPost(param, url);
         String result="";
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
@@ -97,7 +97,7 @@ public class HttpUtils {
     public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,JSONObject agges,String crfId) {
         Long startTime = System.currentTimeMillis();
         QuerySearch querySearch = new QuerySearch();
-        querySearch.setIndexName(IndexContent.getIndexName(crfId,projectId));//换成 projectId
+        querySearch.setIndexName(IndexContent.getIndexName(crfId,projectId));
         querySearch.setQuery(newSql);
         querySearch.setPage(pageNum);
         querySearch.setSize(pageSize);
@@ -106,7 +106,6 @@ public class HttpUtils {
         querySearch.setAggs(agges);
         String url = getEsSearchUqlCompress();
         String param = JSON.toJSONString(querySearch);
-        //        String result = httpPost(param, url);
         String result="";
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());

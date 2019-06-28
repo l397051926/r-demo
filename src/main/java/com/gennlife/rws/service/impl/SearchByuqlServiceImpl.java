@@ -87,7 +87,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId,groupId);
         }
         LOG.info("指标 从mysql数据库读取时间为： "+(System.currentTimeMillis()-startMysqlTime));
-//        LOG.info("开始请求结果"+(System.currentTimeMillis()-tmie));
         Long tmie1 = System.currentTimeMillis();
         if ("自定义枚举类型".equals(indexType)) {//枚举类型处理
             return searchClasEnumResultByUql(activeId, sqlList, projectId, pageSize, pageNum, basicColumns,groupFromId,patientSetId,groupId,isVariant,patientSetId);
@@ -116,7 +115,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
 
         LOG.info("拼接columns"+(System.currentTimeMillis()-tmie1));
-        Long tmie2 = System.currentTimeMillis();
         JSONArray source = new JSONArray();
         source.add("patient_info");
         JSONArray sourceValue = JSONArray.parseArray(activeSqlMap.getSourceValue());
@@ -147,7 +145,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }else {
             patSnWhere = "patient_info.DOC_ID " + TransPatientSql.transForExtContain(pasSn);
         }
-//        LOG.info("处理结果"+(System.currentTimeMillis()-tmie2));
         Long tmie3 = System.currentTimeMillis();
         for (int i = 0; i < refSize; i++) {
             //拼接column
@@ -838,9 +835,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有数据");
         }
         String  newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql,crfId);
-//        if(StringUtils.isEmpty(patientSql)){
-//            return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有数据");
-//        }
         String sql = "select "+IndexContent.getPatientDocId(crfId)+"   from "+ IndexContent.getIndexName(crfId,projectId) + " where "+newpatientSetSql+ " and  join_field='patient_info'";
         JSONArray terms_aggs = new JSONArray();
         int size = aggregationTeam == null ? 0 : aggregationTeam.size();
@@ -996,7 +990,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getSql();
             /*开始搞 MD5 替换sql*/
-//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(R_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -1022,7 +1015,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getHavingSql();
             /*开始搞 MD5 替换sql*/
-//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(R_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -1066,7 +1058,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             otherResult = patients.stream().map(s -> "'" + s + "'").collect(joining(","));
         }
 
-        LOG.info("新的sql------------------： " + newSql);
         ActiveSqlMap activeSqlMap = new ActiveSqlMap(projectId,R_activeIndexId,GzipUtil.compress(newSql),
             sqlresult.getSelect(),sqlresult.getFrom(),uqlClass.getSourceFilter(),activeType,
             uqlClass.getActiveId().toJSONString(),JSON.toJSONString(uqlClass.getSource()),activeResultDocId,activeResult,
@@ -1154,9 +1145,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
             where.execute(SingleExecutorService.getInstance().getSearchUqlExecutorService());
             uqlClass.setWhere(uqlClass.getWhereNotNull() + " ( " + where.toString()+" ) ");
-            String sqlNew = uqlClass.getSql();
-//            LOG.info("输出sql： " + sqlNew);
-//            String allWhere = uqlClass.getWhere();
             UqlClass sqlresult = null;
             if (StringUtils.isNotEmpty(indexColumn)) {
                 sqlresult = getIndexSql(uqlClass, function, functionParam, indexColumn, indexType, indexDate, projectId,hasCount);
@@ -1164,7 +1152,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 sqlresult = uqlClass;
             }
             String newSql = sqlresult.getSql();
-//            LOG.info("新的sql： " + newSql);
             ActiveSqlMap activeSqlMap = new ActiveSqlMap(projectId,R_activeIndexId,GzipUtil.compress(newSql),sqlresult.getSelect(),
                                                             sqlresult.getFrom(),uqlClass.getSourceFilter(),uqlClass.getActiveId().toJSONString(),
                                                             JSON.toJSONString(uqlClass.getSource()),indexResultValue,indexTypeValue,
@@ -1250,25 +1237,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId),7 * 24 * 60 * 60);
         LOG.info(activeIndexId +" 插入 ---- redis" + res);
         return map;
-    }
-
-    private String getEnumOtherWhere(String cond, Set<String> enumPatients) {
-        StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append("patient_info.DOC_ID " + cond + " (");
-        int num = 0;
-        for (String patientSn : enumPatients) {
-            stringBuffer.append("'");
-            stringBuffer.append(patientSn);
-            stringBuffer.append("'");
-            if (num < enumPatients.size() - 1) stringBuffer.append(",");
-            num++;
-        }
-        if (num == 0) {
-            stringBuffer.append("'')");
-        } else {
-            stringBuffer.append(")");
-        }
-        return stringBuffer.toString();
     }
 
     public Set<String> getProjectPatients(String projectId,String patientSql) {
@@ -1916,7 +1884,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getHavingSql();
             /*开始搞 MD5 替换sql*/
-//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(T_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -1939,7 +1906,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getHavingSql();
             /*开始搞 MD5 替换sql*/
-//            LOG.info("输出sql： " + sqlNew);
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
             Integer sqlMd5count = activeSqlMapMapper.getCountByActiveAndsqlMd5(T_activeIndexId,sqlMd5,groupToId);
             if(sqlMd5count>0) return null;
@@ -2415,7 +2381,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String indexTypeDesc = configss.getJSONObject(0).getString("indexTypeDesc");
         int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP ;
         activeType = active.getActiveType();
-        String sql = "";
         if (3 == activeType) {//那排
              this.SearchByExclude(obj, resultOrderKey,isSearch);
         } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举

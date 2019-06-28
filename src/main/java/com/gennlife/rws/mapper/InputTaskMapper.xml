@@ -367,4 +367,53 @@
     AND
     status = #{status,jdbcType=INTEGER}
   </select>
+
+  <update id="updateInputTaskOnDecideStatus" parameterType="com.gennlife.rws.entity.InputTask" >
+    UPDATE p_input_task
+    <set>
+      <if test="updateTime != null" >
+        update_time = IF(`status` != #{status,jdbcType=INTEGER},#{updateTime,jdbcType=TIMESTAMP},update_time),
+      </if>
+      <if test="projectId != null" >
+        project_id = #{projectId,jdbcType=VARCHAR},
+      </if>
+      <if test="projectName != null" >
+        project_name = #{projectName,jdbcType=VARCHAR},
+      </if>
+      <if test="patientSetId != null" >
+        patient_set_id = #{patientSetId,jdbcType=VARCHAR},
+      </if>
+      <if test="patientSetName != null" >
+        patient_set_name =  #{patientSetName,jdbcType=VARCHAR},
+      </if>
+      <if test="uid != null" >
+        uid = #{uid,jdbcType=VARCHAR},
+      </if>
+      <if test="patientCount != null" >
+        patient_count = #{patientCount,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="startTime != null" >
+        start_time = #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="finishTime != null" >
+        finish_time = #{finishTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="remainTime != null" >
+        remain_time = #{remainTime,jdbcType=INTEGER},
+      </if>
+      <if test="progress != null" >
+        progress = #{progress,jdbcType=INTEGER},
+      </if>
+      <if test="crfId != null" >
+        crf_id = #{crfId,jdbcType=INTEGER},
+      </if>
+    </set>
+    where input_id = #{inputId,jdbcType=VARCHAR}
+  </update>
 </mapper>
