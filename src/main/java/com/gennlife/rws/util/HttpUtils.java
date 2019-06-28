@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.IndexContent;
+import com.gennlife.rws.exception.SearchUqlCasetException;
 import com.gennlife.rws.query.BuildIndexRws;
 import com.gennlife.rws.query.QuerySearch;
 import org.apache.http.HttpEntity;
@@ -65,36 +66,16 @@ public class HttpUtils {
             .build();
     public HttpUtils(){}
 
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,boolean fetchAllGroupByResult) {
-        Long startTime = System.currentTimeMillis();
-        QuerySearch querySearch = new QuerySearch();
-        querySearch.setIndexName("rws_emr_" + projectId);//换成 projectId
-        querySearch.setQuery(newSql);
-        querySearch.setPage(pageNum);
-        querySearch.setSize(pageSize);
-        querySearch.setSource_filter(sourceFilter);
-        querySearch.setSource(source);
-        querySearch.setFetchAllGroupByResult(fetchAllGroupByResult);
-
-        String url = getEsSearchUqlCompress();
-        String param = JSON.toJSONString(querySearch);
-        String result="";
-        try {
-            result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
-        }catch (IllegalArgumentException e){
-            LOG.error("gzip 解析失败 传统方式 重新请求");
-            result = httpPost(param,getEsSearchUql());
-        } catch (IOException e) {
-            LOG.error("发生异常了： " + param);LOG.error("参数为： " + param);
-        }
-        LOG.info("搜索 --消耗时间为："+(System.currentTimeMillis() - startTime));
-//        LOG.info("访问 uql 查询param: " + param);
-        if (result.contains("error")) {
-            LOG.info("发生异常了： " + JSONObject.parseObject(result).getString("error"));LOG.error("参数为： " + param);
-        }
-        return result;
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId) {
+        return querySearch(projectId,newSql,pageNum,pageSize,sourceFilter,source,crfId,false);
     }
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,JSONObject agges,String crfId) {
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,boolean fetchAllGroupByResult) {
+       return querySearch(projectId,newSql,pageNum,pageSize,sourceFilter,source,IndexContent.EMR_CRF_ID,fetchAllGroupByResult);
+    }
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId,boolean fetchAllGroupByResult) {
+       return querySearch(projectId,newSql,pageNum,pageSize,sourceFilter,source,crfId,fetchAllGroupByResult,null);
+    }
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId,boolean fetchAllGroupByResult,JSONObject agges) {
         Long startTime = System.currentTimeMillis();
         QuerySearch querySearch = new QuerySearch();
         querySearch.setIndexName(IndexContent.getIndexName(crfId,projectId));
@@ -103,94 +84,36 @@ public class HttpUtils {
         querySearch.setSize(pageSize);
         querySearch.setSource_filter(sourceFilter);
         querySearch.setSource(source);
-        querySearch.setAggs(agges);
-        String url = getEsSearchUqlCompress();
-        String param = JSON.toJSONString(querySearch);
-        String result="";
-        try {
-            result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
-        }catch (IllegalArgumentException e){
-            LOG.error("gzip 解析失败 传统方式 重新请求");
-            result = httpPost(param,getEsSearchUql());
-        } catch (IOException e) {
-            LOG.error("发生异常了： " + param);
-            LOG.error("参数为： " + param);
+        if(agges != null){
+            querySearch.setAggs(agges);
         }
-        LOG.info("搜索 --消耗时间为：" + (System.currentTimeMillis() - startTime));
-        JSONObject data = JSON.parseObject(result);
-        Object error = data.get("error");
-        if (error != null) {
-            LOG.error("发生异常了： " + error);LOG.error("参数为： " + param);
-        }
-        return result;
-    }
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId,boolean fetchAllGroupByResult) {
-        Long startTime = System.currentTimeMillis();
-        QuerySearch querySearch = new QuerySearch();
-        querySearch.setIndexName(IndexContent.getIndexName(crfId,projectId));//换成 projectId
-        querySearch.setQuery(newSql);
-        querySearch.setPage(pageNum);
-        querySearch.setSize(pageSize);
-        querySearch.setSource_filter(sourceFilter);
-        querySearch.setSource(source);
         querySearch.setFetchAllGroupByResult(fetchAllGroupByResult);
         String url = getEsSearchUqlCompress();
         String param = JSON.toJSONString(querySearch);
-        //        String result = httpPost(param, url);
         String result="";
-//        LOG.debug("访问 uql 查询param: " + param);
-//        LOG.info("计算的sql 语句"+ newSql);
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
         }catch (IllegalArgumentException e){
             LOG.error("gzip 解析失败 传统方式 重新请求");
             result = httpPost(param,getEsSearchUql());
-        }  catch (Exception e){
-            LOG.error("f生计算问题！： " + param);
-            throw new RuntimeException("计算发生问题");
+        } catch (Exception e) {
+            LOG.error("计算发生异常 error: "+ e.getMessage() +" 参数为： " + param);
+            throw new SearchUqlCasetException("计算发生问题");
         }
-        LOG.info("搜索 --消耗时间为："+(System.currentTimeMillis() - startTime));
-//        LOG.info("访问 uql 查询param: " + param);
+        Long time = System.currentTimeMillis() - startTime;
+        LOG.info("搜索 --消耗时间为：" + time);
+        if(time > 40*1000){
+            LOG.warn("查询速度过慢 超过 40 秒 参数为:" + param);
+        }
         JSONObject data = JSON.parseObject(result);
         Object error = data.get("error");
         if (error != null) {
-            LOG.error("发生异常了： " + error);LOG.error("参数为： " + param);
+            LOG.error("计算发生发生异常  error： " + error);LOG.error("参数为： " + param);
+            throw new SearchUqlCasetException("计算发生问题");
         }
         return result;
     }
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId) {
-        Long startTime = System.currentTimeMillis();
-        QuerySearch querySearch = new QuerySearch();
-        querySearch.setIndexName(IndexContent.getIndexName(crfId,projectId));//换成 projectId
-        querySearch.setQuery(newSql);
-        querySearch.setPage(pageNum);
-        querySearch.setSize(pageSize);
-        querySearch.setSource_filter(sourceFilter);
-        querySearch.setSource(source);
-        String url = getEsSearchUqlCompress();
-        String param = JSON.toJSONString(querySearch);
-        //        String result = httpPost(param, url);
-        String result="";
-//        LOG.debug("访问 uql 查询param: " + param);
-//        LOG.info("访问 uql 计算sql: " + newSql);
-        try {
-            result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
-        }catch (IllegalArgumentException e){
-            LOG.error("gzip 解析失败 传统方式 重新请求");
-            result = httpPost(param,getEsSearchUql());
-        }  catch (Exception e){
-            LOG.error("f生计算问题！： " + param);
-            throw new RuntimeException("计算发生问题");
-        }
-        LOG.info("搜索 --消耗时间为："+(System.currentTimeMillis() - startTime));
-//        LOG.info("访问 uql 查询param: " + param);
-        JSONObject data = JSON.parseObject(result);
-        Object error = data.get("error");
-        if (error != null) {
-            LOG.error("发生异常了： " + error);LOG.error("参数为： " + param);
-        }
-        return result;
-    }
+
     private byte[] zipVisits(String visists) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {

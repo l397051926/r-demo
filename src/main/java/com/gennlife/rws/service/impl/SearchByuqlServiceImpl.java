@@ -204,7 +204,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ajaxObject.setWebAPIResult(new WebAPIResult<Object>(pageNum, pageSize, total));
         ajaxObject.setColumns(basicColumns);
         ajaxObject.setData(data);
-        deleteTmpActiveId(projectId,activeId);
         return ajaxObject;
     }
 
@@ -374,7 +373,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ajaxObject.setData(dataObj);
         WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         ajaxObject.setWebAPIResult(webAPIResult);
-        deleteTmpActiveId(projectId,activeId);
         return ajaxObject;
     }
 
@@ -733,26 +731,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ajaxObject.setWebAPIResult(new WebAPIResult<Object>(pageNum, pageSize, total));
         ajaxObject.setColumns(basicColumns);
         ajaxObject.setData(data);
-        deleteTmpActiveId(projectId,activeId);
 
         return ajaxObject;
 
-    }
-
-    private void deleteTmpActiveId(String projectId, String activeId) {
-//        if(activeId.endsWith("_tmp")){
-//            activeSqlMapMapper.deleteByActiveIndexId(activeId);
-//        }
-    }
-
-
-    public static boolean isConflictedPatients(List<String> patients1 ,List<String> patients2){
-        for (String patSn1 :patients1){
-            if(patients2.contains(patSn1)){
-                return  true;
-            }
-        }
-        return false;
     }
 
     private void makeEnumResultData(List<ActiveSqlMap> patSqlList, String patSnWhere, Map<String, JSONObject> dataMap,String projectId,Integer pageSize,JSONArray source,String refActiveId)throws IOException {//处理枚举
@@ -848,7 +829,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         JSONObject termObj = new JSONObject();
         termObj.put("terms_aggs", terms_aggs);
         JSONArray source = new JSONArray();
-        String result = httpUtils.querySearch(projectId,sql,1,1,null,source,termObj,crfId);
+        String result = httpUtils.querySearch(projectId,sql,1,1,null,source,crfId,false,termObj);
         Integer total = UqlQureyResult.getTotal(result);
         JSONObject aggregations = UqlQureyResult.getAggs(result,crfId,aggregationTeam);
         JSONArray data = new JSONArray();
@@ -2259,7 +2240,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ajaxObject.setColumns(basicColumns);
         WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         ajaxObject.setWebAPIResult(webAPIResult);
-        deleteTmpActiveId(projectId,activeId);
         return ajaxObject;
     }
 
