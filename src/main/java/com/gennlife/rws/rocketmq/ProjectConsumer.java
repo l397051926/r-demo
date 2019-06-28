@@ -18,8 +18,7 @@ import com.gennlife.rws.util.GzipUtil;
 import com.gennlife.rws.util.HttpUtils;
 import com.gennlife.rws.util.LogUtil;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.client.consumer.listener.*;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
@@ -32,8 +31,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class ProjectConsumer {
@@ -75,7 +78,9 @@ public class ProjectConsumer {
             //设置广播消费
 //            consumer.setMessageModel(MessageModel.BROADCASTING);
 
-            consumer.registerMessageListener((MessageListenerConcurrently) (list, context) -> {
+            consumer.registerMessageListener((MessageListenerOrderly) (list, context) -> {
+                // 设置自动提交
+                context.setAutoCommit(true);
                 try {
                     for (MessageExt messageExt : list) {
                         //避免重复消费工作
@@ -97,9 +102,9 @@ public class ProjectConsumer {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return ConsumeConcurrentlyStatus.RECONSUME_LATER;
+                    return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
                 }
-                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                return ConsumeOrderlyStatus.SUCCESS;
             });
             consumer.start();
             System.out.println("[Consumer 已启动]");
@@ -127,20 +132,11 @@ public class ProjectConsumer {
                 return;
             }
             //如果已经是 失败 或者完成的任务 不在进行更新
-            if(task.getStatus() == InputStratus.FAILURE  ){
-//                BuildIndexRws buildIndexRws =  new BuildIndexRws();
-//                buildIndexRws.setBuildIndexID(taskId);
-//                buildIndexRws.setAction(2);
-//                buildIndexRws.setUid(userId);
-//                String result = httpUtils.buildIndexRws(buildIndexRws);
-//                LOGGER.info("接受消息 再次 发送取消任务申请  ---  取消任务 取消任务结果: "+result);
-                return;
-            }
-            if(task.getStatus() == InputStratus.FINISH  || task.getStatus() == InputStratus.CANCEL){
+            if(task.getStatus() == InputStratus.FAILURE  || task.getStatus() == InputStratus.FINISH  || task.getStatus() == InputStratus.CANCEL){
                 return;
             }
             InputTask inputTask = new InputTask(taskId,createTime,startTime,finishTime,status,progress,remainTime);
-            if(task.getStatus() != status){
+            if( !Objects.equals(task.getStatus(),status)){
                 inputTask.setUpdateTime(new Date());
             }
             inputTaskMapper.updateInputTask(inputTask);
