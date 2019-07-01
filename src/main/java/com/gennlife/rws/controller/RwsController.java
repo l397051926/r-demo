@@ -167,15 +167,12 @@ public class RwsController {
                 activeSqlMapMapper.deleteByActiveIndexId(active.getString("id"), UqlConfig.CORT_INDEX_ID );
                 if(StringUtils.isEmpty(active.getString("id")) && !isClsUpdate ){
                     String content = createName + "新增 研究变量 ： " + oldName;
-//                    contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
                     logUtil.saveLog(projectId, content, create_user, createName);
                 }else if(isSearch == 2 && !isClsUpdate ){
                     String content = createName + "新增 研究变量 ： " + name;
-//                    contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
                     logUtil.saveLog(projectId, content, create_user, createName);
                 }else {
                     if(isClsUpdate){
-//                        contrastiveAnalysisActiveService.saveContrastiveNewActive(obj.getString("id"),create_user,projectId,type);
                     }
                     contrastiveAnalysisActiveService.deleteContrastiveActiveById(obj.getString("id"),projectId);
                     String content = createName + "编辑 研究变量 ： " + oldName;
