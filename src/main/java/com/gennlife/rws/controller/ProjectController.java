@@ -30,7 +30,8 @@ public class ProjectController {
 	private ProjectService projectService;
 	@Autowired
 	private PcientificResearchTypeService pcientificResearchTypeService;
-
+	@Autowired
+	private CortrastiveAnalysisService cecortrastiveAnalysisService;
 	// {projectId,page,pageSize}
 	@RequestMapping(value = "/getOperLogsList", method = { RequestMethod.POST, RequestMethod.GET })
 	public AjaxObject getOperLogsList(@RequestBody String param) {
@@ -57,8 +58,6 @@ public class ProjectController {
 			return ajaxObject;
 		}
 	}
-	@Autowired
-	private CortrastiveAnalysisService cecortrastiveAnalysisService;
 
 	@RequestMapping(value = "/getProjectList", method = { RequestMethod.POST, RequestMethod.GET })
 	public AjaxObject getProjectList(@RequestBody String param) {
