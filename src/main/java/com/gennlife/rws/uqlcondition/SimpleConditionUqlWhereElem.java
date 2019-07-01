@@ -3,7 +3,7 @@ package com.gennlife.rws.uqlcondition;
 import com.gennlife.rws.util.TransData;
 
 /**
- * @author liumingxin
+ * @author
  * @create 2018 01 17:55
  * @desc
  **/

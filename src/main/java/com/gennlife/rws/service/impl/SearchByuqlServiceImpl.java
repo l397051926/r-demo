@@ -319,6 +319,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String repeaceActive = activeResult.substring(activeResult.lastIndexOf(".") + 1, activeResult.length());
         array = getSource(visitColumns, repeaceActive, array);
 
+        array.remove("patient_info.DATE_OF_BIRTH");
         int size = array == null ? 0 : array.size();
         for (int i = 0; i < size; i++) {
             if (i > 0) {
@@ -798,6 +799,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ajaxObject.setWebAPIResult(webAPIResult);
         return ajaxObject;
     }
+
     private String getApplyCondition(JSONObject applyOutObj) {
         Set<String> patients = new KeyPath("hits", "hits","_source","patient_info", "PATIENT_SN")
             .fuzzyResolve(applyOutObj)
@@ -806,7 +808,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             .collect(toSet());
         return  String.join(",",patients);
     }
-
 
     @Override
     public AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId) throws IOException {
@@ -921,7 +922,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String parts[] = activeResult.split("\\.");
         String visits = parts[parts.length - 1];
         if( parts.length>2 && parts[0].equals("visits") && parts[1].equals("inspection_reports") && parts[2].equals("sub_inspection") ){
-            visits = "inspection_reports";
+            visits = "sub_inspection";
         }
         String activeResultDocId = "";
         //事件处理
@@ -949,7 +950,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         UqlWhere where = new UqlWhere();
 
         String hasCount = getActiveHasCount(activeResult);
-
+        uqlClass.setVisitsGroup(visits);
         uqlClass.setActiveSelect(uqlClass.getSelect() + hasCount);
 
         JSONObject contitionObj = contitions.getJSONObject(0);
@@ -960,7 +961,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String allWhere = "";
         String eventWhere = "";
         if(where.isSameGroup(visits)){
-            uqlClass.setWhere(visits + ".VISIT_SN IS NOT NULL AND ");
+            uqlClass.setWhere(("sub_inspection".equals(visits) ? "inspection_reports" : visits ) + ".VISIT_SN IS NOT NULL AND ");
             if (!"all".equals(operator) ) {
                 uqlClass.setWhere(uqlClass.getWhere()+order1 + " IS NOT NULL AND ");
             }
@@ -986,7 +987,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
 
         }else {
-            uqlClass.setActiveWhereIsEmpty(visits,where);
+            uqlClass.setActiveWhereIsEmpty("sub_inspection".equals(visits) ? "inspection_reports" : visits ,where);
             uqlClass.setNotAllWhere(operator,order1,null, null);
             uqlClass.setIndexWhereIsEmpty(order1,where);
             uqlClass.setInitialPatients(isVariant,patientSql);
@@ -1007,7 +1008,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             } else {
                 sqlresult = uqlClass;
             }
-            eventWhere = sqlresult.getWhere().contains("join_field") ?sqlresult.getWhere():sqlresult.getWhere()+" and join_field='visit_info'";
+            eventWhere = sqlresult.getWhere().contains("join_field") ? sqlresult.getWhere() : sqlresult.getWhere()+" and join_field='visit_info'";
 
             String andGroupCondition = getActiveGroupCondition(where,activeResult );
 
@@ -1159,6 +1160,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         return uqlClass.getSql();
     }
+
     @Override
     public Map<String, String> saveEnumCortrastiveResultRedisMap(List<ActiveSqlMap> activeSqlMaps, String projectId, String crfId, String activeIndexId) throws IOException {
         Map<String,EnumResult> map = new HashMap<>();
@@ -1304,6 +1306,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         result.put("inner",newInner);
         return result;
     }
+
     private void transforEnumDetails(JSONArray details, UqlClass uqlClass, String operatorSign, UqlWhere where,
                                      String activeIndexId, String groupId, String projectId, JSONArray patientSetId, String patientSql) throws IOException, ExecutionException, InterruptedException {
         List<List<UqlWhereElem>> elemLists = new ArrayList<>();
@@ -1329,7 +1332,28 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 transforEnumStrongRef(strongRef, strongRefSize, uqlClass, elems, activeIndexId,groupId,projectId,patientSetId,patientSql);
                 elems.add(new LiteralUqlWhereElem(")"));
             }
-            elemLists.add(elems);
+            UqlWhere tmpWhere = new UqlWhere();
+            boolean inspectionTransition = false;
+            for (UqlWhereElem elem : elems) {
+                if(elem instanceof SimpleConditionUqlWhereElem ){
+                    String sourceTagName = ((SimpleConditionUqlWhereElem) elem).getSourceTagName();
+                    String parts[] = sourceTagName.split("\\.");
+                    String conditionGroup = parts[parts.length - 2];
+                    String visitsGroup = uqlClass.getVisitsGroup();
+                    if("inspection_reports".equals(visitsGroup) && "sub_inspection".equals(conditionGroup) ){
+                        inspectionTransition = true;
+                    }
+                }
+                tmpWhere.addElem(elem);
+            }
+            if(inspectionTransition){
+                List<UqlWhereElem> tmpElems = new ArrayList<>();
+                tmpWhere.execute();
+                tmpElems.add(new InspectionConditionUqlWhereElem(tmpWhere.toString(), detailOperatorSign, projectId,"EMR",patientSql));
+                elemLists.add(tmpElems);
+            }else {
+                elemLists.add(elems);
+            }
         }
         elemLists.stream()
             .map(list -> makePair(
@@ -1338,7 +1362,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                         ((ReferenceConditionUqlWhereElem)list.get(0)).group() :
                         list.get(0) instanceof SimpleConditionUqlWhereElem ?
                             list.get(0) :
-                            list.get(1))
+                            list.get(0) instanceof InspectionConditionUqlWhereElem ?
+                                list.get(0):
+                                list.get(1))
                     .toString().split("\\.")[0]),
                 list))
             .collect(groupingBy(Pair::_1, mapping(Pair::_2, Collector.of(
@@ -1440,7 +1466,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
             ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
             String activeId = activeSqlMap.getRefActiveIds();
-//            uqlClass.addActiveId(activeId);
             String sql = activeSqlMap.getUncomActiveSql();
             refActiveId = "t" + refActiveId;
             uqlClass.getEnumOther().add(activeSqlMap.getUncomSqlWhere());
@@ -1467,7 +1492,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             elems.add(new ReferenceConditionUqlWhereElem(sql, singletonList(sourceValue), sourceTagName, uqlClass.getFrom(), detailOperatorSign,false,"EMR",patientSql));
             return;
         }
-
         if ("boolean".equals(jsonType)) {
             disposeBooleanCondition(stringBuffer, value, condition, sourceTagName);
             String result = stringBuffer.toString();
@@ -1531,7 +1555,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return  " visit_info.PATIENT_SN " + query;
     }
 
-
     private String getPatientSql(String patientSetId,String projectId,String crfId) throws IOException {
         String patientSetSql = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientSetId));
         if(StringUtils.isEmpty(patientSetSql)){
@@ -1555,6 +1578,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         return result;
     }
+
     private String getPatientSqlForIds(JSONArray patientSetId,String projectId,Set<String> docIds) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
@@ -1770,7 +1794,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
         }
     }
-
     @Override
     public String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch) throws ExecutionException, InterruptedException, IOException  {
         UqlClass uqlClass = null;
@@ -1815,7 +1838,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String parts[] = indexColumn.split("\\.");
         String visits = parts[parts.length - 2];
         if( parts.length>1 && parts[0].equals("sub_inspection") ){
-            visits = "inspection_reports";
+            visits = "sub_inspection";
         }
         //指标处理
         if (StringUtils.isNotEmpty(indexColumn)) {
@@ -1837,7 +1860,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String hasCount = getIndexHasCount(indexColumn);
 
         uqlClass.setActiveSelect(uqlClass.getSelect() + hasCount);
-
+        uqlClass.setVisitsGroup(visits);
         //处理 条件
         long tranStartTime = System.currentTimeMillis();
         transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId,groupToId,projectId,patientSetId, patientSql);
@@ -1871,7 +1894,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
             sqlresult = uqlClass;
 
-             if("inspection_reports".equals(visits)){
+             if(parts.length>2 && parts[0].equals("visits") && parts[1].equals("inspection_reports") && parts[2].equals("sub_inspection")){
                 sqlresult.setWhere(sqlresult.getWhere()+" and join_field = 'sub_inspection' ");
             }else {
                 sqlresult.setWhere(sqlresult.getWhere()+" and join_field = '"+visits+"'");
@@ -1902,7 +1925,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 sqlresult.setWhere(sqlresult.getWhere() + " and ("+andGroupCondition.toString()+")");
             }
 
-             if("inspection_reports".equals(visits)){
+             if(parts.length>2 && parts[0].equals("visits") && parts[1].equals("inspection_reports") && parts[2].equals("sub_inspection")){
                 sqlresult.setWhere(sqlresult.getWhere()+" and join_field = 'sub_inspection' ");
             }else {
                 sqlresult.setWhere(sqlresult.getWhere()+" and join_field = '"+visits+"'");
@@ -2074,7 +2097,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     private static JSONArray getSource(JSONArray showColumns, String keys, JSONArray array) {
-
         int size = showColumns == null ? 0 : showColumns.size();
         for (int i = 0; i < size; i++) {
             JSONObject tmpColumn = showColumns.getJSONObject(i);
@@ -2309,7 +2331,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return array;
     }
 
-
     public void getReferenceActiveIndex(String activeId,String resultOrderKey,JSONArray patientsSetId,String groupToId,String groupFromId){
         int isTmp = 0;
         List<ActiveIndex> activeIndices = activeIndexMapper.findReferenceActiveIndex(activeId,isTmp);
@@ -2372,6 +2393,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
 
     }
+
     @Override
     public AjaxObject getPatientSnsByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException {
         String patientSetSql = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientSetId));
@@ -2456,6 +2478,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         return hasCount;
     }
+
     public String getActiveHasCount(String activeResult){
         String parts[] = activeResult.split("\\.");
         String visits = parts[parts.length - 1];
@@ -2478,7 +2501,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             String s = elem.toString().trim();
             if (elem instanceof LiteralUqlWhereElem){
                 andGroupCondition.append(" "+s.replaceAll("haschild","")+" ");
-            }else if (elem instanceof SimpleConditionUqlWhereElem || elem instanceof ReferenceConditionUqlWhereElem) {
+            }else if (elem instanceof SimpleConditionUqlWhereElem || elem instanceof ReferenceConditionUqlWhereElem || elem instanceof InspectionConditionUqlWhereElem ) {
                 String indexTarget = indexColumn.substring(0, indexColumn.indexOf("."));
                 if (s.startsWith(indexTarget) || s.startsWith("sub_inspection") && indexTarget.startsWith("inspection_reports")) {
                     andGroupCondition.append(" "+s+" ");
@@ -2502,7 +2525,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             String s = elem.toString().trim();
             if (elem instanceof LiteralUqlWhereElem){
                 andGroupCondition.append(" "+s.replaceAll("haschild","")+" ");
-            }else if (elem instanceof SimpleConditionUqlWhereElem || elem instanceof ReferenceConditionUqlWhereElem) {
+            }else if (elem instanceof SimpleConditionUqlWhereElem || elem instanceof ReferenceConditionUqlWhereElem || elem instanceof  InspectionConditionUqlWhereElem ) {
                 String indexTarget = activeResult.split("\\.")[1];
                 if (s.startsWith(indexTarget) || s.startsWith("sub_inspection") && indexTarget.startsWith("inspection_reports")) {
                     andGroupCondition.append(" "+s+" ");

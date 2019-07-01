@@ -45,6 +45,7 @@ public abstract class UqlClass {
     private JSONArray activeId = new JSONArray();
 
     private List<String> enumOther = new ArrayList<>();
+    private String visitsGroup;
 
     public void setAdjointVal(AdjointWhere adjointValue){
         this.adjoint.add(adjointValue);
@@ -326,5 +327,13 @@ public abstract class UqlClass {
 
     public void setVistSnWhere(UqlWhere where,String visits,String order1, AbstractFieldAnalyzer schema) {
 
+    }
+
+    public String getVisitsGroup() {
+        return visitsGroup;
+    }
+
+    public void setVisitsGroup(String visitsGroup) {
+        this.visitsGroup = visitsGroup;
     }
 }

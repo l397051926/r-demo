@@ -73,7 +73,7 @@ public class ProjectController {
 				return ajaxObject;
 			}
 			List<Project> list = projectService.getProjectList(object);
-			cecortrastiveAnalysisService.autoBackgroundCecort(list);
+//			cecortrastiveAnalysisService.autoBackgroundCecort(list);
 			ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
 			ajaxObject.setData(list);
 			return ajaxObject;

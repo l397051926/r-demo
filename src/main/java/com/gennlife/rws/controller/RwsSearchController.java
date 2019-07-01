@@ -117,8 +117,6 @@ public class RwsSearchController {
             if(activeType !=3){
                 basicColumns.add(indexColumns);
             }
-            //查找已定义的所有指标和事件
-            //处理事件结果列表
             if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
                 if(CommonContent.ACTIVE_TYPE_INDEX==activeType){//指标  枚举
                     ajaxObject = searchCrfByuqlService.searchClacIndexResultByUql(activeId,projectId,pageSize,pageNum,basicColumns,crfId,groupFromId,patientSetId,groupId,isVariant);

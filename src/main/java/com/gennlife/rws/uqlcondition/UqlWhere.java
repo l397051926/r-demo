@@ -73,9 +73,9 @@ public class UqlWhere implements Iterable<UqlWhereElem> {
         Set<String> set = new HashSet<>();
         Set<String> targetSet = new HashSet<>();
         targetSet.add(targetGroup);
-        if("sub_inspection".equals(targetGroup)){
-            targetSet.add("inspection_reports");
-        }
+//        if("sub_inspection".equals(targetGroup)){
+//            targetSet.add("inspection_reports");
+//        }
         for (UqlWhereElem whereElem : elems){
             if (whereElem instanceof LiteralUqlWhereElem){
                 continue;
