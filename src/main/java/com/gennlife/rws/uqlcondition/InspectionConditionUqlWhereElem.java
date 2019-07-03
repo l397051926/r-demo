@@ -24,6 +24,7 @@ public class InspectionConditionUqlWhereElem extends UqlWhereElem {
     private String crfId;
     private String projectId;
     private String initPatientSql;
+    private String groupName;
 
     public InspectionConditionUqlWhereElem(String str, String operator, String projectId,String crfId,String initPatientSql) {
         super(operator);
@@ -31,6 +32,7 @@ public class InspectionConditionUqlWhereElem extends UqlWhereElem {
         this.crfId = crfId;
         this.projectId = projectId;
         this.initPatientSql = initPatientSql;
+        this.groupName = "inspection_reports";
     }
 
     @Override
@@ -50,5 +52,9 @@ public class InspectionConditionUqlWhereElem extends UqlWhereElem {
             .flatMap(o -> Arrays.stream(o.getString("result").split(",")))
             .collect(toSet());
         result =  " inspection_reports.INSPECTION_SN " + TransPatientSql.transForExtContain(visSet);
+    }
+
+    public String getGroupName() {
+        return groupName;
     }
 }

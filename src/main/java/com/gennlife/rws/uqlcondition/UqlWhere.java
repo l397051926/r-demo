@@ -92,6 +92,12 @@ public class UqlWhere implements Iterable<UqlWhereElem> {
                     return false;
                 }
                 set.add(visits);
+            }else if(whereElem instanceof InspectionConditionUqlWhereElem){
+                String visits = ((InspectionConditionUqlWhereElem) whereElem).getGroupName();
+                if(!targetSet.contains(visits)){
+                    return false;
+                }
+                set.add(visits);
             }else {
                 return false;
             }
