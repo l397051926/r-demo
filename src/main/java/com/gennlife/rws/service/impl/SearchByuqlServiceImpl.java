@@ -209,7 +209,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         sqlresult.setSqlHaving(functionParam);
         String newSql = sqlresult.getHavingSql();
 
-
         ActiveSqlMap activeSqlMap = new ActiveSqlMap(projectId,T_activeIndexId,GzipUtil.compress(newSql),
             sqlresult.getSelect(),sqlresult.getFrom(),uqlClass.getSourceFilter(),
             uqlClass.getActiveId().toJSONString(),JSON.toJSONString(uqlClass.getSource()),selectValue,
