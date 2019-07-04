@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gennlife.rws.dao.PatientsIdSqlMapMapper">
+	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.PatientsIdSqlMap">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="patients_set_id" property="patientsSetId" jdbcType="VARCHAR" />
+		<result column="pat_group_id" property="patGroupId" jdbcType="INTEGER" />
+		<result column="patient_sn_ids" property="patientSnIds" jdbcType="LONGVARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, patients_set_id, pat_group_id, patientSnIds
+	</sql>
+	<insert id="insert" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
+		insert into patients_id_sql_map
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="patientsSetId != null">
+				patients_set_id,
+			</if>
+			<if test="patGroupId != null">
+				pat_group_id,
+			</if>
+			<if test="patientSnIds != null">
+				patient_sn_ids,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="patientsSetId != null">
+				#{patientsSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="patGroupId != null">
+				#{patGroupId,jdbcType=INTEGER},
+			</if>
+			<if test="patientSnIds != null">
+				#{patientSnIds,jdbcType=LONGVARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+	<update id="updateById" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
+		update patients_id_sql_map
+		<set>
+			<if test="patientsSetId != null">
+				patients_set_id = #{patientsSetId,jdbcType=VARCHAR},
+			</if>
+			<if test="patGroupId != null">
+				pat_group_id = #{patGroupId,jdbcType=INTEGER},
+			</if>
+			<if test="patientsSetId != null">
+				patient_sn_ids = #{patientsSetId,jdbcType=LONGVARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+</mapper>

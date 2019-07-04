@@ -59,9 +59,6 @@ public class PreLiminaryController {
     @Autowired
     private SearchByuqlService searchByuqlService;
 
-    @Value("${pre.liminary.maxMember}")
-    private Integer maxMember;
-
     @ApiOperation(value = "RWS 检索数据导出",notes = "根据前端提交的信息保存RWS 保存活动/指标/入排条件的定义 Created by liuzhen.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "param", value = "项目Id", dataType = "JSONObject",required = true)
@@ -119,9 +116,7 @@ public class PreLiminaryController {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"排队已满3个， 无法导出数据") ;
             }
             String uqlQuery = "";
-            object = downLoadService. sysBuildIndex(downLoadService,patientSetId,esJSon,crfId,createId,createName,patientName,projectId,uqlQuery,projectName,crfName);
-
-            LOG.info("传给检索服务的条件为{}",esJSon.toJSONString());
+            object = downLoadService.sysBuildIndex(downLoadService,patientSetId,esJSon,crfId,createId,createName,patientName,projectId,uqlQuery,projectName,crfName);
         } catch (DownLoadSystemException e){
             object = new AjaxObject(300, e.getMessage());
             return object;

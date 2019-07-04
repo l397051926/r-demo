@@ -16,5 +16,7 @@ public interface DownLoadService {
 
     String buildIndex(JSONObject esJSon, String projectId, String crfId, String createId);
 
-    AjaxObject sysBuildIndex(DownLoadService downLoadService, String patientSetId, JSONObject esJSon, String crfId, String createId, String createName, String patientName, String projectId, String uqlQuery, String projectName, String crfName) throws IOException;
+    AjaxObject sysBuildIndex(DownLoadService downLoadService, String patientSetId, JSONObject esJSon,
+                             String crfId, String createId, String createName, String patientName,
+                             String projectId, String uqlQuery, String projectName, String crfName);
 }

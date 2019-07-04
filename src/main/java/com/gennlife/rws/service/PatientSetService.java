@@ -8,6 +8,7 @@ import com.gennlife.rws.util.AjaxObject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author liumingxin
@@ -23,7 +24,7 @@ public interface PatientSetService {
 	 * @param param
 	 * @return List<PatientsSet>
 	 */
-	public List<PatientsSet> getPatientSetList(JSONObject obj) throws IOException;
+	List<PatientsSet> getPatientSetList(JSONObject obj) throws IOException;
 
 	/**
 	 *
@@ -33,7 +34,7 @@ public interface PatientSetService {
 	 * @param param
 	 * @return PatientsSet
 	 */
-	public PatientsSet getPatientSet(JSONObject obj);
+	PatientsSet getPatientSet(JSONObject obj);
 
     /**
      *
@@ -42,7 +43,7 @@ public interface PatientSetService {
      * @date 2018年6月29日
      * @param param
      */
-    public PatientsSet savePatientSet(JSONObject param);
+    PatientsSet savePatientSet(JSONObject param);
 
 	/**
 	 *
@@ -51,7 +52,7 @@ public interface PatientSetService {
 	 * @date 2018年6月29日
 	 * @param param
 	 */
-	public PatientsSet updatePatientSet(JSONObject obj);
+	PatientsSet updatePatientSet(JSONObject obj);
 
 	/**
 	 *
@@ -60,7 +61,7 @@ public interface PatientSetService {
 	 * @date 2018年6月29日
 	 * @param param
 	 */
-	public void deletePatientSet(JSONObject obj) throws IOException;
+	void deletePatientSet(JSONObject obj) throws IOException;
 
 	/**
 	 * @author zhengguohui
@@ -69,7 +70,7 @@ public interface PatientSetService {
 	 * @param param
 	 * @return SearchLog
 	 */
-	public List<SearchLog> getSearchLog(JSONObject obj);
+	List<SearchLog> getSearchLog(JSONObject obj);
 
 	/**
 	 * @author zhengguohui
@@ -78,11 +79,11 @@ public interface PatientSetService {
 	 * @param obj
 	 * @return List<ContrastiveAnalysisCount>
 	 */
-	public List<ContrastiveAnalysisCount> getContrasAnalyList(JSONObject obj);
+	List<ContrastiveAnalysisCount> getContrasAnalyList(JSONObject obj);
 
-	public List<PatientsSet> getPatientSetByProjectId(JSONObject paramObj);
-
-	AjaxObject getPatientSetForList(JSONObject object);
+	List<PatientsSet> getPatientSetByProjectId(JSONObject paramObj);
 
     void savePatientImport(JSONObject obj) throws IOException;
+
+    void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num);
 }

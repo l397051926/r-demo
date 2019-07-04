@@ -12,7 +12,6 @@ import com.gennlife.exception.CustomerStatusEnum;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
-import com.gennlife.rws.query.UqlQureyResult;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.*;
 import com.gennlife.rws.vo.DataCheckEmpty;
@@ -58,6 +57,12 @@ public class PatientSetServiceImpl implements PatientSetService {
     private InputTaskMapper inputTaskMapper;
     @Autowired
     private SearchCrfByuqlService searchCrfByuqlService;
+	@Autowired
+	private ProjectMapper projectMapper;
+	@Autowired
+	private InputTaskService inputTaskService;
+	@Autowired
+	private PatientsIdSqlMapMapper patientsIdSqlMapMapper;
 
     private static final int exportMax = 2000;
 
@@ -102,6 +107,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 		DataCheckEmpty.dataCheckEmpty(patientsSetId);
 		return patientsSetMapper.selectByPatSetId(patientsSetId);
 	}
+
 	@Override
 	public PatientsSet savePatientSet(JSONObject obj) {
 		PatientsSet patSet = JSONObject.toJavaObject(obj, PatientsSet.class);
@@ -141,10 +147,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 		}
 		return patSet;
 	}
-	@Autowired
-	private ProjectService projectService;
-	@Autowired
-	private ProjectMapper projectMapper;
+
 	@Override
 	public void deletePatientSet(JSONObject obj) throws IOException {
 		String patientsSetId = obj.getString("patientsSetId");
@@ -190,33 +193,13 @@ public class PatientSetServiceImpl implements PatientSetService {
 		}
 
 	}
-	@Autowired
-	private InputTaskService inputTaskService;
+
 	@Override
 	public List<PatientsSet> getPatientSetByProjectId(JSONObject paramObj) {
 		String projectId = paramObj.getString("projectId");
 		DataCheckEmpty.dataCheckEmpty(projectId);
 		return patientsSetMapper.getPatientSetByProjectId(projectId);
 
-	}
-	@Override
-	public AjaxObject getPatientSetForList(JSONObject params) {
-		// 根据患者集ID查询患者数据列表
-		try {
-			String patientsSetId = params.getString("patientsSetId");
-			String name = params.getString("name");
-			Integer type = params.getInteger("type");
-			Integer pageNum = params.getInteger("pageNum");
-			Integer pageSize = params.getInteger("pageSize");
-			if (StringUtils.isEmpty(patientsSetId) || type == null || pageNum == null || pageSize == null) {
-				throw new CustomerException(CustomerStatusEnum.PARAMISNULL);
-			}
-			AjaxObject object = activeIndexService.findByProjectId(patientsSetId, type, name, pageNum, pageSize);
-			return object;
-		} catch (Exception e) {
-			LOG.error("查询患者集信息失败:" + params + "失败原因如下：" + e.getMessage());
-			throw new CustomerException(CustomerStatusEnum.UNKONW_ERROR.toString(), e.getMessage());
-		}
 	}
 
 	@Override
@@ -240,6 +223,16 @@ public class PatientSetServiceImpl implements PatientSetService {
 	}
 
 	@Override
+	public void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num) {
+		String query = String.join("|",allPats);
+		PatientsIdSqlMap patientsIdSqlMap = new PatientsIdSqlMap();
+		patientsIdSqlMap.setPatGroupId(num);
+		patientsIdSqlMap.setPatientsSetId(patientSetId);
+		patientsIdSqlMap.setPatientSnIds(query);
+		patientsIdSqlMapMapper.insert(patientsIdSqlMap);
+	}
+
+	@Override
 	public List<ContrastiveAnalysisCount> getContrasAnalyList(JSONObject obj) {
 		try {
 			String uid = obj.getString("uid");
@@ -250,13 +243,13 @@ public class PatientSetServiceImpl implements PatientSetService {
 			throw new CustomerException(CustomerStatusEnum.UNKONW_ERROR.toString(), e.getMessage());
 		}
 	}
+
 	@Override
 	public List<SearchLog> getSearchLog(JSONObject param) {
 		String patientsSetId = param.getString("patientsSetId");
 		DataCheckEmpty.dataCheckEmpty(patientsSetId);
 		return searchLogMapper.selectByPrtisntId(patientsSetId);
 	}
-
 
 	private void flushCountGroup(String patientSetId,String projectId,String crfId) throws IOException, ExecutionException, InterruptedException {
 		List<String> groupIds = groupPatientDataMapper.getGroupIds(patientSetId);
@@ -368,29 +361,6 @@ public class PatientSetServiceImpl implements PatientSetService {
 			groupDataMapper.deleteByPatSn(group.getGroupId(),patSns);
 			deleteGroupData(group.getGroupId(),patSns);
 		}
-	}
-
-	private Integer getPatientSqlCount(String patientSetId, String projectId,String crfId)  {
-		String patientSetSql = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientSetId));
-		if(StringUtils.isEmpty(patientSetSql)){
-		    return 0;
-        }
-		String newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql,crfId);
-		JSONArray sourceFilter = new JSONArray();
-		String newSql = "select  "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)+" where "+newpatientSetSql + " and  join_field='patient_info'";
-		String response = httpUtils.querySearch(projectId,newSql,1,1,null,sourceFilter,crfId,false);
-		return UqlQureyResult.getTotal(response);
-	}
-
-	private Integer getPatientSqlCount(String patientSetId, String projectId,String crfId,String query)  {
-		if(StringUtils.isEmpty(query)){
-			return 0;
-		}
-		String newpatientSetSql = TransPatientSql.getAllPatientSql(query,crfId);
-		JSONArray sourceFilter = new JSONArray();
-		String newSql = "select  "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)+" where "+newpatientSetSql + " and  join_field='patient_info'";
-		String response = httpUtils.querySearch(projectId,newSql,1,1,null,sourceFilter,crfId,false);
-		return UqlQureyResult.getTotal(response);
 	}
 
 

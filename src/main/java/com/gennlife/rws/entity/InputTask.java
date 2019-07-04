@@ -3,7 +3,7 @@ package com.gennlife.rws.entity;
 import java.util.Date;
 
 /**
- * @author liumingxin
+ * @author
  * @create 2019 03 15:27
  * @desc
  **/

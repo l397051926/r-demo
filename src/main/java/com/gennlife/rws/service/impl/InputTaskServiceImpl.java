@@ -3,6 +3,7 @@ package com.gennlife.rws.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.catche.CortrastiveCache;
 import com.gennlife.rws.content.InputStratus;
+import com.gennlife.rws.content.LiminaryContent;
 import com.gennlife.rws.content.RedisContent;
 import com.gennlife.rws.dao.InputTaskMapper;
 import com.gennlife.rws.dao.PatientsSetMapper;
@@ -51,7 +52,7 @@ public class InputTaskServiceImpl implements InputTaskService {
     @Autowired
     private ProjectService projectService;
     @Autowired
-    private DownLoadServiceImpl downloadService;
+    private LiminaryContent liminaryContent;
     @Override
     public AjaxObject getAllInputTasks(JSONObject object) {
         JSONObject querObj = object.getJSONObject("query");
@@ -161,7 +162,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         if(quereCount >2){
             return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"排队已满3个， 无法导出数据") ;
         }
-        Integer maxMember = downloadService.getMaxMember();
+        Integer maxMember = liminaryContent.getMaxMember();
         Integer allCount = patientsSetMapper.getSumCount(projectId) == null ? 0 :  patientsSetMapper.getSumCount(projectId);
         Integer runTaskSumCount = inputTaskMapper.getRunTaskSumCountByProjcetId(projectId);
         runTaskSumCount = runTaskSumCount == null ? 0 : runTaskSumCount;
