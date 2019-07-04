@@ -90,6 +90,7 @@ public class RedisMapDataServiceImpl implements RedisMapDataService{
         try {
             jedis = jedisClusters.getJedisCluster();
             del = jedis.del(key);
+            LOG.info("删除 redis 缓存  key：" + key);
         } catch (Exception e) {
             LOG.error(e.getMessage());
         }
