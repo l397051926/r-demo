@@ -11,8 +11,13 @@ import com.gennlife.rws.dao.PatientsSetMapper;
 import com.gennlife.rws.entity.ActiveIndex;
 import com.gennlife.rws.entity.Project;
 import com.gennlife.rws.exception.DownLoadSystemException;
-import com.gennlife.rws.service.*;
-import com.gennlife.rws.util.*;
+import com.gennlife.rws.service.ActiveIndexService;
+import com.gennlife.rws.service.DownLoadService;
+import com.gennlife.rws.service.ProjectService;
+import com.gennlife.rws.service.SearchByuqlService;
+import com.gennlife.rws.util.AjaxObject;
+import com.gennlife.rws.util.HttpUtils;
+import com.gennlife.rws.util.StringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -27,8 +32,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 /**
@@ -41,8 +44,6 @@ import java.util.concurrent.Executors;
 @Api(description = "RWS 入排数据初筛及统计")
 public class PreLiminaryController {
     private static Logger LOG = LoggerFactory.getLogger(PreLiminaryController.class);
-    @Autowired
-    private PreLiminaryService preLiminaryService;
     @Autowired
     private ProjectService projectService;
     @Autowired
@@ -60,7 +61,7 @@ public class PreLiminaryController {
 
     @Value("${pre.liminary.maxMember}")
     private Integer maxMember;
-    //{"condition":"([患者基本信息.民族] 包含 朝鲜族,侗族) ","projectId":"B8E7E0B50D3A4F47A1136DE56E36B61A","patientSetId":"8408B76D871D4F148028DDAB7EB39C4C","patientName":"患者集1","createId":"674a078d-b563-4841-9ab9-a47b85a26e23","createName":"liumingxin","power":{"has_search":[{"sid":"hospital_all","slab_name":"_all","has_search":"有"}],"has_searchExport":[],"has_traceCRF":[],"has_addCRF":[],"has_editCRF":[],"has_deleteCRF":[],"has_browseDetail":[],"has_addBatchCRF":[],"has_searchCRF":[],"has_importCRF":[]},"sid":"","indexName":"yantai_hospital_clinical_patients","crfName":"EMR","crfId":""}
+
     @ApiOperation(value = "RWS 检索数据导出",notes = "根据前端提交的信息保存RWS 保存活动/指标/入排条件的定义 Created by liuzhen.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "param", value = "项目Id", dataType = "JSONObject",required = true)
@@ -79,11 +80,9 @@ public class PreLiminaryController {
             String patientName = params.getString("patientName");
             String crfName = params.getString("crfName");
             String projectId = params.getString("projectId").replaceAll("-","");
-            String patientSetId = params.getString("patientSetId");//将 项目id 修改patientSetId
+            String patientSetId = params.getString("patientSetId");
             String crfId = params.getString("crfId");
             String indexName = params.getString("indexName");
-            String sid = params.getString("sid");
-            String highLight = params.getString("highLight");
             String projectName = params.getString("projectName");
             String power = params.getString("power")==null? "":params.getString("power");
             String groups = params.getString("groups")==null? "":params.getString("groups");
@@ -162,6 +161,7 @@ public class PreLiminaryController {
         }
         return object;
     }
+
     @ApiOperation(value = "RWS 获取已经导出的数据列表",notes = " Created by liuzhen.")
     @ApiImplicitParams({
         @ApiImplicitParam(name = "param", value = "参数" , dataType = "JSONObject",required = true)
@@ -202,7 +202,6 @@ public class PreLiminaryController {
                 LOG.warn(object.getMessage());
                 return object;
             }
-//            object = downLoadService.searchDataForProject(projectId,showColumns,actives, pageNum, pageSize,type);
             object = searchByuqlService.getPatientListByAll("",projectId,showColumns,actives,pageNum,pageSize,type, crfId);
             object.setColumns(showColumns);
         } catch (Exception e) {
@@ -240,6 +239,7 @@ public class PreLiminaryController {
         }
         return ajaxObject;
     }
+
     //获取项目列表
     @RequestMapping(value = "/getProjectByCrfId",method = {RequestMethod.POST,RequestMethod.GET})
     public AjaxObject getProjectByCrfId(@RequestBody String param){
@@ -253,24 +253,6 @@ public class PreLiminaryController {
                 ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
                 ajaxObject.setData(projectList);
             }
-
-        } catch (Exception e) {
-            LOG.error("获取数据列表，异常信息{}",e);
-            ajaxObject = new AjaxObject();
-            ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("获取数据列表,错误原因"+e.getMessage());
-        }
-        return ajaxObject;
-    }
-    //导出验证
-    @RequestMapping(value = "/importSampleCheck",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject importSampleCheck(@RequestBody String param){
-        AjaxObject ajaxObject = null;
-        try {
-            JSONObject paramObj = JSONObject.parseObject(param);
-            JSONObject dataObj = paramObj.getJSONObject("data");
-            JSONObject userObj = paramObj.getJSONObject("user");
-            preLiminaryService.importSampleCheck(dataObj,userObj);
 
         } catch (Exception e) {
             LOG.error("获取数据列表，异常信息{}",e);

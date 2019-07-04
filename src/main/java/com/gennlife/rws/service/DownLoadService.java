@@ -12,7 +12,7 @@ import java.io.IOException;
  */
 public interface DownLoadService {
 
-    public AjaxObject findTotalByActiveIdAndProjectId(String projectId, String activeId, Integer type);
+    AjaxObject findTotalByActiveIdAndProjectId(String projectId, String activeId, Integer type);
 
     String buildIndex(JSONObject esJSon, String projectId, String crfId, String createId);
 
