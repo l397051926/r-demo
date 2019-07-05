@@ -1,6 +1,7 @@
 package com.gennlife.rws.service;
 
-import com.alibaba.fastjson.JSONObject; /**
+import com.alibaba.fastjson.JSONObject;
+/**
  * @create 2019 29 15:50
  * @desc
  **/

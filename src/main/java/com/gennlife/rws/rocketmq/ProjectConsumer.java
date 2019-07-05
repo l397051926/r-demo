@@ -138,7 +138,6 @@ public class ProjectConsumer {
             inputTaskMapper.updateInputTaskOnDecideStatus(inputTask);
 
             if(InputStratus.FAILURE == status){//失败
-                JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));
                 Integer sum = patientsSetMapper.getSumCount(inputTask.getProjectId());
                 if(sum == null || sum == 0){
                     projectMapper.saveDatasource(inputTask.getProjectId(),"","");
@@ -164,8 +163,8 @@ public class ProjectConsumer {
                         .fluentPut("crfId",taskAll.getCrfId())
                         .fluentPut("uqlQuery",taskAll.getUqlQuery());
                 }
-                searchLogService.saveSearchLog(obj);
                 String content = obj.getString("createName")+"向患者集"+obj.getString("patientName")+"导入"+obj.getLong("curenntCount")+"名患者";
+                searchLogService.saveSearchLog(obj);
                 logUtil.saveLog(obj.getString("projectId"),content,userId,obj.getString("createName"));
                 projectMapper.updateCrfId(obj.getString("projectId"),obj.getString("crfId"));
                 patientSetService.savePatientImport(obj);

@@ -6,6 +6,7 @@
 		<result column="patients_set_id" property="patientsSetId" jdbcType="VARCHAR" />
 		<result column="pat_group_id" property="patGroupId" jdbcType="INTEGER" />
 		<result column="patient_sn_ids" property="patientSnIds" jdbcType="LONGVARCHAR" />
+		<result column="export" property="export" jdbcType="INTEGER" />
 	</resultMap>
 	<sql id="Base_Column_List">
 		id, patients_set_id, pat_group_id, patientSnIds
@@ -25,6 +26,9 @@
 			<if test="patientSnIds != null">
 				patient_sn_ids,
 			</if>
+			<if test="export != null">
+				export,
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="id != null">
@@ -38,6 +42,9 @@
 			</if>
 			<if test="patientSnIds != null">
 				#{patientSnIds,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="export != null">
+				#{export,jdbcType=LONGVARCHAR},
 			</if>
 		</trim>
 	</insert>
@@ -54,8 +61,21 @@
 			<if test="patientsSetId != null">
 				patient_sn_ids = #{patientsSetId,jdbcType=LONGVARCHAR},
 			</if>
+			<if test="export != null">
+				export = #{export,jdbcType=LONGVARCHAR},
+			</if>
 		</set>
 		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<update id="updateExportByPatientSetId" parameterType="String">
+		update patients_id_sql_map
+		<set>
+			<if test="export != null">
+				export = #{export,jdbcType=LONGVARCHAR},
+			</if>
+		</set>
+		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
 	</update>
 
 </mapper>

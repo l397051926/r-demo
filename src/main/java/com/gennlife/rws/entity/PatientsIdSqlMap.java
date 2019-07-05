@@ -10,6 +10,7 @@ public class PatientsIdSqlMap {
     private String patientsSetId;
     private Integer patGroupId;
     private String patientSnIds;
+    private Integer export = 0;
 
     public Integer getId() {
         return id;
@@ -41,5 +42,13 @@ public class PatientsIdSqlMap {
 
     public void setPatientSnIds(String patientSnIds) {
         this.patientSnIds = patientSnIds;
+    }
+
+    public Integer getExport() {
+        return export;
+    }
+
+    public void setExport(Integer export) {
+        this.export = export;
     }
 }

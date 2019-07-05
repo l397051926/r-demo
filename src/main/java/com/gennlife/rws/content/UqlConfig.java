@@ -1,14 +1,14 @@
 package com.gennlife.rws.content;
 
 import com.gennlife.rws.entity.ActiveSqlMap;
-import org.apache.log4j.FileAppender;
+
 
 import java.io.IOException;
 import java.util.*;
 
 import static com.gennlife.rws.query.BuildIndexCrf.PROJECT_INDEX_NAME_PREFIX;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+
 
 
 public class UqlConfig {
@@ -36,9 +36,7 @@ public class UqlConfig {
         ACTIVE_CONVER_TRUE_OR_FALSE.add("IS_REDUCTION_PAIN");
         ACTIVE_CONVER_TRUE_OR_FALSE.add("IS_PHYSICAL_COOLING");
         ACTIVE_CONVER_TRUE_OR_FALSE.add("IS_REPEATED_MEASURE");
-
         RESULT_ORDER_KEY = new HashMap<>();
-
     }
 
 
@@ -49,8 +47,6 @@ public class UqlConfig {
     //获取患者集的sql
     public static final String getPatientSetSql(String projectId,String patientSetQuery){
         return "select patient_info.DOC_ID as pSn from rws_emr_"+projectId+" where "+patientSetQuery+" group by patient_info.DOC_ID";
-
-
     }
 
     public static String getEnumAllSql(String projectId, List<ActiveSqlMap> sqlList, String patientSql) throws IOException {

@@ -1,6 +1,5 @@
 package com.gennlife.rws.content;
 
-import javax.sound.midi.Soundbank;
 
 /**
  * @author

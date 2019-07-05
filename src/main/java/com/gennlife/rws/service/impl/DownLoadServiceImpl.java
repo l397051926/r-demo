@@ -126,10 +126,8 @@ public class DownLoadServiceImpl implements DownLoadService {
 
         Integer maxMember = liminaryContent.getMaxMember();
         Integer groupBlock = liminaryContent.getGroupBlock();
-        String whereQuery = "";
-        String sqlQuery = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientSetId));
-        String where = StringUtils.isEmpty(sqlQuery)?  "" : sqlQuery ;
         String esServiceUrl = httpUtils.getEsExceport();
+
         JSONArray array = new JSONArray();
         array.add(IndexContent.getPatientInfoPatientSn(crfId));
         esJSon.put("source",array);
@@ -186,14 +184,11 @@ public class DownLoadServiceImpl implements DownLoadService {
             }
         }
 
-        if(StringUtils.isNotEmpty(where)){
-            whereQuery= where+"|"+whereQuery;
-        }
         String esJsonString = esJSon.toJSONString();
         String buildIndex = buildIndex(esJSon, projectId, crfId, createId);
         LOG.debug("传给检索服务的条件为{}", esJSon.toJSONString());
         LOG.info("本次导入新增数据条数{}", count);
-        preLiminaryService.saveLogMoreData(count,esJsonString,createId,createName,projectId,patientName,patientSetId,whereQuery,buildIndex,crfId,esJSon,count+allCount,projectName,crfName);
+        preLiminaryService.saveLogMoreData(count,esJsonString,createId,createName,projectId,patientName,patientSetId,buildIndex,crfId,esJSon,count+allCount,projectName,crfName);
         return new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
 
     }
