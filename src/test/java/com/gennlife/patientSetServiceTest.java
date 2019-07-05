@@ -1,5 +1,6 @@
 package com.gennlife;
 
+import com.gennlife.rws.dao.PatientsIdSqlMapMapper;
 import com.gennlife.rws.service.PatientSetService;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,10 +14,11 @@ import java.util.Set;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Ignore
 public class patientSetServiceTest {
     @Autowired
     private PatientSetService patientSetService;
+    @Autowired
+    PatientsIdSqlMapMapper patientsIdSqlMapMapper;
     @Test
     public void testDemo(){
 
@@ -29,8 +31,17 @@ public class patientSetServiceTest {
         allPats.add("www");
         allPats.add("eee");
         allPats.add("rrr");
-        Integer num = 0;
-        patientSetService.savePatientSetGroupBlock(patientSetId,allPats,num);
+        patientSetService.savePatientSetGroupBlock(patientSetId,allPats,null);
+    }
+    @Test
+    public void getSizeForPatientSet(){
+        String patientSetId = "aaaa";
+        System.out.println(patientSetService.getPatientSetLocalCount(patientSetId));
+    }
+    @Test
+    public void updateExport(){
+        String patientSetId = "aaaa";
+        patientsIdSqlMapMapper.updateExportByPatientSetId(patientSetId,1);
     }
 
 }

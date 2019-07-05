@@ -125,6 +125,7 @@ public class ProjectConsumer {
             Long remainTime = importMessage.getLong("estimate_cost_time");
             String userId = importMessage.getString("user_id");
             InputTask task = inputTaskMapper.getInputtaskByInputId(taskId);
+            String projectName = projectMapper.getProjectNameByProjectId(task.getProjectId());
             if(task == null ){
                 LOGGER.warn("不是本套系统的项目 不进行数据处理！");
                 return;
@@ -142,11 +143,9 @@ public class ProjectConsumer {
                 if(sum == null || sum == 0){
                     projectMapper.saveDatasource(inputTask.getProjectId(),"","");
                 }
-                String projectName = projectMapper.getProjectNameByProjectId(task.getProjectId());
                 producerService.sendProExportField(task.getUid(),taskId,task.getProjectId(),projectName);
                 inputTaskService.updateCencelDate(taskId);
             }
-
             if(InputStratus.FINISH == status){//成功
                 JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));
                 if(obj == null ){
@@ -158,7 +157,7 @@ public class ProjectConsumer {
                         .fluentPut("searchCondition",taskAll.getEsJson())
                         .fluentPut("createName",project.getCreatorName())
                         .fluentPut("patientName",taskAll.getPatientSetName())
-                        .fluentPut("curenntCount",taskAll.getPatientSetName())
+                        .fluentPut("curenntCount",taskAll.getPatientCount())
                         .fluentPut("projectId",taskAll.getProjectId())
                         .fluentPut("crfId",taskAll.getCrfId())
                         .fluentPut("uqlQuery",taskAll.getUqlQuery());
@@ -169,11 +168,8 @@ public class ProjectConsumer {
                 projectMapper.updateCrfId(obj.getString("projectId"),obj.getString("crfId"));
                 patientSetService.savePatientImport(obj);
                 cortrastiveAnalysisService.deleteActiveIndexVariable(obj.getString("projectId"));
-                String projectName = projectMapper.getProjectNameByProjectId(obj.getString("projectId"));
                 producerService.sendProExportSucceed(userId,projectName,obj.getString("projectId"),taskId);
-
             }
-
         } catch (Exception e ){
             LOGGER.error("处理导出业务发生问题   --- message : " + messageBody );
         }

@@ -1712,11 +1712,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     private String getGroupSql(String groupId) {
         List<String> groupDataPatSn = groupDataMapper.getPatientSnList(groupId);
         String query = null;
-        if(groupDataPatSn ==null || groupDataPatSn.size()==0){
-            query = "''";
-        }else {
-            query = TransPatientSql.transForExtContain(groupDataPatSn);
-        }
+        query = TransPatientSql.transForExtContain(groupDataPatSn);
         return  " visit_info.PATIENT_SN " + query;
     }
 
@@ -2268,12 +2264,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             .map(String.class::cast)
             .collect(toSet());
         String patsStr ="";
-        if(pats.size()==0){
-             patsStr = "''";
-        }else {
-            patsStr = TransPatientSql.transForExtContain(pats);
-
-        }
+        patsStr = TransPatientSql.transForExtContain(pats);
 
         Map<String, Set<String>> resultMap = new ConcurrentHashMap<>();
         List<Future> futures = new ArrayList<>();

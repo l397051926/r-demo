@@ -115,16 +115,25 @@ public class TransPatientSql {
         return " " + EXT_CONTAIN + "(" +getExtSet_SqlForArray(arrs) +",'$') ";
     }
     public static String getSet_Sql(Set<String> patients){
+        if(patients == null || patients.size() == 0){
+            return "''";
+        }
         return patients.stream().map(s -> "'" + s + "'").collect(joining(","));
     }
     public static String getExtSet_Sql(Set<String> patients){
+        if(patients == null || patients.size() == 0){
+            return "''";
+        }
         return "'" + String.join("$",patients) + "'";
     }
     public static String getExtSet_Sql(List<String> patients){
+        if(patients == null){
+            return "''";
+        }
         return "'" + String.join("$",patients) + "'";
     }
     public static String getExtSet_SqlForGroupData(List<GroupData> groupDataList){
-        if(groupDataList.size() == 0){
+        if(groupDataList == null || groupDataList.size() == 0){
             return "''";
         }
         return "'" + groupDataList.stream().map(x -> x.getPatientSn()).collect(joining("$")) + "'";

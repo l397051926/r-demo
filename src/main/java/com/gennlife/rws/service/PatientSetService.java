@@ -85,5 +85,7 @@ public interface PatientSetService {
 
     void savePatientImport(JSONObject obj) throws IOException;
 
-    void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num);
+	Long getPatientSetLocalCount(String patientSetId);
+
+	void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num);
 }

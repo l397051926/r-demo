@@ -9,7 +9,7 @@
 		<result column="export" property="export" jdbcType="INTEGER" />
 	</resultMap>
 	<sql id="Base_Column_List">
-		id, patients_set_id, pat_group_id, patientSnIds
+		id, patients_set_id, pat_group_id, patient_sn_ids
 	</sql>
 	<insert id="insert" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
 		insert into patients_id_sql_map
@@ -44,7 +44,7 @@
 				#{patientSnIds,jdbcType=LONGVARCHAR},
 			</if>
 			<if test="export != null">
-				#{export,jdbcType=LONGVARCHAR},
+				#{export,jdbcType=INTEGER},
 			</if>
 		</trim>
 	</insert>
@@ -62,20 +62,56 @@
 				patient_sn_ids = #{patientsSetId,jdbcType=LONGVARCHAR},
 			</if>
 			<if test="export != null">
-				export = #{export,jdbcType=LONGVARCHAR},
+				export = #{export,jdbcType=INTEGER},
 			</if>
 		</set>
 		where id = #{id,jdbcType=INTEGER}
 	</update>
 
-	<update id="updateExportByPatientSetId" parameterType="String">
+	<update id="updateExportByPatientSetId" parameterType="java.lang.Object">
 		update patients_id_sql_map
 		<set>
 			<if test="export != null">
-				export = #{export,jdbcType=LONGVARCHAR},
+				export = #{export,jdbcType=INTEGER},
 			</if>
 		</set>
 		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
 	</update>
+
+	<select id="getPatientSnIdsBypatientSetId" resultMap="BaseResultMap" parameterType="String" >
+		select
+		<include refid="Base_Column_List" />
+		from patients_id_sql_map
+		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
+
+	</select>
+
+	<insert id="insertForGroupid" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
+		INSERT INTO `patients_id_sql_map`
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="patientsSetId != null">
+				`patients_set_id`,
+			</if>
+			`pat_group_id`,
+			<if test="patientSnIds != null">
+				`patient_sn_ids`,
+			</if>
+			<if test="export != null">
+				`export`,
+			</if>
+		</trim>
+		<trim prefix="SELECT " suffix="" suffixOverrides=",">
+			<if test="patientsSetId != null">
+				#{patientsSetId,jdbcType=VARCHAR},
+			</if>
+			(SELECT IFNULL((SELECT  MAX(pat_group_id)  from `patients_id_sql_map` where `patients_set_id` = #{patientsSetId,jdbcType=VARCHAR}),-1))+1,
+			<if test="patientSnIds != null">
+				#{patientSnIds,jdbcType=LONGVARCHAR},
+			</if>
+			<if test="export != null">
+				#{export,jdbcType=INTEGER},
+			</if>
+		</trim>
+	</insert>
 
 </mapper>

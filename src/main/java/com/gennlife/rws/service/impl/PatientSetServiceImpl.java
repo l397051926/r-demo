@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Service
 @Transactional(rollbackFor = RuntimeException.class)
@@ -204,32 +206,42 @@ public class PatientSetServiceImpl implements PatientSetService {
 
 	@Override
 	public void savePatientImport(JSONObject obj) throws IOException {
-		Integer count = patientsSetMapper.getPatientSetCount(obj.getString("patientSetId"));
-//		Integer allCount = getPatientSqlCount(obj.getString("patientSetId"),obj.getString("projectId"),obj.getString("crfId"),obj.getString("uqlQuery"));
-		String uql = obj.getString("uqlQuery");
-		Set<String> set = new HashSet<>(Arrays.asList(uql.split("\\|")));
-		Integer allCount = set.size();
-		Long currentCount = obj.getLong("curenntCount");
+		String patientSetId = obj.getString("patientSetId");
+		Integer count = patientsSetMapper.getPatientSetCount(patientSetId);
+		Long localCount = getPatientSetLocalCount(patientSetId); //历史数量
+		Long currentCount = obj.getLong("curenntCount"); //本次导入的数量
+
 		PatientsSet patientsSet = new PatientsSet();
 		patientsSet.setPatientsSetId(obj.getString("patientSetId"));
-		patientsSet.setPatientsCount(Long.valueOf(allCount)+currentCount);
+		patientsSet.setPatientsCount(currentCount);
 		patientsSet.addComUqlQuery(obj.getString("uqlQuery"));
 		patientsSet.setIsFlush(5);//让相关患者分组进行更新
 		if(count ==0){
 			patientsSetMapper.insert(patientsSet);
 		}else {
-			patientsSetMapper.updatePatientsCountAndQuery(obj.getString("patientSetId"),Long.valueOf(allCount), GzipUtil.compress(uql),5);
+			patientsSetMapper.updatePatientsCountAndQuery(obj.getString("patientSetId"),localCount+currentCount, null,5);
 		}
+		updatePatientSqlMap(obj);
+	}
+	@Override
+	public Long getPatientSetLocalCount(String patientSetId) {
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
+		Integer count = pids.stream().map(o -> o.getPatientSnIds().split("\\|")).flatMap(Arrays :: stream).collect(toSet()).size();
+		return Long.valueOf(count);
+	}
+
+	private void updatePatientSqlMap(JSONObject obj) {
+		String patientSetId = obj.getString("patientSetId");
+		patientsIdSqlMapMapper.updateExportByPatientSetId(patientSetId,1);
 	}
 
 	@Override
 	public void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num) {
 		String query = String.join("|",allPats);
 		PatientsIdSqlMap patientsIdSqlMap = new PatientsIdSqlMap();
-		patientsIdSqlMap.setPatGroupId(num);
 		patientsIdSqlMap.setPatientsSetId(patientSetId);
 		patientsIdSqlMap.setPatientSnIds(query);
-		patientsIdSqlMapMapper.insert(patientsIdSqlMap);
+		patientsIdSqlMapMapper.insertForGroupid(patientsIdSqlMap);
 	}
 
 	@Override

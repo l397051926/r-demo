@@ -2323,11 +2323,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             .map(String.class::cast)
             .collect(toSet());
         String patsStr ="";
-        if(pats.size()==0){
-            patsStr = "''";
-        }else {
-            patsStr = TransPatientSql.transForExtContain(pats);
-        }
+        patsStr = TransPatientSql.transForExtContain(pats);
         Map<String, Set<String>> resultMap = new ConcurrentHashMap<>();
         List<Future> futures = new ArrayList<>();
         for (ActiveSqlMap activeSqlMap : sqlList){
@@ -2480,11 +2476,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     private String getGroupSql(String groupId) {
         List<String> groupDataPatSn = groupDataMapper.getPatientDocId(groupId);
         String query = null;
-        if(groupDataMapper == null || groupDataPatSn.size()==0){
-            query = "''";
-        }else {
-            query = TransPatientSql.transForExtContain(groupDataPatSn);
-        }
+        query = TransPatientSql.transForExtContain(groupDataPatSn);
         return  " patient_info.patient_basicinfo.DOC_ID "+query;
     }
 
