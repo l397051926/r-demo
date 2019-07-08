@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.gennlife.rws.content.CommonContent;
+import com.gennlife.rws.content.SeparatorContent;
 import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
@@ -721,7 +722,7 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
             for (ActiveIndexConfigCondition configCondition : activeIndexConfigConditions){
                 String enumActvieIndexId = configCondition.getEnumActiveConfigId();
                 if(StringUtils.isEmpty(enumActvieIndexId)) continue;
-                String[] enums =  enumActvieIndexId.split("\\|");
+                String[] enums =  enumActvieIndexId.split(SeparatorContent.getRegexVartivalBar());
                 JSONArray array = new JSONArray();
                 for (int i = 0; i < enums.length; i++) {
                     ActiveIndexConfig tmp = map.get(enums[i]);

@@ -10,6 +10,7 @@ import com.gennlife.darren.collection.keypath.KeyPath;
 import com.gennlife.exception.CustomerException;
 import com.gennlife.exception.CustomerStatusEnum;
 import com.gennlife.rws.content.IndexContent;
+import com.gennlife.rws.content.SeparatorContent;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
 import com.gennlife.rws.service.*;
@@ -69,7 +70,7 @@ public class PatientSetServiceImpl implements PatientSetService {
     private static final int exportMax = 2000;
 
 	@Override
-	public List<PatientsSet> getPatientSetList(JSONObject obj) throws IOException {
+	public List<PatientsSet> getPatientSetList(JSONObject obj)  {
 		Map<String, Object> map = new HashMap<>();
 		String crfId = obj.getString("crfId");
 		String projectId = obj.getString("projectId");
@@ -78,9 +79,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 		List<PatientsSet> patientsSetList = patientsSetMapper.getPatientsSetList(map);
 		for (PatientsSet patientsSet : patientsSetList){
 			String patientSetId = patientsSet.getPatientsSetId();
-//			long count =getPatientSqlCount(patientSetId,projectId,crfId);
-//			patientsSet.setPatientsCount(count);
-//			patientsSetMapper.updatePatientsCountByPateintSetId(patientSetId,count);
+
 			Integer isFlush = patientsSet.getIsFlush() == null ? 0 : patientsSet.getIsFlush(); //1 是刷新并置为0 0是不刷新
 			if(isFlush != null && isFlush==0){
 				continue;
@@ -89,15 +88,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 			}
 			//自动更新下面组的筛选功能
 			SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
-				try {
 					flushCountGroup(patientSetId,projectId,crfId);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				}
 			});
 		}
 		return patientsSetList;
@@ -226,8 +217,18 @@ public class PatientSetServiceImpl implements PatientSetService {
 	@Override
 	public Long getPatientSetLocalCount(String patientSetId) {
 		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
-		Integer count = pids.stream().map(o -> o.getPatientSnIds().split("\\|")).flatMap(Arrays :: stream).collect(toSet()).size();
+		Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
 		return Long.valueOf(count);
+	}
+	@Override
+	public String getPatientSetLocalSql(String patientSetId){
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
+		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(joining(SeparatorContent.VERTIVAL_BAR));
+	}
+	@Override
+	public List<String> getPatientSetLocalSqlByList(String patientSetId){
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
+		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
 	}
 
 	private void updatePatientSqlMap(JSONObject obj) {
@@ -237,7 +238,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 
 	@Override
 	public void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num) {
-		String query = String.join("|",allPats);
+		String query = String.join(SeparatorContent.VERTIVAL_BAR,allPats);
 		PatientsIdSqlMap patientsIdSqlMap = new PatientsIdSqlMap();
 		patientsIdSqlMap.setPatientsSetId(patientSetId);
 		patientsIdSqlMap.setPatientSnIds(query);
@@ -263,7 +264,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 		return searchLogMapper.selectByPrtisntId(patientsSetId);
 	}
 
-	private void flushCountGroup(String patientSetId,String projectId,String crfId) throws IOException, ExecutionException, InterruptedException {
+	private void flushCountGroup(String patientSetId,String projectId,String crfId) {
 		List<String> groupIds = groupPatientDataMapper.getGroupIds(patientSetId);
 		for (String groupId : groupIds){
 			List<String> patientSetIds = groupPatientDataMapper.getPatSetByGroupId(groupId);

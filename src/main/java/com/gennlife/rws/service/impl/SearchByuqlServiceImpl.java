@@ -13,10 +13,7 @@ import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
 import com.gennlife.rws.query.UqlQureyResult;
-import com.gennlife.rws.service.ActiveIndexService;
-import com.gennlife.rws.service.GroupService;
-import com.gennlife.rws.service.RedisMapDataService;
-import com.gennlife.rws.service.SearchByuqlService;
+import com.gennlife.rws.service.*;
 import com.gennlife.rws.uql.*;
 import com.gennlife.rws.uqlcondition.*;
 import com.gennlife.rws.util.*;
@@ -68,6 +65,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     private GroupService groupService;
     @Autowired
     private RedisMapDataService redisMapDataService;
+    @Autowired
+    private PatientSetService patientSetService;
 
     @Override
     public String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch) throws ExecutionException, InterruptedException, IOException  {
@@ -1146,13 +1145,12 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId) throws IOException {
-//        String patientSql = getPatientSql(patientSetId,projectId,crfId);
-        String patientSetSql = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientSetId));
-        if(StringUtils.isEmpty(patientSetSql)){
+    public AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId) {
+        String patSns = patientSetService.getPatientSetLocalSql(patientSetId);
+        if(StringUtils.isEmpty(patSns)){
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有数据");
         }
-        String  newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql,crfId);
+        String  newpatientSetSql = TransPatientSql.getAllPatientSql(patSns,crfId);
         String sql = "select "+IndexContent.getPatientDocId(crfId)+"   from "+ IndexContent.getIndexName(crfId,projectId) + " where "+newpatientSetSql+ " and  join_field='patient_info'";
         JSONArray terms_aggs = new JSONArray();
         int size = aggregationTeam == null ? 0 : aggregationTeam.size();
@@ -2381,18 +2379,20 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public AjaxObject getPatientSnsByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException {
-        String patientSetSql = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientSetId));
-        if(StringUtils.isEmpty(patientSetSql)){
+    public AjaxObject getPatientSnsByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId){
+        List<String> sqlList = patientSetService.getPatientSetLocalSqlByList(patientSetId);
+        if(sqlList == null  || sqlList.size() == 0){
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有数据");
         }
-        String newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql,crfId);
+        Integer total = sqlList.size();
+        List<String> pageList = PagingUtils.getPageContentForString(sqlList,pageNum,pageSize);
+        String newpatientSetSql = TransPatientSql.getAllPatientSqlForList(pageList,crfId);
         String newSql = "select  "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)+" where "+newpatientSetSql + " and  join_field='patient_info'";
         JSONArray source = new JSONArray();
         source.add("patient_info");
-        JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,newSql,pageNum,pageSize,null,source,crfId));
+        JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,newSql,1,pageSize,null,source,crfId));
         JSONArray data = UqlQureyResult.getQueryData(jsonData,crfId);
-        Integer total = patientSetSql.split("\\|").length;
+
         WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         AjaxObject.getReallyDataValue(data,showColumns);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);

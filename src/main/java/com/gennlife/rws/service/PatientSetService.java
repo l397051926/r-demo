@@ -24,7 +24,7 @@ public interface PatientSetService {
 	 * @param param
 	 * @return List<PatientsSet>
 	 */
-	List<PatientsSet> getPatientSetList(JSONObject obj) throws IOException;
+	List<PatientsSet> getPatientSetList(JSONObject param) throws IOException;
 
 	/**
 	 *
@@ -34,7 +34,7 @@ public interface PatientSetService {
 	 * @param param
 	 * @return PatientsSet
 	 */
-	PatientsSet getPatientSet(JSONObject obj);
+	PatientsSet getPatientSet(JSONObject param);
 
     /**
      *
@@ -52,7 +52,7 @@ public interface PatientSetService {
 	 * @date 2018年6月29日
 	 * @param param
 	 */
-	PatientsSet updatePatientSet(JSONObject obj);
+	PatientsSet updatePatientSet(JSONObject param);
 
 	/**
 	 *
@@ -61,7 +61,7 @@ public interface PatientSetService {
 	 * @date 2018年6月29日
 	 * @param param
 	 */
-	void deletePatientSet(JSONObject obj) throws IOException;
+	void deletePatientSet(JSONObject param) throws IOException;
 
 	/**
 	 * @author zhengguohui
@@ -70,7 +70,7 @@ public interface PatientSetService {
 	 * @param param
 	 * @return SearchLog
 	 */
-	List<SearchLog> getSearchLog(JSONObject obj);
+	List<SearchLog> getSearchLog(JSONObject param);
 
 	/**
 	 * @author zhengguohui
@@ -86,6 +86,10 @@ public interface PatientSetService {
     void savePatientImport(JSONObject obj) throws IOException;
 
 	Long getPatientSetLocalCount(String patientSetId);
+
+	String getPatientSetLocalSql(String patientSetId);
+
+	List<String> getPatientSetLocalSqlByList(String patientSetId);
 
 	void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num);
 }

@@ -33,7 +33,7 @@ public interface SearchByuqlService {
 
     AjaxObject getPatientListByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException;
 
-    AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId) throws IOException;
+    AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId) ;
 
     List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId) throws IOException;
 
@@ -43,5 +43,5 @@ public interface SearchByuqlService {
 
     void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId) throws ExecutionException, InterruptedException, IOException;
 
-    AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException;
+    AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId);
 }

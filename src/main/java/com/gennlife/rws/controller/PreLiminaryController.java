@@ -137,7 +137,7 @@ public class PreLiminaryController {
         AjaxObject object = new AjaxObject();
         try {
             JSONObject params = JSONObject.parseObject(param);
-            String patientSetId = params.getString("patientSetId").replaceAll("-","");
+            String patientSetId = params.getString("patientSetId");
             JSONArray aggregationTeam = params.getJSONArray("aggregationTeam");
             String projectId = params.getString("projectId");
             String crfId = params.getString("crfId");
