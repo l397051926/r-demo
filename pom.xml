@@ -143,47 +143,6 @@
 			<artifactId>commons-math3</artifactId>
 			<version>3.6.1</version>
 		</dependency>
-		<!--异常处理-->
-		<dependency>
-			<groupId>com.gennlife</groupId>
-			<artifactId>vitark-common</artifactId>
-			<version>releases1.0.1</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.cloud</groupId>
-					<artifactId>spring-cloud-starter-oauth2</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.springframework.cloud</groupId>
-					<artifactId>spring-cloud-starter-security</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.101tec</groupId>
-					<artifactId>zkclient</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.hbase</groupId>
-					<artifactId>hbase-client</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.hbase</groupId>
-					<artifactId>hbase-common</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.hbase</groupId>
-					<artifactId>hbase-protocol</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.hbase</groupId>
-					<artifactId>hbase-thrift</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.zookeeper</groupId>
-					<artifactId>zookeeper</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/org.apache.rocketmq/rocketmq-common -->
 		<dependency>
 			<groupId>org.apache.rocketmq</groupId>
@@ -194,10 +153,10 @@
 						<groupId>com.alibaba</groupId>
 						<artifactId>fastjson</artifactId>
 				</exclusion>
-				<exclusion>
-						<groupId>io.netty</groupId>
-						<artifactId>netty-all</artifactId>
-				</exclusion>
+				<!--<exclusion>-->
+						<!--<groupId>io.netty</groupId>-->
+						<!--<artifactId>netty-all</artifactId>-->
+				<!--</exclusion>-->
 			</exclusions>
 		</dependency>
 

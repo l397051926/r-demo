@@ -4,15 +4,15 @@
 package com.gennlife.rws.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.gennlife.exception.CustomerException;
-import com.gennlife.exception.CustomerStatusEnum;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
+import com.gennlife.rws.exception.CustomerException;
 import com.gennlife.rws.rocketmq.ProducerService;
 import com.gennlife.rws.rocketmq.RocketMqContent;
 import com.gennlife.rws.service.ProjectMemberService;
 import com.gennlife.rws.util.LogUtil;
 import com.gennlife.rws.util.StringUtils;
+import com.gennlife.rws.vo.CustomerStatusEnum;
 import com.gennlife.rws.vo.DataCheckEmpty;
 import com.gennlife.rws.vo.DelFlag;
 import com.gennlife.rws.vo.ObligEnum;

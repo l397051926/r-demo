@@ -1,9 +1,6 @@
 package com.gennlife.rws.util;
 
 import com.alibaba.fastjson.JSONArray;
-import com.gennlife.rws.uql.UqlClass;
-import net.lecousin.framework.math.IntegerUnit;
-import scala.Int;
 
 import java.math.BigInteger;
 import java.text.ParseException;

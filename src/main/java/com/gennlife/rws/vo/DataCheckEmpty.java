@@ -5,8 +5,7 @@ package com.gennlife.rws.vo;
 
 import java.util.List;
 
-import com.gennlife.exception.CustomerException;
-import com.gennlife.exception.CustomerStatusEnum;
+import com.gennlife.rws.exception.CustomerException;
 import com.gennlife.rws.util.StringUtils;
 
 /**
