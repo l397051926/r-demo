@@ -71,9 +71,6 @@ public class TransPatientSql {
 
     public static String getAllPatientSql(String sql) {
         String[] array = sql.split(SeparatorContent.getRegexVartivalBar());
-        if (array.length == 1) {
-            return " patient_info.PATIENT_SN IN ('" + sql + "') ";
-        }
         return " patient_info.PATIENT_SN " + transForExtContainForArray(array);
     }
 
@@ -142,7 +139,7 @@ public class TransPatientSql {
     }
 
     public static String getExtSet_Sql(List<String> patients) {
-        if (patients == null) {
+        if (patients == null || patients.size() == 0 ) {
             return "''";
         }
         return "'" + String.join("$", patients) + "'";
@@ -156,7 +153,7 @@ public class TransPatientSql {
     }
 
     public static String getExtSet_SqlForArray(String[] arrs) {
-        if (arrs.length == 0) {
+        if (arrs == null ||arrs.length == 0) {
             return "''";
         }
         return "'" + Arrays.stream(arrs).collect(joining("$")) + "'";
