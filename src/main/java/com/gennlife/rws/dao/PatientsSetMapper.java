@@ -31,8 +31,6 @@ public interface PatientsSetMapper {
 	 */
 	List<PatientsSet> getPatientSetByProjectId(String projectId);
 
-	void updatePatientsCount(PatientsSet record);
-
 	/**
 	 * 根据患者集id 获取患者集名字
 	 * @param patientsSetId
@@ -60,15 +58,12 @@ public interface PatientsSetMapper {
 
     Integer getSumCount(String projectId);
 
-    String getPatientSetIdByProjectId(String projectId);
-
     Integer getCountByProjectIdAndPatientsetName(@Param("projectId") String projectId,@Param("patientsSetName") String patientsSetName);
 
 	Integer getcountByPatIdAndPatName(@Param("patientSetId") String patientSetId,@Param("patientsSetName") String patientsSetName);
 
 	void updateIsFlush(@Param("isFlush") Integer isFlush, @Param("patientSetId") String patientSetId);
 
-    void updatePatientsCountByPateintSetId(@Param("patientSetId") String patientSetId, @Param("curenntCount") long curenntCount);
-
 	List<PatientsSet> getPatientSetByProjectIdRemoveQuery(String projectId);
+
 }

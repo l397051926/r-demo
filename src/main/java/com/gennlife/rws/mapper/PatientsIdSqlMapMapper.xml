@@ -1,123 +1,135 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.gennlife.rws.dao.PatientsIdSqlMapMapper">
-	<resultMap id="BaseResultMap" type="com.gennlife.rws.entity.PatientsIdSqlMap">
-		<id column="id" property="id" jdbcType="INTEGER" />
-		<result column="patients_set_id" property="patientsSetId" jdbcType="VARCHAR" />
-		<result column="pat_group_id" property="patGroupId" jdbcType="INTEGER" />
-		<result column="patient_sn_ids" property="patientSnIds" jdbcType="LONGVARCHAR" />
-		<result column="export" property="export" jdbcType="INTEGER" />
-	</resultMap>
-	<sql id="Base_Column_List">
+    <resultMap id="BaseResultMap" type="com.gennlife.rws.entity.PatientsIdSqlMap">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="patients_set_id" property="patientsSetId" jdbcType="VARCHAR"/>
+        <result column="pat_group_id" property="patGroupId" jdbcType="INTEGER"/>
+        <result column="patient_sn_ids" property="patientSnIds" jdbcType="LONGVARCHAR"/>
+        <result column="export" property="export" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Base_Column_List">
 		id, patients_set_id, pat_group_id, patient_sn_ids
 	</sql>
-	<insert id="insert" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
-		insert into patients_id_sql_map
-		<trim prefix="(" suffix=")" suffixOverrides=",">
-			<if test="id != null">
-				id,
-			</if>
-			<if test="patientsSetId != null">
-				patients_set_id,
-			</if>
-			<if test="patGroupId != null">
-				pat_group_id,
-			</if>
-			<if test="patientSnIds != null">
-				patient_sn_ids,
-			</if>
-			<if test="export != null">
-				export,
-			</if>
-		</trim>
-		<trim prefix="values (" suffix=")" suffixOverrides=",">
-			<if test="id != null">
-				#{id,jdbcType=INTEGER},
-			</if>
-			<if test="patientsSetId != null">
-				#{patientsSetId,jdbcType=VARCHAR},
-			</if>
-			<if test="patGroupId != null">
-				#{patGroupId,jdbcType=INTEGER},
-			</if>
-			<if test="patientSnIds != null">
-				#{patientSnIds,jdbcType=LONGVARCHAR},
-			</if>
-			<if test="export != null">
-				#{export,jdbcType=INTEGER},
-			</if>
-		</trim>
-	</insert>
+    <insert id="insert" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
+        insert into patients_id_sql_map
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="patientsSetId != null">
+                patients_set_id,
+            </if>
+            <if test="patGroupId != null">
+                pat_group_id,
+            </if>
+            <if test="patientSnIds != null">
+                patient_sn_ids,
+            </if>
+            <if test="export != null">
+                export,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="patientsSetId != null">
+                #{patientsSetId,jdbcType=VARCHAR},
+            </if>
+            <if test="patGroupId != null">
+                #{patGroupId,jdbcType=INTEGER},
+            </if>
+            <if test="patientSnIds != null">
+                #{patientSnIds,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="export != null">
+                #{export,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
 
-	<update id="updateById" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
-		update patients_id_sql_map
-		<set>
-			<if test="patientsSetId != null">
-				patients_set_id = #{patientsSetId,jdbcType=VARCHAR},
-			</if>
-			<if test="patGroupId != null">
-				pat_group_id = #{patGroupId,jdbcType=INTEGER},
-			</if>
-			<if test="patientsSetId != null">
-				patient_sn_ids = #{patientsSetId,jdbcType=LONGVARCHAR},
-			</if>
-			<if test="export != null">
-				export = #{export,jdbcType=INTEGER},
-			</if>
-		</set>
-		where id = #{id,jdbcType=INTEGER}
-	</update>
+    <update id="updateById" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
+        update patients_id_sql_map
+        <set>
+            <if test="patientsSetId != null">
+                patients_set_id = #{patientsSetId,jdbcType=VARCHAR},
+            </if>
+            <if test="patGroupId != null">
+                pat_group_id = #{patGroupId,jdbcType=INTEGER},
+            </if>
+            <if test="patientsSetId != null">
+                patient_sn_ids = #{patientsSetId,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="export != null">
+                export = #{export,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
 
-	<update id="updateExportByPatientSetId" parameterType="java.lang.Object">
-		update patients_id_sql_map
-		<set>
-			<if test="export != null">
-				export = #{export,jdbcType=INTEGER},
-			</if>
-		</set>
-		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
-	</update>
+    <update id="updateExportByPatientSetId" parameterType="java.lang.Object">
+        update patients_id_sql_map
+        <set>
+            <if test="export != null">
+                export = #{export,jdbcType=INTEGER},
+            </if>
+        </set>
+        where patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
+    </update>
 
-	<select id="getPatientSnIdsBypatientSetId" resultMap="BaseResultMap" parameterType="String" >
-		select
-		<include refid="Base_Column_List" />
-		from patients_id_sql_map
-		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
-	</select>
+    <select id="getPatientSnIdsBypatientSetId" resultMap="BaseResultMap" parameterType="String">
+        select
+        <include refid="Base_Column_List"/>
+        from patients_id_sql_map
+        where patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
+    </select>
 
-	<select id="getPatientSnIdsBypatientSetIdByExclude" resultMap="BaseResultMap" parameterType="Object" >
-		select
-		<include refid="Base_Column_List" />
-		from patients_id_sql_map
-		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR} AND export = #{export,jdbcType=INTEGER}
-	</select>
+    <select id="getPatientSnIdsBypatientSetIdAndExclude" resultMap="BaseResultMap" parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from patients_id_sql_map
+        where patients_set_id = #{patientsSetId,jdbcType=VARCHAR} AND export = #{export,jdbcType=INTEGER}
+    </select>
 
-	<insert id="insertForGroupid" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
-		INSERT INTO `patients_id_sql_map`
-		<trim prefix="(" suffix=")" suffixOverrides=",">
-			<if test="patientsSetId != null">
-				`patients_set_id`,
-			</if>
-			`pat_group_id`,
-			<if test="patientSnIds != null">
-				`patient_sn_ids`,
-			</if>
-			<if test="export != null">
-				`export`,
-			</if>
-		</trim>
-		<trim prefix="SELECT " suffix="" suffixOverrides=",">
-			<if test="patientsSetId != null">
-				#{patientsSetId,jdbcType=VARCHAR},
-			</if>
-			(SELECT IFNULL((SELECT  MAX(pat_group_id)  from `patients_id_sql_map` where `patients_set_id` = #{patientsSetId,jdbcType=VARCHAR}),-1))+1,
-			<if test="patientSnIds != null">
-				#{patientSnIds,jdbcType=LONGVARCHAR},
-			</if>
-			<if test="export != null">
-				#{export,jdbcType=INTEGER},
-			</if>
-		</trim>
-	</insert>
+    <select id="getPatientSnIdsBypatientSetIdsAndExclude" resultMap="BaseResultMap" parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from patients_id_sql_map
+        where patients_set_id IN
+        <foreach item="item" index="index" open="(" separator="," close=")" collection="patientSetIds">
+            #{item}
+        </foreach>
+        AND export = #{export,jdbcType=INTEGER}
+    </select>
+
+    <insert id="insertForGroupid" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">
+        INSERT INTO `patients_id_sql_map`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="patientsSetId != null">
+                `patients_set_id`,
+            </if>
+            `pat_group_id`,
+            <if test="patientSnIds != null">
+                `patient_sn_ids`,
+            </if>
+            <if test="export != null">
+                `export`,
+            </if>
+        </trim>
+        <trim prefix="SELECT " suffix="" suffixOverrides=",">
+            <if test="patientsSetId != null">
+                #{patientsSetId,jdbcType=VARCHAR},
+            </if>
+            (SELECT IFNULL((SELECT MAX(pat_group_id) from `patients_id_sql_map` where `patients_set_id` =
+            #{patientsSetId,jdbcType=VARCHAR}),-1))+1,
+            <if test="patientSnIds != null">
+                #{patientSnIds,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="export != null">
+                #{export,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
 
 </mapper>

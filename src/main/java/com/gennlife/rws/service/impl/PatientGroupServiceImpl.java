@@ -356,27 +356,8 @@ public class PatientGroupServiceImpl implements PatientGroupService {
             patientSetIds = patientSetIdTmp.toJavaList(String.class);
         }
         if (StringUtils.isEmpty(groupParentId) && patientSetIds != null ) { //父及数据获取
-            JSONArray columns = GroupColums.getPatientSetColumnJSON(crfId);
-            StringBuffer groupNames = new StringBuffer();
-            int patientSetSize = patientSetIdTmp.size();
-            for (int i = 0; i < patientSetSize; i++) {
-                String patientSetId = patientSetIdTmp.getString(i);
-                String patientSetName = patientsSetMapper.getpatientSetNameByPatSetId(patientSetId);
-                groupNames.append(patientSetName);
-                if(patientSetSize>0 && i<patientSetSize-1){
-                    groupNames.append(" + ");
-                }
-            }
 
-            // 构造数据 从 患者集获取数据 **s
-            JSONArray actives = new JSONArray();
-            ajaxObject = searchByuqlService.getPatientListByAllByPatientSetIds(patientSetIdTmp,projectId,showColumns,actives,pageNum,pageSize,1,crfId);
-            JSONArray dataTmp = JSONArray.parseArray(JSON.toJSONString(ajaxObject.getData()));
-            AjaxObject.getReallyDataValue(dataTmp,columns);
-            data.put("data", dataTmp);
-            data.put("grandParents", groupNames);
-            ajaxObject.setData(data);
-            ajaxObject.setColumns(columns);
+            ajaxObject = getPatientSetData(data,crfId,patientSetIdTmp,projectId,pageNum,pageSize,showColumns);
 
         } else if(StringUtils.isNotEmpty(groupParentId)){// 不为空 为子组
             Integer startNum = (pageNum-1)*pageSize;
@@ -487,54 +468,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         }
         ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
         ajaxObject.setData(dataArray);
-        return ajaxObject;
-    }
-
-    @Override
-    public AjaxObject getActiveIndexByGroup(String activeId) {
-        AjaxObject ajaxObject = new AjaxObject();
-        ActiveIndex active = null;
-        active = activeIndexService.findByActiveId(activeId);
-        active = active == null ? new ActiveIndex() : active;
-        JSONObject o = (JSONObject) JSONObject.toJSON(active);
-        // 兼容前端json解析
-        if (o != null) {
-            // 字符串格式的["",""]转成数组格式
-            String text = o.toString();
-            String toWebUI = StringUtils.replace(text, "\"[", "[").replace("]\"", "]").replace("\\\"", "\"");
-
-            JSONObject webUi = JSONObject.parseObject(toWebUI);
-            JSONArray webConfig = o.getJSONArray("config");
-            JSONArray newWebConfig = new JSONArray();
-            int webSize = webConfig == null ? 0 : webConfig.size();
-            // 如果数据为空 则结束
-            if (webSize == 0) {
-                ajaxObject.setData(null);
-                return ajaxObject;
-            }
-            for (int i = 0; i < webSize; i++) {
-                JSONObject config = webConfig.getJSONObject(i);
-                JSONArray conditions = config.getJSONArray("conditions");
-                int length = conditions == null ? 0 : conditions.size();
-                JSONArray newCondition = new JSONArray();
-                for (int j = 0; j < length; j++) {
-                    JSONObject condition = conditions.getJSONObject(j);
-                    JSONObject converted = moduleConvertService.rwsToUi(condition);
-                    newCondition.add(converted);
-                }
-                config.put("conditions", newCondition);
-                newWebConfig.add(config);
-            }
-            // 枚举修改
-            JSONArray conditionNew = moduleConvertService.enumFormatToUi(newWebConfig);
-            webUi.put("config", conditionNew);
-            JSONObject activeResult = new JSONObject();
-            activeResult.put("active", webUi);
-            JSONObject data = new JSONObject();
-            data.put("data", activeResult);
-            data.put("isGroupActive", 1);
-            ajaxObject.setData(data);
-        }
         return ajaxObject;
     }
 
@@ -895,6 +828,23 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         logUtil.saveLog(projectId, content, createId, createName);
         // 逻辑方式 导入的总数据 + 最开始的数据 - 导入后的数据 等于0 全部导入 大于0 有重复数据 小于0 全部为重复数据
         return contCount - endCount >= 0 ? contCount - endCount : contCount;
+
+    }
+
+    public AjaxObject getPatientSetData( JSONObject data, String crfId, JSONArray patientSetIdTmp,String projectId,Integer pageNum,Integer pageSize, JSONArray showColumns) {
+        JSONArray columns = GroupColums.getPatientSetColumnJSON(crfId);
+        List<String> patientSetNames = patientsSetMapper.getpatientSetNameByPatSetIds(patientSetIdTmp.toJavaList(String.class));
+        String groupNames = String.join(" + ",patientSetNames);
+        // 构造数据 从 患者集获取数据 **s
+        JSONArray actives = new JSONArray();
+        AjaxObject ajaxObject = searchByuqlService.getPatientListByAllByPatientSetIds(patientSetIdTmp,projectId,showColumns,actives,pageNum,pageSize,1,crfId);
+        JSONArray dataTmp = JSONArray.parseArray(JSON.toJSONString(ajaxObject.getData()));
+        AjaxObject.getReallyDataValue(dataTmp,columns);
+        data.put("data", dataTmp);
+        data.put("grandParents", groupNames);
+        ajaxObject.setData(data);
+        ajaxObject.setColumns(columns);
+        return ajaxObject;
 
     }
 

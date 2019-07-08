@@ -246,14 +246,6 @@
 		#{projectId,jdbcType=VARCHAR}
 	</delete>
 
-	<update id="updatePatientsCount" parameterType="com.gennlife.rws.entity.PatientsSet">
-		update p_patients_set
-		<set>
-				patients_count = #{patientsCount,jdbcType=INTEGER},
-				uql_query = #{uqlQuery,jdbcType=LONGVARCHAR},
-		</set>
-		where patients_set_id = #{patientSetId,jdbcType=VARCHAR}
-	</update>
 
 	<select id="getpatientSetNameByPatSetId" resultType="java.lang.String"
 			parameterType="java.lang.String">
@@ -368,11 +360,6 @@
 		AND is_delete = 0
 	</select>
 
-	<select id="getPatientSetIdByProjectId" resultType="java.lang.String" parameterType="java.lang.String">
-		select patients_set_id from p_patients_set
-		where is_delete='0' and project_id = #{projectId,jdbcType=VARCHAR}
-	</select>
-
 	<select id="getCountByProjectIdAndPatientsetName" resultType="java.lang.Integer" parameterType="java.lang.Object">
 		SELECT
 		COUNT(*)
@@ -401,13 +388,4 @@
 		where 	patients_set_id = #{patientSetId,jdbcType=VARCHAR}
 	</update>
 
-	<update id="updatePatientsCountByPateintSetId" parameterType="com.gennlife.rws.entity.PatientsSet">
-		update p_patients_set
-		<set>
-			<if test="curenntCount != null">
-				patients_count = #{curenntCount,jdbcType=INTEGER},
-			</if>
-		</set>
-		where patients_set_id = #{patientSetId,jdbcType=VARCHAR}
-	</update>
 </mapper>

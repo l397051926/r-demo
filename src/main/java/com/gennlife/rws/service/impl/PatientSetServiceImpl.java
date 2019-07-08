@@ -216,7 +216,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 	}
 	@Override
 	public Long getPatientSetLocalCountByExclude(String patientSetId, Integer export) {
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdByExclude(patientSetId,export);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,export);
 		Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
 		return Long.valueOf(count);
 	}
@@ -229,14 +229,19 @@ public class PatientSetServiceImpl implements PatientSetService {
 	}
 	@Override
 	public String getPatientSetLocalSql(String patientSetId){
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdByExclude(patientSetId,1);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(joining(SeparatorContent.VERTIVAL_BAR));
 	}
 	@Override
 	public List<String> getPatientSetLocalSqlByList(String patientSetId){
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdByExclude(patientSetId,1);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
 	}
+    @Override
+    public List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSetIds){
+        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);
+        return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
+    }
 
 	private void updatePatientSqlMap(JSONObject obj) {
 		String patientSetId = obj.getString("patientSetId");

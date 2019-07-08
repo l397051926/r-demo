@@ -2384,6 +2384,16 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if(sqlList == null  || sqlList.size() == 0){
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有数据");
         }
+        return getPatientListData(sqlList,pageNum,pageSize,crfId,projectId,showColumns);
+    }
+    @Override
+    public AjaxObject getPatientListByAllByPatientSetIds(JSONArray patientSetIdTmp, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, int i, String crfId) {
+        List<String> patientSets = patientSetIdTmp.toJavaList(String.class);
+        List<String> sqlList = patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSets);
+        return getPatientListData(sqlList,pageNum,pageSize,crfId,projectId,showColumns);
+    }
+
+    public AjaxObject getPatientListData( List<String> sqlList,Integer pageNum,Integer pageSize,String crfId,String projectId,JSONArray showColumns){
         Integer total = sqlList.size();
         List<String> pageList = PagingUtils.getPageContentForString(sqlList,pageNum,pageSize);
         String newpatientSetSql = TransPatientSql.getAllPatientSqlForList(pageList,crfId);
@@ -2392,27 +2402,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         source.add("patient_info");
         JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,newSql,1,pageSize,null,source,crfId));
         JSONArray data = UqlQureyResult.getQueryData(jsonData,crfId);
-
-        WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
-        AjaxObject.getReallyDataValue(data,showColumns);
-        AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
-        ajaxObject.setColumns(showColumns);
-        ajaxObject.setData(data);
-        ajaxObject.setWebAPIResult(webAPIResult);
-        return ajaxObject;
-    }
-
-    @Override
-    public AjaxObject getPatientListByAllByPatientSetIds(JSONArray patientSetIdTmp, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, int i, String crfId) {
-        List<String> patientSets = patientSetIdTmp.toJavaList(String.class);
-        List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
-        String query1 = String.join(" or ",patientSetSql.stream().map( x -> "("+TransPatientSql.getAllPatientSql(TransPatientSql.getUncomPatientSnSql(x),crfId)+")").collect(toList()));
-        String query = "select "+IndexContent.getPatientDocId(crfId)+"  from "+ IndexContent.getIndexName(crfId,projectId) + " where  ("+query1+" )"+IndexContent.getGroupBy(crfId);//join_field='visit_info' and
-        JSONArray source = new JSONArray();
-        source.add("patient_info");
-        JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,query,pageNum,pageSize,null,source,crfId,false));
-        JSONArray data = UqlQureyResult.getQueryData(jsonData,crfId);
-        Integer total = UqlQureyResult.getTotal(jsonData);
         WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         AjaxObject.getReallyDataValue(data,showColumns);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);

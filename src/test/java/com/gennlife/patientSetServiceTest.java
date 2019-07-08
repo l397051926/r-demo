@@ -19,6 +19,7 @@ import java.util.Set;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Ignore
 public class patientSetServiceTest {
     @Autowired
     private PatientSetService patientSetService;

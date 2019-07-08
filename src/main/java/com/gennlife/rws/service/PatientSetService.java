@@ -94,4 +94,6 @@ public interface PatientSetService {
 	List<String> getPatientSetLocalSqlByList(String patientSetId);
 
 	void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num);
+
+    List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSets);
 }

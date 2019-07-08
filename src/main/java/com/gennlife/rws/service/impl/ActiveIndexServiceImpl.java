@@ -1344,57 +1344,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
                 }
             }
         }
-        /*List<String> all = new ArrayList<String>();
-        if (indes != null && !indes.isEmpty()) {
-            for (ActiveIndex index : indes) {
-                all.clear();
-                ActiveIndexVo activeIndexVo = new ActiveIndexVo();
-                String id = index.getId();
-                activeIndexVo.setId(id);
-                Integer activeType = index.getActiveType();
-                activeIndexVo.setActiveType(CodeToDesc.activeTypeToDesc(activeType));
-                activeIndexVo.setActiveIndexName(index.getName());
-                List<ActiveIndexConfig> indexConfigs = activeIndexConfigMapper.findAllByActiveIndexId(id);
-                List<ActiveIndexConfigCondition> byRefActiveId = conditionMapper.findByRefActiveId(id);
-                List<Map<String, Object>> dependencieded = new ArrayList<Map<String, Object>>();
-
-                //查找被依赖
-                for (ActiveIndexConfigCondition condition : byRefActiveId) {
-                    Map<String, Object> map = new HashMap<String, Object>(50);
-                    String activeIndexConfigId = condition.getActiveIndexConfigId();
-                    ActiveIndexConfig config = activeIndexConfigMapper.selectByPrimaryKey(activeIndexConfigId);
-                    String activeIndexId = config.getActiveIndexId();
-                    if (!all.contains(activeIndexId)) {
-                        ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(activeIndexId);
-                        relationDep(dependencieded, all, id, map, activeIndex);
-                    }
-                }
-                activeIndexVo.setDependenced(dependencieded);
-                all.clear();
-                //查找依赖
-                if (indexConfigs != null && !indexConfigs.isEmpty()) {
-                    for (ActiveIndexConfig config : indexConfigs) {
-
-                        if (activeType == 1) {
-                            activeIndexVo.setIndexType(config.getActiveResultDesc());
-                        } else if (activeType == 2) {
-                            activeIndexVo.setIndexType(config.getIndexTypeDesc());
-                        }
-                        String configId = config.getId();
-                        List<ActiveIndexConfigCondition> conditions = conditionMapper.findByActiveIndexConfigId(configId);
-                        List<Map<String, Object>> dependencies1 = dependencies(configId, conditions);
-                        if(dependencies1!=null&&!dependencies1.isEmpty()){
-                            activeIndexVo.setDependencies(dependencies1);
-                        }
-                    }
-
-                }
-                if(!all.contains(id)){
-                    data.add(activeIndexVo);
-                    all.add(id);
-                }
-            }
-        }*/
         object.setData(data);
         object.setWebAPIResult(webAPIResult);
         return object;
@@ -1510,5 +1459,5 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         List<ActiveIndex> actives = activeIndexMapper.findByParam(param);
         return actives;
     }
-    
+
 }

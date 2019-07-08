@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author liuzhen
@@ -233,6 +231,7 @@ public class RwsController {
 
         return ajaxObject;
     }
+
     private void searchByUqlService(String sql,String crfId,Integer activeType,JSONObject obj,String resultOrderKey,Integer isSearch,String indexTypeDesc) throws ExecutionException, InterruptedException, IOException {
         if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
             if (3 == activeType) {//那排
@@ -256,6 +255,7 @@ public class RwsController {
             }
         }
     }
+
     /**
      * 更新活动定义信息
      *
@@ -302,14 +302,6 @@ public class RwsController {
             Integer type = params.getInteger("type");
             Integer pageNum = params.getInteger("pageNum");
             Integer pageSize = params.getInteger("pageSize");
-            /**
-             * 查找依赖
-             * SELECT active_index_config_id,ref_active_id,active_index.`name` ,conf.active_index_id,indexs.`name` from active_index_config_condition  con join active_index on con.ref_active_id = active_index.id
-             JOIN active_index_config conf on con.active_index_config_id = conf.id join active_index indexs on indexs.id=conf.active_index_id;
-             * 查找被依赖
-             *
-             *
-             * */
             if (StringUtils.isEmpty(projectId) || type == null || pageNum == null || pageSize == null) {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "参数错误");
             }
