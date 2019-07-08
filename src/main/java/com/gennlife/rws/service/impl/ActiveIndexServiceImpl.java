@@ -22,14 +22,10 @@ import com.gennlife.rws.util.StringUtils;
 import com.gennlife.rws.vo.ActiveIndexVo;
 import com.gennlife.rws.web.WebAPIResult;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonParser;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static java.util.stream.Collectors.joining;
-
-//import com.gennlife.rws.service.CallPackagingServerService;
 
 /**
  * Created by liuzhen.
@@ -62,22 +56,13 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
     private ActiveIndexTaskService taskService;
     @Autowired
     private ActiveIndexTaskMapper taskMapper;
-//    @Autowired
-//    private CallPackagingServerService serverService;
     @Autowired
     private ContrastiveAnalysisActiveMapper contrastiveAnalysisActiveMapper;
     @Autowired
     private RedisMapDataService redisMapDataService;
+    @Autowired
+    ContrastiveAnalysisActiveService contrastiveAnalysisActiveService;
 
-
-    private JSONObject jsonOrderKeys;
-
-    /**
-     * 活动保存功能
-     *
-     * @param activeIndex
-     * @return
-     */
     @Override
     public AjaxObject saveActive(JSONObject activeIndex) {
         ActiveIndex actives = convertJsonToActive(activeIndex, 0);
@@ -482,6 +467,7 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         List<ActiveIndexConfigCondition> condition = conditionMapper.findByRefActiveId(refActiveId);
         return condition;
     }
+
     @Override
     public List<ActiveIndex> dependenceCurActiveByIsTmp(String activeId) {
         List<ActiveIndex> activeIndexList = activeIndexMapper.findReferenceActiveIndex(activeId,0);
@@ -555,14 +541,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         ajaxObject.setData(array);
         return ajaxObject;
     }
-
-    @Override
-    public List<ActiveIndex> getActiveIndexByProjectId(String uid, String projectId) {
-        return activeIndexMapper.getActiveIndexByProjectId(uid, projectId);
-    }
-
-    @Autowired
-    ContrastiveAnalysisActiveService contrastiveAnalysisActiveService;
 
     @Override
     public AjaxObject getContrastiveActive(String uid, String projectId,Integer cortType) {
@@ -675,26 +653,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         return null;
     }
 
-    private String saveTempActive(JSONObject activeJSONObject, Integer isTmp, ActiveIndex act, String tempId, String sortKey) {
-        String activeId;
-        ActiveIndex activesTemp = convertJsonToActive(activeJSONObject, isTmp);
-        activesTemp.setSortKey(sortKey);
-        Date date = new Date();
-        activesTemp.setCreateTime(date);
-        activesTemp.setUpdateTime(date);
-        if (StringUtils.isEmpty(tempId) && act != null && act.getIsTmp() == 1) {
-            activesTemp.setId(act.getId());
-        } else if (StringUtils.isNotEmpty(tempId)) {
-            activesTemp.setId(tempId);
-        }
-        activeId = activesTemp.getId();
-        activesTemp.setIsTmp(isTmp);
-        List<ActiveIndexConfig> activeIndexConfigsTemp = convertJsonToConfig(activeJSONObject, activesTemp.getId(), isTmp);
-        activeIndexMapper.replaceIntoActive(activesTemp);
-        executeSave(activeIndexConfigsTemp);
-        return activeId;
-    }
-
     /**
      * 执行数据保存
      *
@@ -805,34 +763,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
     }
 
     /**
-     * 判断条件和配置信息是否发生变化
-     *
-     * @param active
-     * @param act
-     * @return
-     */
-    private boolean isChange1(List<ActiveIndexConfig> active, List<ActiveIndexConfig> act) {
-        if (act == null || active == null) {
-            return true;
-        }
-
-        Gson gson = new Gson();
-        String s = gson.toJson(active);
-        System.out.println(s);
-        JsonParser parser = new JsonParser();
-        String resultAndCondition1 = gson.toJson(act);
-        System.out.println(resultAndCondition1);
-        JsonArray ac1 = (JsonArray) parser.parse(resultAndCondition1);
-
-        JsonArray parse = (JsonArray) parser.parse(s);
-        if (ac1 != null && parse != null && parse.equals(ac1)) {
-            return false;
-        }
-        //未发生变化
-        return true;
-    }
-
-    /**
      * 获取某个活动/指标的全集信息
      *
      * @param indexId
@@ -855,7 +785,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         }
         return activeIndex;
     }
-
 
     /**
      * 将前端提交的数据转化为活动/指标/入排条件定义，活动基本信息
@@ -920,32 +849,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         return configs;
     }
 
-    /***
-     * 根据新的格式，进行数据解析
-     * @param condition
-     * @param configId
-     * @return
-     */
-    @Override
-    public List<ActiveIndexConfigCondition> convertJsonToCondditionNew(JSONArray condition, String configId, Integer level, Integer isTemp) {
-        List<ActiveIndexConfigCondition> conditions = Lists.newArrayList();
-        int size = condition == null ? 0 : condition.size();
-        if (size == 0) {
-            return conditions;
-        }
-        for (int i = 0; i < size; i++) {
-            JSONObject jsonObject = condition.getJSONObject(i);
-            //将jsonObject中的inner保存到 jsonArray，之后在做处理
-            JSONObject ob = new JSONObject();
-            compantCondition(configId, conditions, jsonObject, null, ob, level, isTemp);
-            JSONArray condition1 = ob.getJSONArray("condition");
-            if (condition1 != null && !condition1.isEmpty()) {
-
-            }
-        }
-        return conditions;
-    }
-
     public void convertJsonToCondditionNew1(List<ActiveIndexConfigCondition> conditions, JSONArray condition, String configId, String parentId, JSONObject ob, int level, Integer isTemp) {
         int size = condition == null ? 0 : condition.size();
         if (size == 0) {
@@ -959,42 +862,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
     }
 
     @Override
-    public AjaxObject comConditonToPackaging(String projectId, String activeid, String taskId, Integer isSearch) {
-        AjaxObject ajaxObject = this.findDepRelation(activeid, taskId, isSearch);
-        LOG.debug(JSONObject.toJSONString(ajaxObject));
-        return ajaxObject;
-    }
-
-    /**
-     * 组装数据返回web
-     *
-     * @param projectId
-     * @param activeid
-     * @return
-     */
-    @Override
-    public AjaxObject comConditonToWebUI(String projectId, String activeid) {
-        ActiveIndex index = activeIndexMapper.selectByPrimaryKey(activeid);
-        AjaxObject ajaxObject = new AjaxObject();
-        if (index == null) {
-            return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, activeid + "对应的活动不存在！");
-        }
-        List<ActiveIndexConfig> configs = activeIndexConfigMapper.findAllByActiveIndexId(activeid);
-        if (configs != null && !configs.isEmpty()) {
-            for (ActiveIndexConfig config : configs) {
-                String configId = config.getId();
-                List<ActiveIndexConfigCondition> conditions = conditionMapper.findByConfigIdAndTypeAndLevel(configId, CommonContent.ACTIVE_CONDITION_TYPE_1, 1);
-                config.setConditions(null);
-                config.setConditions(conditions);
-
-            }
-            index.setConfig(configs);
-        }
-        ajaxObject.setData(index);
-        return ajaxObject;
-    }
-
-    @Override
     public List<ActiveIndex> findActiveIdByProject(String projectId, Integer type) {
         Map<String, Object> param = new HashMap<String, Object>(10);
         param.put("projectId", projectId);
@@ -1003,9 +870,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         List<ActiveIndex> allActiveIs = activeIndexMapper.findByProjectIdAndTypeNoPage(param);
         return allActiveIs;
     }
-
-    @Autowired
-    private ActiveIndexConfigConditionMapper activeIndexConfigConditionMapper;
 
     @Override
     public AjaxObject findByProjectIdAndTypeNoPage(String activeId, String projectId, Integer type, String name, String isTwiceIndex, String dePactiveId) {
@@ -1093,22 +957,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
                 }
             }
         }
-    }
-
-    /**
-     * 根据依赖关系递归查询所有依赖活动
-     *
-     * @param activeId
-     * @return
-     */
-    @Override
-    public AjaxObject findDepRelation(String activeId, String taskId, Integer isSearch) {
-        List<List<ActiveIndexConfig>> relations = Lists.newArrayList();
-        JSONArray array = new JSONArray();
-        getAllDepRelation(activeId, array, taskId, isSearch);
-        AjaxObject object = new AjaxObject();
-        object.setData(array);
-        return object;
     }
 
     /**
@@ -1254,92 +1102,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         }
     }
 
-    private void getDetail(ActiveIndexConfigCondition con, JSONObject condition) {
-        String id = con.getId();
-        condition.put("id", id);
-        condition.put("operatorSign", con.getOperatorSign());
-        condition.put("parentId", con.getParentId());
-        List<ActiveIndexConfigCondition> details = conditionMapper.findByParentIdAndType(id, CommonContent.ACTIVE_CONDITION_TYPE_2);
-        condition.put("detail", details);
-    }
-
-    public void getInnerConditionFromDb(String id, Integer type, Integer level, JSONArray inners) {
-        List<ActiveIndexConfigCondition> inner = conditionMapper.findByConfigIdAndTypeAndLevel(id, level, type);
-        if (inner == null || inner.isEmpty()) {
-            return;
-        }
-        for (ActiveIndexConfigCondition con : inner) {
-            JSONObject condition = new JSONObject();
-            getDetail(con, condition);
-            level++;
-            List<ActiveIndexConfigCondition> inn = conditionMapper.findByConfigIdAndTypeAndLevel(id, level, type);
-            while (inn != null && !inn.isEmpty()) {
-
-            }
-        }
-    }
-
-    private void comConditionOutSideFromDb(List<ActiveIndexConfigCondition> comCon, JSONArray array, JSONObject config) {
-        if (comCon != null && !comCon.isEmpty()) {
-            for (ActiveIndexConfigCondition condition : comCon) {
-                JSONObject object = new JSONObject();
-                String conditionId = condition.getId();
-                String operatorSign = condition.getOperatorSign();
-                String parentId = condition.getParentId();
-                object.put("operator", operatorSign);
-                object.put("id", conditionId);
-                object.put("parentId", parentId);
-                //拼装detail完成
-                comConditonDetailFromdb(conditionId, object);
-                //递归处理inner
-                List<ActiveIndexConfigCondition> conditons = conditionMapper.findByParentIdAndType(conditionId, CommonContent.ACTIVE_CONDITION_TYPE_1);
-                JSONArray inner = new JSONArray();
-                array.add(object);
-                comCoditonInnerFromDb(conditons, inner);
-                object.put("inner", inner);
-                config.put("conditions", array);
-            }
-        }
-    }
-
-    private void comCoditonInnerFromDb(List<ActiveIndexConfigCondition> conditons, JSONArray inner) {
-
-        if (conditons != null && !conditons.isEmpty()) {
-            for (ActiveIndexConfigCondition condition : conditons) {
-
-                JSONObject object = new JSONObject();
-                String conId = condition.getId();
-                String operatorSign = condition.getOperatorSign();
-                String parentId = condition.getParentId();
-                object.put("operator", operatorSign);
-                object.put("id", conId);
-                object.put("parentId", parentId);
-                comConditonDetailFromdb(conId, object);
-                inner.add(object);
-                object.put("inner", inner);
-                JSONArray array = new JSONArray();
-                comCoditonInnerFromDb(conditionMapper.findByParentIdAndType(conId, CommonContent.ACTIVE_CONDITION_TYPE_1), array);
-            }
-        } else {
-            return;
-        }
-    }
-
-    public void comConditonDetailFromdb(String conditionId, JSONObject jsonObject) {
-        JSONArray detail = new JSONArray();
-        //查找条件信息
-        List<ActiveIndexConfigCondition> conditons = conditionMapper.findByParentIdAndType(conditionId, CommonContent.ACTIVE_CONDITION_TYPE_2);
-
-        if (conditons != null && !conditons.isEmpty()) {
-            for (ActiveIndexConfigCondition condition : conditons) {
-                JSONObject object = (JSONObject) JSONObject.toJSON(condition);
-                detail.add(object);
-            }
-        }
-
-        jsonObject.put("detail", detail);
-    }
-
     private void compantCondition(String configId, List<ActiveIndexConfigCondition> conditions, JSONObject jsonObject, String parentId, JSONObject ob, int level, Integer isTemp) {
         ActiveIndexConfigCondition condition = new ActiveIndexConfigCondition();
         String operator = jsonObject.getString("operator");
@@ -1423,14 +1185,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         }
     }
 
-    private void webUIInnerToObject(JSONArray array, List<ActiveIndexConfigCondition> conditions, String parentId) {
-        int size = array.size();
-        for (int i = 0; i < size; i++) {
-            JSONObject jsonObject = array.getJSONObject(i);
-
-        }
-    }
-
     /**
      * 第一版条件格式解析，目前不在使用
      *
@@ -1493,89 +1247,6 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
             }*/
         }
         return flag;
-    }
-
-    @Override
-    public String findById(Long id) {
-        return null;
-    }
-
-    @Override
-    public String findAllWithPage(ActiveIndex activeIndex, int pageNum, int pageSize) {
-        return null;
-    }
-
-    /**
-     * 查找依赖
-     *
-     * @param activeId
-     * @param byRefActiveId
-     * @return
-     */
-    private List<Map<String, Object>> dependencies(String activeId, List<ActiveIndexConfigCondition> byRefActiveId) {
-        List<Map<String, Object>> dependencieded = new ArrayList<Map<String, Object>>();
-        List<String> all = new ArrayList<String>();
-        if (byRefActiveId != null && !byRefActiveId.isEmpty()) {
-            for (ActiveIndexConfigCondition condition : byRefActiveId) {
-                String refActiveId = condition.getRefActiveId();
-                if (StringUtils.isNotEmpty(refActiveId) && !StringUtils.equals(activeId, refActiveId)) {
-                    if (!all.contains(refActiveId)) {
-                        Map<String, Object> map = new HashMap<String, Object>(50);
-                        ActiveIndex index = activeIndexMapper.selectByPrimaryKey(refActiveId);
-                        relationDep(dependencieded, all, activeId, map, index);
-                    }
-                }
-
-            }
-        }
-        return dependencieded;
-    }
-
-    private void relationDep(List<Map<String, Object>> dependencieded, List<String> all, String refActiveId, Map<String, Object> map, ActiveIndex index) {
-        if (index != null && index.getIsTmp() == CommonContent.ACTIVE_TYPE_NOTEMP) {
-            if (index.getActiveType().intValue() == CommonContent.ACTIVE_TYPE_INOUTN.intValue()) {
-                List<ActiveIndexConfig> configs = activeIndexConfigMapper.findAllByActiveIndexId(index.getId());
-                if (configs != null && !configs.isEmpty()) {
-                    for (ActiveIndexConfig config : configs) {
-                        if (!all.contains(config.getId())) {
-                            List<ActiveIndexConfigCondition> conditions = conditionMapper.findByConfigIdAndType(config.getId(), 2);
-                            for (ActiveIndexConfigCondition condition : conditions) {
-                                boolean equals = StringUtils.equals(condition.getRefActiveId(), refActiveId);
-                                if (!all.contains(condition.getId()) && equals) {
-                                    String activeResultDesc = StringUtils.trim(config.getActiveResultDesc());
-                                    Map<String, Object> dep = new HashMap<String, Object>();
-                                    dep.put("refActiveId", index.getId());
-                                    dep.put("refActiveName", activeResultDesc);
-                                    dep.put("type", index.getActiveType());
-                                    if (StringUtils.equals(activeResultDesc, CommonContent.ACTIVE_TYPE_IN_DESE) && !all.contains(activeResultDesc)) {
-                                        dep.put("conditionType", CommonContent.ACTIVE_TYPE_IN);
-                                        all.add(activeResultDesc);
-                                        dependencieded.add(dep);
-                                    }
-                                    if (StringUtils.equals(activeResultDesc, CommonContent.ACTIVE_TYPE_OUT_DESC) && !all.contains(activeResultDesc)) {
-                                        dep.put("conditionType", CommonContent.ACTIVE_TYPE_OUT);
-                                        all.add(activeResultDesc);
-                                        dependencieded.add(dep);
-                                    }
-                                    all.add(condition.getId());
-                                }
-                            }
-                            all.add(config.getId());
-                        }
-                    }
-                }
-            } else {
-                if (!all.contains(index.getId())) {
-                    map.put("refActiveId", index.getId());
-                    map.put("refActiveName", index.getName());
-                    map.put("type", index.getActiveType());
-                    dependencieded.add(map);
-                    all.add(index.getId());
-                }
-            }
-            map.put("type", index.getActiveType());
-            all.add(refActiveId);
-        }
     }
 
     /**
@@ -1839,45 +1510,5 @@ public class ActiveIndexServiceImpl implements ActiveIndexService {
         List<ActiveIndex> actives = activeIndexMapper.findByParam(param);
         return actives;
     }
-
-    /**
-     * 根据configId 获取congfig下所有依赖的活动id
-     *
-     * @param configIds
-     * @return
-     */
-    @Override
-    public List<String> findRefActiveIdByConfigId(List<String> configIds) {
-        if (configIds == null || configIds.isEmpty()) {
-            return Lists.newArrayList();
-        }
-        return conditionMapper.findRefActiveIdByConfigId(configIds);
-    }
-
-    /**
-     * 获得当前活动依赖的所有活动或指标的id
-     *
-     * @param configs
-     * @return
-     */
-    @Override
-    public List<String> getRefActiveIds(List<ActiveIndexConfig> configs) {
-        List<String> activeIds = null;
-        if (configs != null && !configs.isEmpty()) {
-            activeIds = Lists.newArrayList();
-            for (ActiveIndexConfig config : configs) {
-                activeIds.add(config.getId());
-            }
-        }
-
-        return this.findRefActiveIdByConfigId(activeIds);
-    }
-
-    @Override
-    public List<ActiveIndexConfigCondition> dependenceCurActive(String activeId) {
-        List<ActiveIndexConfigCondition> conditions = conditionMapper.findByRefActiveId(activeId);
-        return conditions;
-    }
-
-
+    
 }

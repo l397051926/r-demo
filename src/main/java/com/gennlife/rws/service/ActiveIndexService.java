@@ -1,6 +1,5 @@
 package com.gennlife.rws.service;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.ActiveIndex;
 import com.gennlife.rws.entity.ActiveIndexConfig;
@@ -17,43 +16,39 @@ import java.util.Map;
  */
 public interface ActiveIndexService {
 
-    public AjaxObject saveActive(JSONObject activeIndex);
-    public AjaxObject updateActive(JSONObject active);
-    public String findById(Long id);
-    public String findAllWithPage(ActiveIndex activeIndex, int pageNum, int pageSize);
+    AjaxObject saveActive(JSONObject activeIndex);
+
+    AjaxObject updateActive(JSONObject active);
+
     AjaxObject findByProjectId(String projectId, int type, String name, int pageNum, int pageSize);
+
     AjaxObject deleteByActiveId(String activeId);
+
     ActiveIndex findByActiveId(String activeId);
-    public AjaxObject saveOrUpdate(JSONObject active, String groupToId);
-    public List<ActiveIndexConfigCondition> convertJsonToCondditionNew(JSONArray condition, String configId, Integer level, Integer isTemp);
-    public AjaxObject comConditonToPackaging(String projectId, String activeid, String taskId, Integer isSearch);
-    public AjaxObject comConditonToWebUI(String projectId, String activeid);
+
+    AjaxObject saveOrUpdate(JSONObject active, String groupToId);
 
     List<ActiveIndex> findActiveIdByProject(String projectId, Integer type);
 
-    public AjaxObject findByProjectIdAndTypeNoPage(String activeId, String projectId, Integer type, String s, String name, String isTwiceIndex);
-    public AjaxObject findDepRelation(String activeId, String taskId, Integer isSearch);
+    AjaxObject findByProjectIdAndTypeNoPage(String activeId, String projectId, Integer type, String s, String name, String isTwiceIndex);
 
-    public List<ActiveIndex> findeByProjectAndType(String projectId, int type);
-    public List<String> findRefActiveIdByConfigId(List<String> configIds);
-    public List<ActiveIndexConfigCondition> dependenceCurActive(String activeId);
-    public boolean conditioIsnChange(JSONObject active);
-    public List<ActiveIndex> findeByActiveName(Map<String, Object> param);
-    public List<String> getRefActiveIds(List<ActiveIndexConfig> configs);
-    public AjaxObject judgeActiveDependence(String activeId);
-    public boolean judgeLoopDep(List<ActiveIndexConfig> configs, String currentActiveId, StringBuffer depRelations);
+    List<ActiveIndex> findeByProjectAndType(String projectId, int type);
 
-    List<ActiveIndex> getActiveIndexByProjectId(String uid, String projectId);
+    boolean conditioIsnChange(JSONObject active);
 
-    AjaxObject getContrastiveActive(String uid, String projectId,Integer cortType);
-    /**
-     * 修改指标或者事件名称
-     * @param params
-     */
+    List<ActiveIndex> findeByActiveName(Map<String, Object> param);
+
+    AjaxObject judgeActiveDependence(String activeId);
+
+    boolean judgeLoopDep(List<ActiveIndexConfig> configs, String currentActiveId, StringBuffer depRelations);
+
+    AjaxObject getContrastiveActive(String uid, String projectId, Integer cortType);
+
     boolean editActiveName(Map<String, Object> params);
 
     AjaxObject getAllResearchVariable(String createId, String projectId, Integer cortType, String uid);
-    public List<ActiveIndexConfigCondition> findByRefActiveId(String refActiveId);
+
+    List<ActiveIndexConfigCondition> findByRefActiveId(String refActiveId);
 
     List<ActiveIndex> dependenceCurActiveByIsTmp(String activeId);
 

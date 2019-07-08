@@ -199,7 +199,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 	public void savePatientImport(JSONObject obj) throws IOException {
 		String patientSetId = obj.getString("patientSetId");
 		Integer count = patientsSetMapper.getPatientSetCount(patientSetId);
-		Long localCount = getPatientSetLocalCount(patientSetId); //历史数量
+		Long localCount = getPatientSetLocalCountByExclude(patientSetId,1); //历史数量
 		Long currentCount = obj.getLong("curenntCount"); //本次导入的数量
 
 		PatientsSet patientsSet = new PatientsSet();
@@ -215,6 +215,13 @@ public class PatientSetServiceImpl implements PatientSetService {
 		updatePatientSqlMap(obj);
 	}
 	@Override
+	public Long getPatientSetLocalCountByExclude(String patientSetId, Integer export) {
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdByExclude(patientSetId,export);
+		Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
+		return Long.valueOf(count);
+	}
+
+	@Override
 	public Long getPatientSetLocalCount(String patientSetId) {
 		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
 		Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
@@ -222,12 +229,12 @@ public class PatientSetServiceImpl implements PatientSetService {
 	}
 	@Override
 	public String getPatientSetLocalSql(String patientSetId){
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdByExclude(patientSetId,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(joining(SeparatorContent.VERTIVAL_BAR));
 	}
 	@Override
 	public List<String> getPatientSetLocalSqlByList(String patientSetId){
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdByExclude(patientSetId,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
 	}
 

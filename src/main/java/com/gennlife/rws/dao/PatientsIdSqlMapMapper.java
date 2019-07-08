@@ -17,4 +17,5 @@ public interface PatientsIdSqlMapMapper {
 
     void insertForGroupid(PatientsIdSqlMap record);
 
+    List<PatientsIdSqlMap> getPatientSnIdsBypatientSetIdByExclude(@Param("patientsSetId") String patientsSetId,@Param("export") Integer export);
 }

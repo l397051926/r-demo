@@ -85,6 +85,8 @@ public interface PatientSetService {
 
     void savePatientImport(JSONObject obj) throws IOException;
 
+	Long getPatientSetLocalCountByExclude(String patientSetId, Integer export);
+
 	Long getPatientSetLocalCount(String patientSetId);
 
 	String getPatientSetLocalSql(String patientSetId);

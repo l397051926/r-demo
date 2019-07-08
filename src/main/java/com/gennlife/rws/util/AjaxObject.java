@@ -5,6 +5,7 @@ package com.gennlife.rws.util;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.gennlife.rws.web.WebAPIResult;
 
@@ -17,7 +18,7 @@ import java.util.Map;
  * Date: 2017/10/19
  * Time: 15:37
  */
-@JsonSerialize(include= JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AjaxObject {
     public static final int AJAX_STATUS_SUCCESS = 200;
     /*页面提示类结果*/

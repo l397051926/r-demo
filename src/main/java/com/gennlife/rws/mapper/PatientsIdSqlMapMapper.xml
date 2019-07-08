@@ -83,7 +83,13 @@
 		<include refid="Base_Column_List" />
 		from patients_id_sql_map
 		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR}
+	</select>
 
+	<select id="getPatientSnIdsBypatientSetIdByExclude" resultMap="BaseResultMap" parameterType="Object" >
+		select
+		<include refid="Base_Column_List" />
+		from patients_id_sql_map
+		where 	patients_set_id = #{patientsSetId,jdbcType=VARCHAR} AND export = #{export,jdbcType=INTEGER}
 	</select>
 
 	<insert id="insertForGroupid" parameterType="com.gennlife.rws.entity.PatientsIdSqlMap">

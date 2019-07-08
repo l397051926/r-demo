@@ -19,7 +19,6 @@ import java.util.Set;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Ignore
 public class patientSetServiceTest {
     @Autowired
     private PatientSetService patientSetService;
@@ -30,7 +29,6 @@ public class patientSetServiceTest {
 
     @Test
     public void testDemo() {
-
     }
 
     @Test
@@ -47,7 +45,7 @@ public class patientSetServiceTest {
     @Test
     public void getSizeForPatientSet() {
         String patientSetId = "aaaa";
-        System.out.println(patientSetService.getPatientSetLocalCount(patientSetId));
+        System.out.println(patientSetService.getPatientSetLocalCountByExclude(patientSetId,0));
     }
 
     @Test
