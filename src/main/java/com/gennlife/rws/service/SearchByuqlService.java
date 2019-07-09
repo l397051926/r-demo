@@ -13,23 +13,26 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public interface SearchByuqlService {
-     String SearchByIndex(JSONObject object,String resultOrderKey,Integer isSearch) throws ExecutionException, InterruptedException, IOException;
+     String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, String patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-    String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch) throws ExecutionException, InterruptedException, IOException;
+    String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     Map<String, String> saveEnumCortrastiveResultRedisMap(List<ActiveSqlMap> activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException;
 
     Map<String,String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException;
 
-    String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch) throws ExecutionException, InterruptedException, IOException;
+    String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-     String SearchByEnume(JSONObject obj, String resultOrderKey,Integer isSearch) throws ExecutionException, InterruptedException, IOException;
+     String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-    AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns, String groupFromId, JSONArray patientSetId, String groupId, String isVariant) throws IOException, ExecutionException, InterruptedException;
+    AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns, String groupFromId, JSONArray patientSetId, String groupId, String isVariant, String crfId) throws IOException, ExecutionException, InterruptedException;
 
-    AjaxObject searchCalcResultByUql(String activeId, String projectId, JSONArray basicColumns, JSONArray visitColumns, Integer activeType, Integer pageNum, Integer pageSize, String activeResult, String groupFromId, JSONArray patientSetId, String groupId) throws InterruptedException, IOException, ExecutionException;
+    AjaxObject searchCalcResultByUql(String activeId, String projectId, JSONArray basicColumns, JSONArray visitColumns, Integer activeType,
+                                     Integer pageNum, Integer pageSize, String activeResult, String groupFromId, JSONArray patientSetId, String groupId, String crfId) throws InterruptedException, IOException, ExecutionException;
 
-    AjaxObject searchCalcExculeByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns, String isExport, String groupId, String groupName, JSONArray patientSetId, String createId, String createName,String groupFromId,boolean autoExoprt) throws IOException, ExecutionException, InterruptedException;
+    AjaxObject searchCalcExculeByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns,
+                                     String isExport, String groupId, String groupName, JSONArray patientSetId, String createId,
+                                     String createName,String groupFromId,boolean autoExoprt, String crfId) throws IOException, ExecutionException, InterruptedException;
 
     AjaxObject getPatientListByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException;
 
@@ -41,7 +44,11 @@ public interface SearchByuqlService {
 
     AjaxObject getPatientListByAllByPatientSetIds(JSONArray patientSetIdTmp, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, int i, String crfId);
 
-    void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId) throws ExecutionException, InterruptedException, IOException;
+    void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId);
+
+    String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
+
+    List<String> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 }

@@ -296,8 +296,8 @@ public class PatientSetServiceImpl implements PatientSetService {
                     searchCrfByuqlService.searchCalcExculeByUql(groupId,projectId,1,1,new JSONArray(),crfId,"1",groupId,group.getGroupName(),
                         JSONArray.parseArray(JSON.toJSONString(patientSetIds)),group.getCreateId(),group.getCreateName(),null,true);
                 }else {
-                    searchByuqlService.SearchByExclude(obj, null,0);
-                    searchByuqlService.searchCalcExculeByUql(groupId,projectId,1,1,new JSONArray(),"1",groupId,group.getGroupName(),JSONArray.parseArray(JSON.toJSONString(patientSetIds)),group.getCreateId(),group.getCreateName(),null,true);
+                    searchByuqlService.SearchByExclude(obj, null,0, crfId);
+                    searchByuqlService.searchCalcExculeByUql(groupId,projectId,1,1,new JSONArray(),"1",groupId,group.getGroupName(),JSONArray.parseArray(JSON.toJSONString(patientSetIds)),group.getCreateId(),group.getCreateName(),null,true, crfId);
                 }
             } catch (ExecutionException e) {
 				e.printStackTrace();

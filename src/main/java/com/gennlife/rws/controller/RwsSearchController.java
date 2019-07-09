@@ -126,9 +126,10 @@ public class RwsSearchController {
                 }
             }else {
                 if(CommonContent.ACTIVE_TYPE_INDEX==activeType){//指标  枚举
-                    ajaxObject = searchByuqlService.searchClacIndexResultByUql(activeId,projectId,pageSize,pageNum,basicColumns,groupFromId,patientSetId,groupId,isVariant);
+                    ajaxObject = searchByuqlService.searchClacIndexResultByUql(activeId,projectId,pageSize,pageNum,basicColumns,groupFromId,patientSetId,groupId,isVariant,crfId);
                 }else if(CommonContent.ACTIVE_TYPE_INOUTN==activeType){//入排
-                    ajaxObject = searchByuqlService.searchCalcExculeByUql(activeId,projectId,pageSize,pageNum,basicColumns,isExport,groupId,groupName,patientSetId,createId,createName,groupFromId,false);
+                    ajaxObject = searchByuqlService.searchCalcExculeByUql(activeId,projectId,pageSize,pageNum,basicColumns,isExport,groupId,groupName,patientSetId,createId,
+                        createName,groupFromId,false,crfId);
                 }
             }
 
@@ -166,7 +167,7 @@ public class RwsSearchController {
             if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
                 ajaxObject = searchCrfByuqlService.searchCalcResultByUql(activeId, projectId, basicColumns, visitColumns, activeType, pageNum, pageSize,activeResult,crfId,groupFromId,patientSetId,groupId);
             }else {
-                ajaxObject = searchByuqlService.searchCalcResultByUql(activeId, projectId, basicColumns, visitColumns, activeType, pageNum, pageSize,activeResult,groupFromId,patientSetId,groupId);
+                ajaxObject = searchByuqlService.searchCalcResultByUql(activeId, projectId, basicColumns, visitColumns, activeType, pageNum, pageSize,activeResult,groupFromId,patientSetId,groupId,crfId);
             }
         } catch (Exception e) {
             ajaxObject = getAjaxObject(AjaxObject.AJAX_STATUS_FAILURE, e.getMessage());

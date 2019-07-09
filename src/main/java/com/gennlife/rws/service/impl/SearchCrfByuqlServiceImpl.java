@@ -844,7 +844,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         groupToId =StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId;
         //获取初筛 sql
         String projectId = object.getString("projectId").replaceAll("-", "");
-        String patientSql =  getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId,crfId);
+        String patientSql =  searchByuqlService.getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId,crfId);
 
         JSONObject config = object.getJSONArray("config").getJSONObject(0);
         String activeIndexId = config.getString("activeIndexId");//指标id
@@ -1036,9 +1036,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         String R_activeIndexId =  isSearch == CommonContent.ACTIVE_TYPE_TEMP ? activeIndexId.concat("_tmp") : activeIndexId;
         String T_activeIndexId = "t" + activeIndexId;
 
-        String patientSql = getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId,crfId);
-
-
+        String patientSql = searchByuqlService.getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId,crfId);
 //        List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
 //        ActiveSqlMap otherActiveSqlMap = null;
 //        UqlClass otherUql = null;
@@ -1609,7 +1607,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         String activeIndexId = object.getString("id");
         JSONArray config = object.getJSONArray("config");
 
-        String patientSql = getInitialSQL(groupFromId,isVariant,groupToId, patientSetId,projectId,crfId);
+        String patientSql = searchByuqlService.getInitialSQL(groupFromId,isVariant,groupToId, patientSetId,projectId,crfId);
         UqlWhere where = new UqlWhere();
         UqlClass uqlClass = new CrfExcludeUqlClass(projectId, crfId);
         transforConditionForConfig(config, uqlClass, where, schema,crfId,groupToId,projectId,patientSetId);
@@ -1809,36 +1807,36 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     @Override
     public String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException {
         UqlClass uqlClass = null;
+
         final AbstractFieldAnalyzer schema = SCHEMAS.get(crfId);
         JSONArray patientSetId = object.getJSONArray("patientSetId");
-        /*获取参数列表*/
         String name = object.getString("name");
         String id = object.getString("id");
         String groupFromId = object.getString("groupFromId");
         String isVariant = object.getString("isVariant");
         String groupToId = object.getString("groupToId");
+        String projectId = object.getString("projectId");
+        String patientSql = searchByuqlService.getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId,crfId);
         if( UqlConfig.CORT_INDEX_ID.equals(groupToId)){
             isVariant = "1";
         }
         groupToId =StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId;
-        String projectId = object.getString("projectId").replaceAll("-", "");
         JSONObject config = object.getJSONArray("config").getJSONObject(0);
-
         String activeIndexId = config.getString("activeIndexId");//指标id
         String T_activeIndexId = isSearch == CommonContent.ACTIVE_TYPE_TEMP ? activeIndexId.concat("_tmp") : activeIndexId;
         String R_activeIndexId = "t" + activeIndexId;
-
         String indexType = config.getString("indexType");
         String indexTypeValue = DataType.fromString(indexType).name();
         JSONArray contitions = config.getJSONArray("conditions");
-        String indexCol = config.getString("indexColumn").substring(0, config.getString("indexColumn").lastIndexOf("."));
-
         JSONObject resultObj = JSONObject.parseObject(resultOrderKey);
-
-        String patientSql = getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId,crfId);
-
-
+        String indexCol = config.getString("indexColumn").substring(0, config.getString("indexColumn").lastIndexOf("."));
         String indexColumn = disposeVisits(config.getString("indexColumn"));
+        String function = config.getString("function");
+        String functionParam = config.getString("functionParam");
+
+        String order1 = null;
+        String selectValue = null;
+
         String indexDate = disposeVisits(resultObj.getString(indexCol));
         KeyPath indexDatePath = KeyPath.compile(indexDate);
         if (schema.isPackagedField(indexDate)) {
@@ -1849,11 +1847,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             indexDate = indexDatePath.stream().map(Object::toString).collect(joining("."));
         }
 
-        String function = config.getString("function");
-        String indexResultValue = config.getString("indexResultValue");
-        String functionParam = config.getString("functionParam");
-        String order1 = null;
-        String selectValue = null;
         KeyPath visitsPath = KeyPath.compile(indexColumn);
         String visits = indexColumn;
         if (schema.isPackagedField(visits)) {
@@ -1862,9 +1855,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             visits = "visitinfo";
         }
         visitsPath = KeyPath.compile(visits);
-//        if( parts.length>1 && parts[0].equals("sub_inspection") ){
-//            visits = "inspection_reports";
-//        }
+
         //指标处理
         if (StringUtils.isNotEmpty(indexColumn)) {
             if (schema.isPackagedField(indexColumn)) {
@@ -2011,24 +2002,24 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         return " ,count(" + indexColumn + ".DOC_ID) as jocount ";
     }
 
-    private String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId,String crfId) {
-        String patientSql = "";
-        if(StringUtils.isEmpty(groupFromId) && (patientSetId ==null || patientSetId.size()==0) && StringUtils.isNotEmpty(groupToId)){
-            groupFromId = groupMapper.getGroupParentId(groupToId);
-            if(StringUtils.isEmpty(groupFromId)){
-                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupToId);
-                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
-            }
-        }
-        if(!"1".equals(isVariant)){
-            if(patientSetId !=null && patientSetId.size()>0){
-                patientSql = getPatientSql(patientSetId,projectId,crfId);
-            }else{
-                patientSql = getGroupSql(groupFromId);
-            }
-        }
-        return patientSql;
-    }
+//    private String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId,String crfId) {
+//        String patientSql = "";
+//        if(StringUtils.isEmpty(groupFromId) && (patientSetId ==null || patientSetId.size()==0) && StringUtils.isNotEmpty(groupToId)){
+//            groupFromId = groupMapper.getGroupParentId(groupToId);
+//            if(StringUtils.isEmpty(groupFromId)){
+//                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupToId);
+//                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
+//            }
+//        }
+//        if(!"1".equals(isVariant)){
+//            if(patientSetId !=null && patientSetId.size()>0){
+//                patientSql = getPatientSql(patientSetId,projectId,crfId);
+//            }else{
+//                patientSql = getGroupSql(groupFromId,crfId);
+//            }
+//        }
+//        return patientSql;
+//    }
 
     private void disposeDataCondition(String value, String condition, String sourceTagName, StringBuffer stringBuffer) {
         JSONArray valueArray = JSONArray.parseArray(value);
@@ -2223,7 +2214,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             if(patientSetIds !=null && patientSetIds.size()>0){
                 patientSql = getPatientSql(patientSetIds,projectId,crfId);
             }else{
-                patientSql = getGroupSql(groupFromId);
+                patientSql = getGroupSql(groupFromId,crfId);
             }
         }
 
@@ -2456,7 +2447,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
         String query = String.join(" or ",patientSetSql.stream().map( x -> "("+TransPatientSql.getAllPatientSql(TransPatientSql.getUncomPatientSnSql(x),crfId)+")").collect(toList()));
         JSONArray sourceFilter = new JSONArray();
-        sourceFilter.add(IndexContent.getPatientInfoPatientSn(crfId));
         String result = null;
         String newSql = "select  "+ IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId, projectId)+" where "+query+IndexContent.getGroupBy(crfId);
         String response = httpUtils.querySearch(projectId,newSql,1,Integer.MAX_VALUE-1,null,sourceFilter,crfId,true);
@@ -2465,19 +2455,13 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             .stream()
             .map(String.class::cast)
             .collect(toSet());
-        if (patients.isEmpty()) {
-            result = IndexContent.getPatientDocId(crfId)+" IN ('')";
-        } else {
-            result = IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(patients);
-        }
+        result = IndexContent.getPatientDocId(crfId)+TransPatientSql.transForExtContain(patients);
         return result;
     }
 
-    private String getGroupSql(String groupId) {
+    private String getGroupSql(String groupId,String crfId) {
         List<String> groupDataPatSn = groupDataMapper.getPatientDocId(groupId);
-        String query = null;
-        query = TransPatientSql.transForExtContain(groupDataPatSn);
-        return  " patient_info.patient_basicinfo.DOC_ID "+query;
+        return  " "+IndexContent.getPatientDocId(crfId)+" "+TransPatientSql.transForExtContain(groupDataPatSn);
     }
 
     private Integer getPatientSqlCount(JSONArray patientSetId, String projectId,String crfId) {

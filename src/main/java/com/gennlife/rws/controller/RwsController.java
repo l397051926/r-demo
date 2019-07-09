@@ -71,9 +71,9 @@ public class RwsController {
     @RequestMapping(value = "/saveActiveIndex", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "RWS 配置信息保存", notes = "根据前端提交的信息保存RWS 保存活动/指标/入排条件的定义 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "json数据{\"active\":json,\"isSearch\":0}", dataType = "JSONObject", required = true)
+        @ApiImplicitParam(name = "param", value = "json数据{\"active\":json,\"isSearch\":0}", dataType = "JSONObject", required = true)
     })
-    public AjaxObject saveActiveIndex(@RequestBody String param)  {
+    public AjaxObject saveActiveIndex(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             LOG.info("接收到的计算参数：{}", param);
@@ -96,40 +96,42 @@ public class RwsController {
             String createName = active.getString("createName");
             String name = active.getString("name");
             String activeId = active.getString("id");
-
-            if(isSearch == CommonContent.ACTIVE_TYPE_TEMP_SAVEAS){
+            //若是另存为 的数据 判定 名字是不是重复了
+            if (isSearch == CommonContent.ACTIVE_TYPE_TEMP_SAVEAS) {
                 Map<String, Object> params = new HashMap<String, Object>();
                 params.put("projectId", projectId);
                 params.put("name", name);
                 params.put("isTmp", 0);
-                params.put("isVariant",isVariant);
+                params.put("isVariant", isVariant);
                 List<ActiveIndex> activeIndexList = activeIndexService.findeByActiveName(params);
                 if (activeIndexList != null && !activeIndexList.isEmpty()) {
-                    if(Objects.nonNull(isVariant) && Objects.equals(1,isVariant)){
+                    if (Objects.nonNull(isVariant) && Objects.equals(1, isVariant)) {
                         return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "同一个项目内的研究变量名称不能重复");
                     }
                 }
             }
-            Boolean isClsUpdate  =active.getBoolean("isClsUpdate") == null ? false : active.getBoolean("isClsUpdate");
-            if(isClsUpdate){
+            //判定是不是二次保存的数据
+            Boolean isClsUpdate = active.getBoolean("isClsUpdate") == null ? false : active.getBoolean("isClsUpdate");
+            if (isClsUpdate) {
                 activeIndexService.deleteByActiveId(activeId);
                 contrastiveAnalysisActiveMapper.deleteByActiveIds(activeId);
             }
             String oldName = activeIndexMapper.findActiveName(active.getString("id"));
             boolean judge = isSearch != null && isSearch != 0 && isSearch != 1 && isSearch != 2;
+
             if (active == null || judge || StringUtils.isEmpty(crfId)) {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "参数错误");
             }
-            if(StringUtils.isNotEmpty(crfId) && !UqlConfig.RESULT_ORDER_KEY.containsKey(crfId)){
-                UqlConfig.RESULT_ORDER_KEY.put(crfId,resultOrderKey);
+            if (StringUtils.isNotEmpty(crfId) && !UqlConfig.RESULT_ORDER_KEY.containsKey(crfId)) {
+                UqlConfig.RESULT_ORDER_KEY.put(crfId, resultOrderKey);
             }
             JSONArray newConfigs = new JSONArray();
             JSONObject actives = object.getJSONObject("active");
             JSONArray configss = actives.getJSONArray("config");
             //枚举修改
             Boolean enumEmity = false;
-            JSONArray configsst = moduleConvertService.enumFormat(configss,enumEmity);
-            if(configsst != null && configsst.size()>0 && configsst.getJSONObject(0).containsKey("enumEmpty") && configsst.getJSONObject(0).getBoolean("enumEmpty")){
+            JSONArray configsst = moduleConvertService.enumFormat(configss, enumEmity);
+            if (configsst != null && configsst.size() > 0 && configsst.getJSONObject(0).containsKey("enumEmpty") && configsst.getJSONObject(0).getBoolean("enumEmpty")) {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "不能输入重复的枚举值");
             }
             int size = configsst == null ? 0 : configsst.size();
@@ -149,46 +151,49 @@ public class RwsController {
             actives.put("config", newConfigs);
             System.out.println(object);
             //校验/保存数据并返回保存后的结果，用于判断是否调用PackagingService和前端回显数据
-            ajaxObject = activeIndexService.saveOrUpdate(object,groupToId);
+            ajaxObject = activeIndexService.saveOrUpdate(object, groupToId);
+
             JSONObject obj = JSONObject.parseObject(JSON.toJSONString(ajaxObject.getData()));
-            obj.put("patientSetId",patientsSetId);
-            obj.put("groupToId",groupToId);
-            obj.put("groupFromId",groupFromId);
+            obj.put("patientSetId", patientsSetId);
+            obj.put("groupToId", groupToId);
+            obj.put("groupFromId", groupFromId);
             Integer activeType = active.getInteger("activeType");
             String indexTypeDesc = configss.getJSONObject(0).getString("indexTypeDesc");
-            String sql = null;
-            String type =configss.getJSONObject(0).getString("indexType");
-            if(StringUtils.isEmpty(oldName)){
+
+            //处理研究变量的问题
+            if (StringUtils.isEmpty(oldName)) {
                 oldName = name;
             }
-            if(isVariant !=null && 1==isVariant){
-                activeSqlMapMapper.deleteByActiveIndexId(active.getString("id"), UqlConfig.CORT_INDEX_ID );
-                if(StringUtils.isEmpty(active.getString("id")) && !isClsUpdate ){
+            if (isVariant != null && 1 == isVariant) {
+                activeSqlMapMapper.deleteByActiveIndexId(active.getString("id"), UqlConfig.CORT_INDEX_ID);
+                if (StringUtils.isEmpty(active.getString("id")) && !isClsUpdate) {
                     String content = createName + "新增 研究变量 ： " + oldName;
                     logUtil.saveLog(projectId, content, create_user, createName);
-                }else if(isSearch == 2 && !isClsUpdate ){
+                } else if (isSearch == 2 && !isClsUpdate) {
                     String content = createName + "新增 研究变量 ： " + name;
                     logUtil.saveLog(projectId, content, create_user, createName);
-                }else {
-                    if(isClsUpdate){
+                } else {
+                    if (isClsUpdate) {
                     }
-                    contrastiveAnalysisActiveService.deleteContrastiveActiveById(obj.getString("id"),projectId);
+                    contrastiveAnalysisActiveService.deleteContrastiveActiveById(obj.getString("id"), projectId);
                     String content = createName + "编辑 研究变量 ： " + oldName;
                     logUtil.saveLog(projectId, content, create_user, createName);
                 }
             }
-            //引用计算
-            if(isVariant !=null && 1==isVariant){
+            String patientSql = searchByuqlService.getInitialSQL(groupFromId,isVariant.toString(),groupToId, obj.getJSONArray("patientSetId"),projectId,crfId);
+            //*************  开始计算  *************
+            if (isVariant != null && 1 == isVariant) {
                 SingleExecutorService.getInstance().getBackgroundVariantExecutor().submit(() -> {
                     try {
-                        searchByUqlService(sql,crfId,activeType,obj,resultOrderKey,isSearch,indexTypeDesc);
+                        searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,patientSql);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
-            }else {
-                searchByUqlService(sql,crfId,activeType,obj,resultOrderKey,isSearch,indexTypeDesc);
+            } else {
+                searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,patientSql);
             }
+            //****************** 计算结束 *****************
             ActiveIndex data = (ActiveIndex) ajaxObject.getData();
             data = data == null ? new ActiveIndex() : data;
             JSONObject o = (JSONObject) JSONObject.toJSON(data);
@@ -225,33 +230,34 @@ public class RwsController {
                 ajaxObject.setData(activeResult);
             }
         } catch (Exception e) {
-             LOG.error("保存失败，异常信息为{}", e);
-            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, AjaxObject.AJAX_MESSAGE_FAILURE );
+            LOG.error("保存失败，异常信息为{}", e);
+            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, AjaxObject.AJAX_MESSAGE_FAILURE);
         }
 
         return ajaxObject;
     }
 
-    private void searchByUqlService(String sql,String crfId,Integer activeType,JSONObject obj,String resultOrderKey,Integer isSearch,String indexTypeDesc) throws ExecutionException, InterruptedException, IOException {
-        if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
+    private void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, String patientSql) throws ExecutionException, InterruptedException, IOException {
+
+        if (UqlConfig.isEmr(crfId)) {
             if (3 == activeType) {//那排
-                sql =  searchCrfByuqlService.SearchByExclude(obj, resultOrderKey,isSearch,crfId);
+                searchCrfByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, crfId);
             } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-                sql =   searchCrfByuqlService.SearchByEnume(obj, resultOrderKey,isSearch,crfId);
-            } else if(2 == activeType) {//指标
-                sql =   searchCrfByuqlService.SearchByIndex(obj, resultOrderKey,isSearch,crfId);
-            }else  if(1 == activeType){ //事件
-                sql =   searchCrfByuqlService.searchByActive(obj, resultOrderKey,isSearch,crfId);
+                searchCrfByuqlService.SearchByEnume(obj, resultOrderKey, isSearch, crfId);
+            } else if (2 == activeType) {//指标
+                searchCrfByuqlService.SearchByIndex(obj, resultOrderKey, isSearch, crfId);
+            } else if (1 == activeType) { //事件
+                searchCrfByuqlService.searchByActive(obj, resultOrderKey, isSearch, crfId);
             }
-        }else {
+        } else {
             if (3 == activeType) {//那排
-                sql =  searchByuqlService.SearchByExclude(obj, resultOrderKey,isSearch);
+                searchByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, crfId);
             } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-                sql =   searchByuqlService.SearchByEnume(obj, resultOrderKey,isSearch);
-            } else if(2 == activeType) {//指标
-                sql =   searchByuqlService.SearchByIndex(obj, resultOrderKey,isSearch);
-            }else  if(1 == activeType){ //事件
-                sql =   searchByuqlService.searchByActive(obj, resultOrderKey,isSearch);
+                searchByuqlService.SearchByEnume(obj, resultOrderKey, isSearch, crfId);
+            } else if (2 == activeType) {//指标
+                searchByuqlService.SearchByIndex(obj, resultOrderKey, isSearch, patientSql, crfId);
+            } else if (1 == activeType) { //事件
+                searchByuqlService.searchByActive(obj, resultOrderKey, isSearch, crfId);
             }
         }
     }
@@ -265,7 +271,7 @@ public class RwsController {
     @RequestMapping(value = "/updateActiveIndex", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "RWS 配置信息更新接口，目前此接口不用，更新和新增全部用保存的接口", notes = "根据前端提交的信息保存RWS 更新活动/指标/入排条件的定义，此接口暂时不用Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "activeIndex", value = "activeIndex", paramType = "query", dataType = "String", required = true)
+        @ApiImplicitParam(name = "activeIndex", value = "activeIndex", paramType = "query", dataType = "String", required = true)
     })
     public AjaxObject updateActiveIndex(String activeIndex) {
         LOG.info("接收到需要保存的自定义信息为{}", activeIndex);
@@ -291,13 +297,13 @@ public class RwsController {
     @RequestMapping(value = "/findByProjectId", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "根据项目id，获取本项目下所有的已定义的活动", notes = "获取项目下所有已定义的事件/指标列表 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "获取所有已定义的指标和事件{\"projectId\":\"项目id\",\"type\":\"事件类型\",\"name\":\"事件名称\",\"pageNum\":1,\"pageSize\":10}", dataType = "JSONObject", required = true)
+        @ApiImplicitParam(name = "param", value = "获取所有已定义的指标和事件{\"projectId\":\"项目id\",\"type\":\"事件类型\",\"name\":\"事件名称\",\"pageNum\":1,\"pageSize\":10}", dataType = "JSONObject", required = true)
     })
     public AjaxObject findByProjectId(@RequestBody String param/*String projectId,int type, Integer pageNum,Integer pageSize*/) {
         AjaxObject object = new AjaxObject();
         try {
             JSONObject params = JSONObject.parseObject(param);
-            String projectId = params.getString("projectId").replaceAll("-","");
+            String projectId = params.getString("projectId").replaceAll("-", "");
             String name = params.getString("name");
             Integer type = params.getInteger("type");
             Integer pageNum = params.getInteger("pageNum");
@@ -319,7 +325,7 @@ public class RwsController {
     @RequestMapping(value = "/deleteByActiveId", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "根据活动id删除活动的全部信息", notes = "获取项目下所有已定义的事件/指标列表 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "参数{\"activeId\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
+        @ApiImplicitParam(name = "param", value = "参数{\"activeId\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
     })
     public AjaxObject deleteByActiveId(@RequestBody String param) {
         AjaxObject ajaxObject = new AjaxObject();
@@ -330,12 +336,12 @@ public class RwsController {
             String createId = params.getString("createId");
             String createName = params.getString("createName");
             String activeName = params.getString("activeName");
-            String projectId  =params.getString("projectId");
+            String projectId = params.getString("projectId");
             Integer isVariant = params.getInteger("isVariant");
             if (StringUtils.isEmpty(activeId)) {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "参数错误");
             }
-            if(isVariant != null && 1==isVariant){
+            if (isVariant != null && 1 == isVariant) {
                 String content = createName + "新增 研究变量 ： " + activeName;
                 logUtil.saveLog(projectId, content, createId, createName);
             }
@@ -354,7 +360,7 @@ public class RwsController {
     @RequestMapping(value = "/dependenceChange", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "判断是否有活动/指标依赖于此活动或指标", notes = "获取项目下所有已定义的事件/指标列表 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "参数{\"active\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
+        @ApiImplicitParam(name = "param", value = "参数{\"active\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
     })
     public AjaxObject dependenceChange(@RequestBody String param) {
         AjaxObject ajaxObject = new AjaxObject();
@@ -372,7 +378,7 @@ public class RwsController {
             JSONArray configss = actives.getJSONArray("config");
             //枚举修改
             Boolean isEmity = false;
-            JSONArray configsst = moduleConvertService.enumFormat(configss,isEmity);
+            JSONArray configsst = moduleConvertService.enumFormat(configss, isEmity);
             int size = configsst == null ? 0 : configsst.size();
             JSONArray newConfigs = new JSONArray();
             for (int i = 0; i < size; i++) {
@@ -390,16 +396,16 @@ public class RwsController {
             }
             actives.put("config", newConfigs);
             /*搜索结果类型改变问题*/
-            if(CommonContent.ACTIVE_TYPE_INDEX == (active.getInteger("activeType"))){
+            if (CommonContent.ACTIVE_TYPE_INDEX == (active.getInteger("activeType"))) {
                 String indexType = actives.getJSONArray("config").getJSONObject(0).getString("indexType");
                 String oindexType = activeIndexService.getindexType(active.getString("id"));
-                if(StringUtils.isEmpty(oindexType)){
+                if (StringUtils.isEmpty(oindexType)) {
                     return ajaxObject;
                 }
                 List<String> activeName = activeIndexService.getActiveName(active.getString("id"));
-                String name = String.join(";",activeName);
-                if(!oindexType.equals(indexType) && activeName != null && activeName.size()!=0 ){
-                    return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS, "您修改的指标已被其他指标引用 ( "+name+" ) ，取消引用后方可进行修改",0);
+                String name = String.join(";", activeName);
+                if (!oindexType.equals(indexType) && activeName != null && activeName.size() != 0) {
+                    return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS, "您修改的指标已被其他指标引用 ( " + name + " ) ，取消引用后方可进行修改", 0);
                 }
             }
             boolean change = activeIndexService.conditioIsnChange(active);
@@ -417,7 +423,7 @@ public class RwsController {
     @RequestMapping(value = "/activeIsChange", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "判断是否有活动/指标依赖于此活动或指标", notes = "获取项目下所有已定义的事件/指标列表 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "参数{\"active\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
+        @ApiImplicitParam(name = "param", value = "参数{\"active\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
     })
     public AjaxObject activeIsChange(@RequestBody String param) {
         AjaxObject ajaxObject = new AjaxObject();
@@ -440,7 +446,7 @@ public class RwsController {
     @RequestMapping(value = "/dependenceActives", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "根据活动id删除活动的全部信息", notes = "获取项目下所有已定义的事件/指标列表 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "参数{\"activeId\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
+        @ApiImplicitParam(name = "param", value = "参数{\"activeId\":\"adadfasdad\"}", dataType = "JSONObject", required = true)
     })
     public AjaxObject dependenceActives(@RequestBody String param) {
         AjaxObject ajaxObject = new AjaxObject();
@@ -458,7 +464,7 @@ public class RwsController {
     @RequestMapping(value = "/getActive", method = {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "根据活动id或projectId和activeType获取活动的全部信息", notes = "获取某个活动的全部信息 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "参数{\"activeId\":\"23412a234123\",\"projectId\":\"\",\"activeType\":3} 当ActiveType=1或2时，可以只传activeId，当activeType=3时，可以只填projectId和activeType", dataType = "JSONObject", required = true)
+        @ApiImplicitParam(name = "param", value = "参数{\"activeId\":\"23412a234123\",\"projectId\":\"\",\"activeType\":3} 当ActiveType=1或2时，可以只传activeId，当activeType=3时，可以只填projectId和activeType", dataType = "JSONObject", required = true)
     })
     public AjaxObject getActive(@RequestBody String param) {
         ActiveIndex active = null;
@@ -466,7 +472,7 @@ public class RwsController {
         try {
             JSONObject params = JSONObject.parseObject(param);
             String activeId = params.getString("activeId");
-            String projectId = params.getString("projectId") ==null? null :params.getString("projectId").replaceAll("-","");
+            String projectId = params.getString("projectId") == null ? null : params.getString("projectId").replaceAll("-", "");
             Integer activeType = params.getInteger("activeType");
             String groupFromId = params.getString("groupToId");
             if (StringUtils.isEmpty(activeId) && StringUtils.isEmpty(projectId)) {
@@ -533,13 +539,13 @@ public class RwsController {
 
     @ApiOperation(value = "根据项目id和指标类型，获取下拉选择框数据", notes = "根据项目id和指标类型，获取下拉选择框数据 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "object", value = "项目id,{\"projectId\":\"18912313132123\",\"type\":1}", dataType = "JSONObject", required = true),
+        @ApiImplicitParam(name = "object", value = "项目id,{\"projectId\":\"18912313132123\",\"type\":1}", dataType = "JSONObject", required = true),
     })
     @RequestMapping(value = "/getAllActiveOrIndex", method = {RequestMethod.GET, RequestMethod.POST})
     public AjaxObject getAllActiveOrIndex(@RequestBody JSONObject object /*String projectId,Integer type*/) {
         AjaxObject ajaxObject = new AjaxObject();
         try {
-            String projectId = object.getString("projectId").replaceAll("-","");
+            String projectId = object.getString("projectId").replaceAll("-", "");
             Integer type = object.getInteger("type");
             String activeId = object.getString("activeId");
             String name = object.getString("name");
@@ -548,7 +554,7 @@ public class RwsController {
             if (StringUtils.isEmpty(projectId) || type == null) {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "参数错误");
             }
-            ajaxObject = activeIndexService.findByProjectIdAndTypeNoPage(activeId, projectId, type, name,isTwiceIndex,depActiveId);
+            ajaxObject = activeIndexService.findByProjectIdAndTypeNoPage(activeId, projectId, type, name, isTwiceIndex, depActiveId);
         } catch (Exception e) {
             LOG.error("查询自定义活动/指标时出错，错误信息{}", e);
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
@@ -559,12 +565,12 @@ public class RwsController {
 
     @ApiOperation(value = "校验名称是否存在", notes = "校验名称是否存在 Created by liuzhen.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "项目id,{\"projectId\":\"18912313132123\",\"name\":\"\"}", dataType = "JSONObject", required = true),
+        @ApiImplicitParam(name = "param", value = "项目id,{\"projectId\":\"18912313132123\",\"name\":\"\"}", dataType = "JSONObject", required = true),
     })
     @RequestMapping(value = "/activeIsExists", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject activeIsExists(@RequestBody String param) {
         JSONObject jsonObject = JSONObject.parseObject(param);
-        String projectId = jsonObject.getString("projectId").replaceAll("-","");
+        String projectId = jsonObject.getString("projectId").replaceAll("-", "");
         String name = jsonObject.getString("name");
         Integer type = jsonObject.getInteger("type");
         String isVariant = jsonObject.getString("isVariant");
@@ -575,13 +581,13 @@ public class RwsController {
         params.put("projectId", projectId);
         params.put("name", name);
         params.put("isTmp", 0);
-        params.put("isVariant",isVariant);
-        params.put("activeType",type);
+        params.put("isVariant", isVariant);
+        params.put("activeType", type);
         List<ActiveIndex> activeIndexList = activeIndexService.findeByActiveName(params);
         if (activeIndexList != null && !activeIndexList.isEmpty()) {
-            if(StringUtils.isNotEmpty(isVariant) && "1".equals(isVariant)){
+            if (StringUtils.isNotEmpty(isVariant) && "1".equals(isVariant)) {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "同一个项目内的研究变量名称不能重复");
-            }else {
+            } else {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "该项目下已存在名称为'" + name + "'的指标或事件");
             }
         }
@@ -590,7 +596,7 @@ public class RwsController {
 
     @ApiOperation(value = "修改指标或者事件名称", notes = "修改指标或者事件名称 Created by lmx.")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "项目id,{\"activeid\":\"18912313132123\",\"name\":\"\"}", dataType = "JSONObject", required = true),
+        @ApiImplicitParam(name = "param", value = "项目id,{\"activeid\":\"18912313132123\",\"name\":\"\"}", dataType = "JSONObject", required = true),
     })
     @RequestMapping(value = "/editActiveName", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject editActiveName(@RequestBody String param) {
@@ -610,7 +616,7 @@ public class RwsController {
         if (StringUtils.isEmpty(activeId) || StringUtils.isEmpty(name)) {
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "指标/活动 id 或名称不能为空");
         }
-        if( isVariant!= null && 1==isVariant){
+        if (isVariant != null && 1 == isVariant) {
             String content = createName + "编辑 研究变量 ： " + oldName;
             logUtil.saveLog(projectId, content, create_user, createName);
         }

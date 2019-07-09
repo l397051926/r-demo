@@ -393,7 +393,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                 if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
                     searchCrfByuqlService.referenceCalculate(activeIndexId,projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);
                 }else {
-                    searchByuqlService.referenceCalculate(activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null);
+                    searchByuqlService.referenceCalculate(activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),null,UqlConfig.CORT_INDEX_ID,null,crfId);
                 }
                 activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId,UqlConfig.CORT_INDEX_ID);
             } catch (Exception e) {

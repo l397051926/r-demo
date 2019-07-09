@@ -1,6 +1,7 @@
 package com.gennlife.rws.content;
 
 import com.gennlife.rws.entity.ActiveSqlMap;
+import com.gennlife.rws.util.StringUtils;
 
 
 import java.io.IOException;
@@ -37,6 +38,15 @@ public class UqlConfig {
         ACTIVE_CONVER_TRUE_OR_FALSE.add("IS_PHYSICAL_COOLING");
         ACTIVE_CONVER_TRUE_OR_FALSE.add("IS_REPEATED_MEASURE");
         RESULT_ORDER_KEY = new HashMap<>();
+    }
+
+    /**
+     *
+     * @param crfId
+     * @return  false  is EMR  ; true  is not EMR
+     */
+    public static final Boolean isEmr(String crfId){
+       return StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR");
     }
 
 
