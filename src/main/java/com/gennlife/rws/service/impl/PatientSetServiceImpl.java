@@ -227,6 +227,12 @@ public class PatientSetServiceImpl implements PatientSetService {
 		Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
 		return Long.valueOf(count);
 	}
+
+	@Override
+	public Integer getPatientSetLocalCountByListForPatientSets(List<String> patientSetIds) {
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);
+		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
+	}
 	@Override
 	public String getPatientSetLocalSql(String patientSetId){
 		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,1);
@@ -242,6 +248,10 @@ public class PatientSetServiceImpl implements PatientSetService {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);
         return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
     }
+    @Override
+	public List<PatientsIdSqlMap> getPatientSetLocalSqlByListForInitialSql(List<String> patientSetIds){
+		return patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);
+	}
 
 	private void updatePatientSqlMap(JSONObject obj) {
 		String patientSetId = obj.getString("patientSetId");

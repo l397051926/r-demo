@@ -27,16 +27,17 @@
 		<result column="is_other" property="isOther" jdbcType="INTEGER" />
 		<result column="sql_having" property="sqlHaving" jdbcType="VARCHAR" />
 		<result column="group_id" property="groupId" jdbcType="VARCHAR" />
+		<result column="pat_sql_group" property="patSqlGroup" jdbcType="INTEGER" />
 	</resultMap>
 	<sql id="Base_Column_List">
-id, project_id, active_index_id,
+		id, project_id, active_index_id,
 		active_sql,index_result_value,
 		sql_select,sql_where,sql_from,source_filtere,
 		active_type,ref_active_ids,source_value,
 		active_result_doc_id,active_result_value,
 		event_where,select_value,active_other_result,
 		count_value,active_name,index_type_value,sqlMd5,
-		is_other,sql_having,group_id
+		is_other,sql_having,group_id,pat_sql_group
 	</sql>
 
 
@@ -115,6 +116,9 @@ id, project_id, active_index_id,
 			<if test="groupId != null">
 				group_id,
 			</if>
+			<if test="patSqlGroup != null">
+				pat_sql_group,
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="id != null">
@@ -188,7 +192,10 @@ id, project_id, active_index_id,
 			</if>
 			<if test="groupId != null">
 				#{groupId,jdbcType=VARCHAR},
-			</if>
+            </if>
+            <if test="patSqlGroup != null">
+            #{patSqlGroup,jdbcType=INTEGER},
+            </if>
 		</trim>
 	</insert>
 	<update id="updateById" parameterType="com.gennlife.rws.entity.ActiveSqlMap">

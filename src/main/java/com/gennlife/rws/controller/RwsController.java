@@ -14,6 +14,7 @@ import com.gennlife.rws.dao.ActiveSqlMapMapper;
 import com.gennlife.rws.dao.ContrastiveAnalysisActiveMapper;
 import com.gennlife.rws.entity.ActiveIndex;
 import com.gennlife.rws.entity.ActiveIndexConfigCondition;
+import com.gennlife.rws.entity.PatientsIdSqlMap;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.AjaxObject;
 import com.gennlife.rws.util.LogUtil;
@@ -180,18 +181,41 @@ public class RwsController {
                     logUtil.saveLog(projectId, content, create_user, createName);
                 }
             }
-            String patientSql = searchByuqlService.getInitialSQL(groupFromId,isVariant.toString(),groupToId, obj.getJSONArray("patientSetId"),projectId,crfId);
+
+            List<PatientsIdSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(groupFromId,isVariant == null ? "" : String.valueOf(isVariant),groupToId, obj.getJSONArray("patientSetId"),projectId,crfId);
+            String activeIndexId = obj.getJSONArray("config").getJSONObject(0).getString("activeIndexId");//指标id
+            String T_activeIndexId = isSearch == CommonContent.ACTIVE_TYPE_TEMP ? activeIndexId.concat("_tmp") : activeIndexId;
+            int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
+            if (count > 0) {
+                activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
+                if( 2 == activeType){
+                    if (UqlConfig.isCrf(crfId)) {
+                        searchCrfByuqlService.RunReferenceCalculate(T_activeIndexId,projectId, crfId);
+                    }else {
+                        searchByuqlService.RunReferenceCalculate(T_activeIndexId,projectId, crfId);
+                    }
+                }
+            }
             //*************  开始计算  *************
             if (isVariant != null && 1 == isVariant) {
                 SingleExecutorService.getInstance().getBackgroundVariantExecutor().submit(() -> {
+                    patientSql.forEach( o -> {
+                        try {
+                            searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                });
+            } else {
+                patientSql.forEach( o -> {
                     try {
-                        searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,patientSql);
+                        //TODO 使用多线程计算
+                        searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 });
-            } else {
-                searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,patientSql);
             }
             //****************** 计算结束 *****************
             ActiveIndex data = (ActiveIndex) ajaxObject.getData();
@@ -237,9 +261,9 @@ public class RwsController {
         return ajaxObject;
     }
 
-    private void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, String patientSql) throws ExecutionException, InterruptedException, IOException {
+    private void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, PatientsIdSqlMap patientSql) throws ExecutionException, InterruptedException, IOException {
 
-        if (UqlConfig.isEmr(crfId)) {
+        if (UqlConfig.isCrf(crfId)) {
             if (3 == activeType) {//那排
                 searchCrfByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, crfId);
             } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举

@@ -45,7 +45,7 @@ public class UqlConfig {
      * @param crfId
      * @return  false  is EMR  ; true  is not EMR
      */
-    public static final Boolean isEmr(String crfId){
+    public static final Boolean isCrf(String crfId){
        return StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR");
     }
 

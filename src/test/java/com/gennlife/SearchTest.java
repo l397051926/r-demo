@@ -36,4 +36,9 @@ public class SearchTest {
         AjaxObject object = searchByuqlService.getAggregationAll(patientSetId,aggregationTeam,projectId,crfId);
         System.out.println();
     }
+    @Test
+    public void getInitialSqlTest(){
+        JSONArray array = new JSONArray().fluentAdd("5c11da9c13294372bdd956f8518ab683");
+        searchByuqlService.getInitialSQLTmp(null,null,null,array,null,"EMR");
+    }
 }

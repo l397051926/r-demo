@@ -1,12 +1,10 @@
 package com.gennlife.rws.entity;
 
 
-import com.gennlife.packagingservice.arithmetic.utils.GZIPUtils;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.util.GzipUtil;
 
 import java.io.IOException;
-import java.util.List;
 
 public class ActiveSqlMap {
     private Integer id;
@@ -34,6 +32,7 @@ public class ActiveSqlMap {
     private String activeName ;  //指标名称
     private Integer isOther;
     private String groupId;
+    private Integer patSqlGroup;
 
 
     public ActiveSqlMap(String projectId, String activeIndexId, String activeSql,
@@ -321,6 +320,14 @@ public class ActiveSqlMap {
 
     public void setActiveSql(String activeSql) throws IOException {
         this.activeSql = activeSql;
+    }
+
+    public Integer getPatSqlGroup() {
+        return patSqlGroup;
+    }
+
+    public void setPatSqlGroup(Integer patSqlGroup) {
+        this.patSqlGroup = patSqlGroup;
     }
 
     public String getUql() throws IOException {

@@ -227,7 +227,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
             }
         }
-        //获取总共人数
         if(patientSetId !=null && patientSetId.size()>0){
             count = getPatientSqlCount(patientSetId,projectId,crfId);
         }else {
@@ -2391,7 +2390,8 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             });
         }
     }
-    private void RunReferenceCalculate(String T_activeIndexId, String projectId,String crfId) {
+    @Override
+    public void RunReferenceCalculate(String T_activeIndexId, String projectId, String crfId) {
         SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
             try {
                 referenceCalculate(T_activeIndexId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get(crfId),null,UqlConfig.CORT_INDEX_ID,null,crfId);

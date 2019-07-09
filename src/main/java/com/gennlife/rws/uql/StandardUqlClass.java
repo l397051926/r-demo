@@ -6,7 +6,7 @@ import com.gennlife.rws.uqlcondition.UqlWhere;
 import com.gennlife.rws.util.StringUtils;
 
 /**
- * @author liumingxin
+ * @author
  * @create 2018 20 17:40
  * @desc
  **/

@@ -30,5 +30,7 @@ public interface SearchCrfByuqlService {
 
     AjaxObject searchCalcExculeByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns, String crfId, String isExport, String groupId, String groupName, JSONArray patientSetId, String createId, String createName, String groupFromId, boolean b) throws IOException, ExecutionException, InterruptedException;
 
+    void RunReferenceCalculate(String T_activeIndexId, String projectId, String crfId);
+
     void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId, String crfId) throws ExecutionException, InterruptedException, IOException;
 }

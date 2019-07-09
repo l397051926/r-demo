@@ -2,6 +2,7 @@ package com.gennlife.rws.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.ContrastiveAnalysisCount;
+import com.gennlife.rws.entity.PatientsIdSqlMap;
 import com.gennlife.rws.entity.PatientsSet;
 import com.gennlife.rws.entity.SearchLog;
 import com.gennlife.rws.util.AjaxObject;
@@ -93,7 +94,11 @@ public interface PatientSetService {
 
 	List<String> getPatientSetLocalSqlByList(String patientSetId);
 
+	List<PatientsIdSqlMap> getPatientSetLocalSqlByListForInitialSql(List<String> patientSetIds);
+
 	void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num);
 
     List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSets);
+
+	Integer getPatientSetLocalCountByListForPatientSets(List<String> patientSets);
 }

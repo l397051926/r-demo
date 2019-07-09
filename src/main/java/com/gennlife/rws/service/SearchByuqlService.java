@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.ActiveSqlMap;
 import com.gennlife.rws.entity.GroupData;
 import com.gennlife.rws.entity.Patient;
+import com.gennlife.rws.entity.PatientsIdSqlMap;
 import com.gennlife.rws.util.AjaxObject;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public interface SearchByuqlService {
-     String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, String patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
+     String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 
@@ -44,11 +45,13 @@ public interface SearchByuqlService {
 
     AjaxObject getPatientListByAllByPatientSetIds(JSONArray patientSetIdTmp, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, int i, String crfId);
 
+    void RunReferenceCalculate(String T_activeIndexId, String projectId, String crfId);
+
     void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId);
 
     String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 
-    List<String> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
+    List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 }
