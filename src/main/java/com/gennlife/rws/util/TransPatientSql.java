@@ -69,6 +69,10 @@ public class TransPatientSql {
         return " " + IndexContent.getPatientInfoPatientSn(crfId) + " " + transForExtContain(sqlList) + " ";
     }
 
+    public static String getPatientDocIdSql(List<String> sqlList, String crfId) {
+        return " " + IndexContent.getPatientDocId(crfId) + " " + transForExtContain(sqlList) + " ";
+    }
+
     public static String getAllPatientSql(String sql) {
         String[] array = sql.split(SeparatorContent.getRegexVartivalBar());
         return " patient_info.PATIENT_SN " + transForExtContainForArray(array);
@@ -158,5 +162,6 @@ public class TransPatientSql {
         }
         return "'" + Arrays.stream(arrs).collect(joining("$")) + "'";
     }
+
 
 }

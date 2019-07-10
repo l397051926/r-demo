@@ -28,6 +28,7 @@
 		<result column="sql_having" property="sqlHaving" jdbcType="VARCHAR" />
 		<result column="group_id" property="groupId" jdbcType="VARCHAR" />
 		<result column="pat_sql_group" property="patSqlGroup" jdbcType="INTEGER" />
+		<result column="result_doc_id" property="resultDocId" jdbcType="LONGVARCHAR" />
 	</resultMap>
 	<sql id="Base_Column_List">
 		id, project_id, active_index_id,
@@ -37,7 +38,7 @@
 		active_result_doc_id,active_result_value,
 		event_where,select_value,active_other_result,
 		count_value,active_name,index_type_value,sqlMd5,
-		is_other,sql_having,group_id,pat_sql_group
+		is_other,sql_having,group_id,pat_sql_group,result_doc_id
 	</sql>
 
 
@@ -119,6 +120,9 @@
 			<if test="patSqlGroup != null">
 				pat_sql_group,
 			</if>
+			<if test="resultDocId != null">
+				result_doc_id,
+			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="id != null">
@@ -195,6 +199,9 @@
             </if>
             <if test="patSqlGroup != null">
             #{patSqlGroup,jdbcType=INTEGER},
+            </if>
+            <if test="resultDocId != null">
+            #{resultDocId,jdbcType=LONGVARCHAR},
             </if>
 		</trim>
 	</insert>
@@ -294,6 +301,7 @@
 		<include refid="Base_Column_List" />
 		FROM p_active_sql_map
 		where  project_id = #{projectId,jdbcType=VARCHAR} and active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+		ORDER BY id
 	</select>
 
 	<select id="getCountByActiveIndexId" resultType="java.lang.Integer" parameterType="java.lang.String">

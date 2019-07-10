@@ -234,7 +234,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         }
 
         saveActiveIndexTask(activeId, projectId, total);
-//        Integer count = getProjectCount(projectId, crfId);
         AjaxObject.getReallyDataValue(data,basicColumns);
         ajaxObject.setCount(count);
         ajaxObject.setWebAPIResult(new WebAPIResult<Object>(pageNum, pageSize, total));

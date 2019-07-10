@@ -3,6 +3,7 @@ package com.gennlife.rws.entity;
 
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.util.GzipUtil;
+import com.gennlife.rws.util.StringUtils;
 
 import java.io.IOException;
 
@@ -33,6 +34,7 @@ public class ActiveSqlMap {
     private Integer isOther;
     private String groupId;
     private Integer patSqlGroup;
+    private String resultDocId;
 
 
     public ActiveSqlMap(String projectId, String activeIndexId, String activeSql,
@@ -322,6 +324,14 @@ public class ActiveSqlMap {
         this.activeSql = activeSql;
     }
 
+    public String getResultDocId() {
+        return resultDocId;
+    }
+
+    public void setResultDocId(String resultDocId) {
+        this.resultDocId = resultDocId;
+    }
+
     public Integer getPatSqlGroup() {
         return patSqlGroup;
     }
@@ -341,6 +351,21 @@ public class ActiveSqlMap {
     }
     public String getActiveUql() throws IOException {
         return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUnncomEventWhere() +" group by patient_info.DOC_ID ";
+    }
 
+    public String getHavingSql() throws IOException{
+        if(StringUtils.isEmpty(getSqlHaving())){
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() +" group by patient_info.DOC_ID ";
+        }else {
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() +" group by patient_info.DOC_ID " + getSqlHaving();
+        }
+    }
+
+    public String getHavingSqlJoinSql(String sql) throws IOException {
+        if(StringUtils.isEmpty(getSqlHaving())){
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " AND " + sql + " group by patient_info.DOC_ID ";
+        }else {
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " AND " + sql + " group by patient_info.DOC_ID " + getSqlHaving();
+        }
     }
 }

@@ -6,6 +6,7 @@ package com.gennlife.rws.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.CommonContent;
+import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.entity.ActiveIndexTask;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.AjaxObject;
@@ -117,7 +118,7 @@ public class RwsSearchController {
             if(activeType !=3){
                 basicColumns.add(indexColumns);
             }
-            if(StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")){
+            if(UqlConfig.isCrf(crfId)){
                 if(CommonContent.ACTIVE_TYPE_INDEX==activeType){//指标  枚举
                     ajaxObject = searchCrfByuqlService.searchClacIndexResultByUql(activeId,projectId,pageSize,pageNum,basicColumns,crfId,groupFromId,patientSetId,groupId,isVariant);
                 }else if(CommonContent.ACTIVE_TYPE_INOUTN==activeType){//入排
