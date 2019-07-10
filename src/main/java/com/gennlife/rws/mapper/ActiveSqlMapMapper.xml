@@ -304,6 +304,14 @@
 		ORDER BY id
 	</select>
 
+	<select id="getActiveSqlMapByProjectIdAndSqlGroup" resultMap="BaseResultMap" parameterType="java.lang.Object">
+		select
+		<include refid="Base_Column_List" />
+		FROM p_active_sql_map
+		where  project_id = #{projectId,jdbcType=VARCHAR} and active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR} and pat_sql_group = #{patSqlGroup,jdbcType=INTEGER}
+		ORDER BY id
+	</select>
+
 	<select id="getCountByActiveIndexId" resultType="java.lang.Integer" parameterType="java.lang.String">
 		select count(*)
 		FROM p_active_sql_map
@@ -372,6 +380,13 @@
 		<include refid="Base_Column_List" />
 		FROM p_active_sql_map
 		where active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getActiveSqlBySqlGroup" resultMap="BaseResultMap" parameterType="java.lang.Object">
+		select
+		<include refid="Base_Column_List" />
+		FROM p_active_sql_map
+		where active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR} and pat_sql_group= #{patSqlGroup,jdbcType=INTEGER}
 	</select>
 	<select id="getCountByActiveIdAndIndexValue" resultType="java.lang.Integer" parameterType="java.lang.String">
 		select count(*)

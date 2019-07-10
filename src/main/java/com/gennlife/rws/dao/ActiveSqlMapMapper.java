@@ -47,4 +47,8 @@ public interface ActiveSqlMapMapper {
     void deleteByIndexId(@Param("activeId") String activeId);
 
     List<ActiveSqlMap> getDelRedisActiveSql(@Param("activeId")String activeId);
+
+    List<ActiveSqlMap> getActiveSqlBySqlGroup(@Param("activeId") String activeId , @Param("groupId")String groupId, @Param("patSqlGroup") Integer patSqlGroup);
+
+    List<ActiveSqlMap> getActiveSqlMapByProjectIdAndSqlGroup(@Param("projectId") String projectId, @Param("activeId") String activeId,@Param("groupId") String groupId, @Param("patSqlGroup") Integer patSqlGroup);
 }
