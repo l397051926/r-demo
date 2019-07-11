@@ -19,7 +19,7 @@ public class DataCheckEmpty {
 	 * @author zhengguohui
 	 * @description 校验数据是否为空,为空则提示参数为空
 	 * @date 2018年7月13日
-	 * @param dataId
+	 * @param args
 	 *            void
 	 */
 	public static void dataCheckEmpty(String... args) {

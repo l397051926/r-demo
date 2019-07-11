@@ -764,7 +764,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         if (count > 0) {
             throw new SaveGroupAndPatientException("1", "不能重复导入患者集");
         }
-        String patients = "";
+        List<String> patients = new LinkedList<>();
         List<List<GroupData>> list = new ArrayList<>();
         List<GroupData> listdata = new ArrayList<>();
 
@@ -774,20 +774,10 @@ public class PatientGroupServiceImpl implements PatientGroupService {
             String patientSetId = arr.getJSONObject(i).getString("patientSetId");
             String patientSetName = arr.getJSONObject(i).getString("patientSetName");
             patientsSetMapper.updateIsFlush(3,patientSetId);
-            if (StringUtils.isNotEmpty(patients)){
-                patients = patients + "," + patientSetName;
-            }else {
-                patients = patientSetName;
-            }
-            // 获取患者集合 根据患者集ID查询患者集合
-            // List<String> listPatients = getPatientFrouMongo(patientSetId,
-            // groupId, createId, createName);
-//            List<Patient> listPatients = getPatentByMongo(patientSetId, isExport);
+            patients.add(patientSetName);
+
             List<Patient> listPatients = searchByuqlService.getpatentByUql(patientSetId,isExport,projectId,crfId);
-            if(listPatients.size() == 0){
-                LOG.error("存入患者分组数据0人，不符合实际功能");
-                throw new CustomerException(CustomerStatusEnum.SUCCESS.toString(), "存入患者分组数据0人，不符合实际功能");
-            }
+
             contCount = contCount + listPatients.size();
             for (int j = 0; j < listPatients.size(); j++) {
                 Patient patient = listPatients.get(j);
@@ -824,7 +814,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
 
         int endCount = groupDataMapper.getPatSetAggregationCount(groupId);
         // 将患者集ID 映射成患者集名称
-        String content = createName + "将患者集：" + patients + " 添加到组：" + groupName;
+        String content = createName + "将患者集：" + String.join(",",patients) + " 添加到组：" + groupName;
         logUtil.saveLog(projectId, content, createId, createName);
         // 逻辑方式 导入的总数据 + 最开始的数据 - 导入后的数据 等于0 全部导入 大于0 有重复数据 小于0 全部为重复数据
         return contCount - endCount >= 0 ? contCount - endCount : contCount;

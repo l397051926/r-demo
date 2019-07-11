@@ -1098,8 +1098,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
     @Override
     public AjaxObject getPatientListByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException {
-        String patientSql = getPatientSql(patientSetId,projectId,crfId);
-        String query = "select "+ IndexContent.getPatientDocId(crfId)+" from "+IndexContent.getIndexName(crfId,projectId) + " where "+patientSql +" and join_field='patient_info' ";
+        String patientSetSql = patientSetService.getPatientSetLocalSql(patientSetId);
+        String  newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql,crfId);
+        String query = "select " + IndexContent.getPatientDocId(crfId) +" from "+ IndexContent.getIndexName(crfId,projectId) + " where " + newpatientSetSql +" and join_field = 'patient_info' ";
         JSONArray source = new JSONArray();
         source.add("patient_info");
         JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,query,pageNum,pageSize,null,source,crfId));
@@ -1165,10 +1166,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId) throws IOException {
+    public List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId) {
         List<Patient> patientList = new LinkedList<>();
-        String patientSetQuery = getPatientSql(patientSetId,projectId,crfId);
-        String query = "select "+IndexContent.getPatientDocId(crfId)+"  from "+ IndexContent.getIndexName(crfId, projectId) + " where join_field = 'patient_info' and "+patientSetQuery;
+        String patientSetSql = patientSetService.getPatientSetLocalSql(patientSetId);
+        String  newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql,crfId);
+        String query = "select "+IndexContent.getPatientDocId(crfId)+"  from "+ IndexContent.getIndexName(crfId, projectId) + " where join_field = 'patient_info' and " + newpatientSetSql;
         JSONArray source = new JSONArray();
         source.add("patient_info");
         JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,query,0,Integer.MAX_VALUE-1,null,source,crfId));
@@ -1180,7 +1182,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 throw new CustomerException(CustomerStatusEnum.SUCCESS.toString(), "数据异常，操作失败，请重试");
             }
             JSONObject sourceObj = tmpObj.getJSONObject("_source");
-//            JSONObject patientInfo = sourceObj.getJSONArray(IndexContent.getPatientInfo(crfId)).getJSONObject(0);
             JSONObject patientInfo  = IndexContent.getPatientInfoObj(sourceObj,crfId);
             String patientSn = patientInfo.getString("PATIENT_SN");
             String efhic = patientInfo.getString("ETHNIC");
@@ -1240,7 +1241,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 }
             }
         }
-        activeSqlMapMapper.deleteByActiveIndexId(R_activeIndexId,groupToId);
+
         List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             uqlClass = new EnumeUqlClass(projectId);
@@ -1287,10 +1288,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             activeSqlMaps.add(activeSqlMap);
             activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
             Long mysqlStartTime = System.currentTimeMillis();
-            Integer count = activeSqlMapMapper.getCountByActiveIdAndIndexValue(R_activeIndexId, indexResultValue,groupToId);
-            if (count > 0) {
-                activeSqlMapMapper.deleteByIndexId(R_activeIndexId);
-            }
             activeSqlMapMapper.insert(activeSqlMap);
             LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
         }

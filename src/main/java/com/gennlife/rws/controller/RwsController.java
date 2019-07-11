@@ -31,11 +31,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * @author liuzhen
@@ -197,25 +195,26 @@ public class RwsController {
                 }
             }
             //*************  开始计算  *************
+            List<Future> futures = new LinkedList<>();
             if (isVariant != null && 1 == isVariant) {
-                SingleExecutorService.getInstance().getBackgroundVariantExecutor().submit(() -> {
-                    patientSql.forEach( o -> {
-                        try {
-                            searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    });
-                });
-            } else {
-                patientSql.forEach( o -> {
+                SingleExecutorService.getInstance().getBackgroundVariantExecutor().submit(() -> patientSql.forEach(o -> {
                     try {
-                        //TODO 使用多线程计算
-                        searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
+                        searchByUqlService(crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc, o);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                });
+                }));
+            } else {
+                patientSql.forEach( o -> futures.add(SingleExecutorService.getInstance().getSearchUqlExecutor().submit(() -> {
+                    try {
+                        searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                })));
+            }
+            for (Future future : futures){
+                future.get();
             }
             //****************** 计算结束 *****************
             ActiveIndex data = (ActiveIndex) ajaxObject.getData();

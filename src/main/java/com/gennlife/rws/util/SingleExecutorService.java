@@ -10,13 +10,15 @@ public class SingleExecutorService {
     private volatile static SingleExecutorService instance;
 
     private final ExecutorService searchUqlExecutorService = Executors.newFixedThreadPool(4,new TestThreadFactory("searchUqlExecutorService"));
-    private final ExecutorService cortrastiveAnalysisExecutor = Executors.newFixedThreadPool(2,new TestThreadFactory("cortrastiveAnalysisExecutor"));
     private final ExecutorService referenceActiveExecutor = Executors.newFixedThreadPool(4,new TestThreadFactory("referenceActiveExecutor"));
     private final ExecutorService flushCountGroupExecutor = Executors.newFixedThreadPool(4,new TestThreadFactory("flushCountGroupExecutor"));
     private final ExecutorService centerTaskeExecutor = Executors.newFixedThreadPool(2,new TestThreadFactory("centerTaskeExecutor"));
     private final ExecutorService autoCortrastiveExecutor = Executors.newFixedThreadPool(2,new TestThreadFactory("autoCortrastiveExecutor"));
     private final ExecutorService backgroundVariantExecutor = Executors.newFixedThreadPool(2,new TestThreadFactory("backgroundVariantExecutor"));
+    private final ExecutorService cortrastiveAnalysisExecutor = Executors.newFixedThreadPool(2,new TestThreadFactory("cortrastiveAnalysisExecutor"));
     private final ExecutorService cortrastiveCountResultExecutor = Executors.newFixedThreadPool(2,new TestThreadFactory("cortrastiveCountResultExecutor"));
+
+    private final ExecutorService searchUqlExecutor = Executors.newFixedThreadPool(8,new TestThreadFactory("searchUqlExecutor"));
 
     private SingleExecutorService(){}
 
@@ -61,6 +63,10 @@ public class SingleExecutorService {
 
     public ExecutorService getCortrastiveCountResultExecutor() {
         return cortrastiveCountResultExecutor;
+    }
+
+    public ExecutorService getSearchUqlExecutor() {
+        return searchUqlExecutor;
     }
 
     static class TestThreadFactory implements ThreadFactory {
