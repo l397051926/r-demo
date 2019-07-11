@@ -79,8 +79,9 @@ public class UqlConfig {
         return "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+PROJECT_INDEX_NAME_PREFIX.get(crfId)+projectId+" where " + where +" "+ IndexContent.getGroupBy(crfId);
     }
 
-    public static String getEnumSql(Set<String> allsql, String projectId, String crfId) {
+    public static String getEnumSql(Set<String> allsql, String projectId, String crfId,List<String> joinList) {
         String where = IndexContent.getPatientInfoPatientSn(crfId) + " " + TransPatientSql.transForExtContain(allsql);
-       return  "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)  +" where " + where +" "+ IndexContent.getGroupBy(crfId);
+        String joinWhere = IndexContent.getPatientInfoPatientSn(crfId) + " " + TransPatientSql.transForExtContain(joinList);
+       return  "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)  +" where " + where + " AND " + joinWhere +" "+ IndexContent.getGroupBy(crfId);
     }
 }

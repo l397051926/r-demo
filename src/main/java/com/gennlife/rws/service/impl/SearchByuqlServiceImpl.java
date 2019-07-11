@@ -1763,6 +1763,10 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         return  patientSetService.getPatientSetLocalSqlByListForInitialSql(patientSets);
     }
+    private List<String> getPatientSqlList(JSONArray patientSetId) {
+        List<String> patientSets = patientSetId.toJavaList(String.class);
+        return  patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSets);
+    }
 
     private void transforConditionForConfig(JSONArray config, UqlClass uqlClass, UqlWhere where,String groupId,String projectId,JSONArray patientSetId, String crfId) throws InterruptedException, ExecutionException {
         StringBuffer resultBuffer = new StringBuffer();
@@ -2119,7 +2123,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             String name = activeIndex.getName();
             basicColumns.add(new JSONObject().fluentPut("name",name).fluentPut("id",refId));
         }
-//        Integer total = UqlQureyResult.getTotal(result);
+        List<String> patientSqlList =  getInitialSQLList(groupFromId,isVariant,groupId,patientSetId,projectId, crfId);
+        Integer total = patientSqlList.size();
+        List<String> pageList = PagingUtils.getPageContentForString(patientSqlList,pageNum,pageSize);
 
         Map<Integer, List<ActiveSqlMap>> groupMap = sqlList.stream().collect(groupingBy(ActiveSqlMap :: getPatSqlGroup,TreeMap::new,toList()));
         Iterator<Integer> iterator = groupMap.keySet().iterator();
@@ -2129,7 +2135,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             List<ActiveSqlMap> value = groupMap.get(mapKey);
 
             Set<String> patientSetLocalSqlLists = patientSetService.getPatientSetLocalSqlListById(mapKey);
-            String allSql = UqlConfig.getEnumSql(patientSetLocalSqlLists,projectId,crfId);
+            String allSql = UqlConfig.getEnumSql(patientSetLocalSqlLists,projectId,crfId,pageList);
             String result = httpUtils.querySearch(projectId,allSql,pageNum,pageSize,null, new JSONArray().fluentAdd("patient_info"),false);
             data  = transforEnumResult(JSON.parseObject(result), value, projectId, activeId,pageSize);
             List<String> pasSn = new ArrayList<>();
@@ -2192,7 +2198,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ajaxObject.setData(data);
         ajaxObject.setCount(count);
         ajaxObject.setColumns(basicColumns);
-        WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, count);
+        WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         ajaxObject.setWebAPIResult(webAPIResult);
         return ajaxObject;
     }
@@ -2387,6 +2393,26 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         return patientSql;
     }
+
+    private List<String> getInitialSQLList(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId) {
+        List<String> patientSqlList= new ArrayList<>();
+        if(StringUtils.isEmpty(groupFromId) && (patientSetId ==null || patientSetId.size()==0) && StringUtils.isNotEmpty(groupToId)){
+            groupFromId = groupMapper.getGroupParentId(groupToId);
+            if(StringUtils.isEmpty(groupFromId)){
+                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupToId);
+                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
+            }
+        }
+        if(!"1".equals(isVariant)){
+            if(patientSetId !=null && patientSetId.size()>0){
+                patientSqlList = getPatientSqlList(patientSetId);
+            }else{
+//                patientSqlList = getGroupSql(groupFromId,crfId);
+            }
+        }
+        return patientSqlList;
+    }
+
 
     @Override
     public  List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId){
