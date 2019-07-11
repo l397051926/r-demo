@@ -134,11 +134,25 @@ public class ProjectServiceImpl implements ProjectService {
 			projectMapper.updateById(project);
 			// 删除项目相关信息 可考虑异步处理
 			deleteProjectDetail(projectId);
-			inputTaskService.cencelInputTasksOnDelProject(project.getCreatorId(),projectId,project.getProjectName(),project.getCrfId());
+            deleteProjectIndex(projectId,project.getCrfId());
+            inputTaskService.cencelInputTasksOnDelProject(project.getCreatorId(),projectId,project.getProjectName(),project.getCrfId());
 		}
 		String content = project.getCreatorName() + "删除了项目： " + project.getProjectName();
 		logUtil.saveLog(project.getProjectId(), content, project.getCreatorId(), project.getCreatorName());
 	}
+
+    @Override
+    public void deleteProjectDelIndex() {
+        List<Project> projects = projectMapper.getProjectByDelete(1);
+        projects.forEach( project -> {
+            try {
+                Thread.sleep(100);
+                deleteProjectIndex(project.getCrfId(),project.getProjectId());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+    }
 
 	/**
 	 * 删除索引数据

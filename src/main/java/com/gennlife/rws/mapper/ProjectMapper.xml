@@ -400,4 +400,11 @@
 		WHERE project_id
 		=#{projectId,jdbcType=VARCHAR}
 	</update>
+
+	<select id="getProjectByDelete" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select
+		<include refid="Base_Column_List" />
+		from p_project
+		where is_delete= #{isDelete,jdbcType=INTEGER}
+	</select>
 </mapper>

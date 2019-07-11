@@ -58,4 +58,6 @@ public interface ProjectMapper {
     String getCreateIdByTaskId(String taskId);
 
 	void updateCrfId(@Param("projectId") String projectId,@Param("crfId")  String crfId);
+
+	List<Project> getProjectByDelete(@Param("isDelete") Integer isDelete);
 }

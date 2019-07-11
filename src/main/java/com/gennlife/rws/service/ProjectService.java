@@ -104,6 +104,8 @@ public interface ProjectService {
 
     Object eligible(JSONObject object);
 
+    void deleteProjectDelIndex();
+
     void deleteProjectIndex(String projectId, String crfId);
 
     Integer getCountByProjectIdAndProjectName(String projectId, String projectName);
