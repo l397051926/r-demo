@@ -92,6 +92,13 @@
         where patients_set_id = #{patientsSetId,jdbcType=VARCHAR} AND export = #{export,jdbcType=INTEGER}
     </select>
 
+    <select id="getPatientSnIdsByIdAndExclude" resultMap="BaseResultMap" parameterType="Object">
+        select
+        <include refid="Base_Column_List"/>
+        from patients_id_sql_map
+        where id = #{id,jdbcType=INTEGER} AND export = #{export,jdbcType=INTEGER}
+    </select>
+
     <select id="getPatientSnIdsBypatientSetIdsAndExclude" resultMap="BaseResultMap" parameterType="Object">
         select
         <include refid="Base_Column_List"/>

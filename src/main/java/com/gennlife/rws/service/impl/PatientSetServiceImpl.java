@@ -243,6 +243,11 @@ public class PatientSetServiceImpl implements PatientSetService {
 		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
 	}
+	@Override
+	public Set<String> getPatientSetLocalSqlListById(Integer id){
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsByIdAndExclude(id,1);
+		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toSet());
+	}
     @Override
     public List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSetIds){
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);

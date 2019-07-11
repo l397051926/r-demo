@@ -2,6 +2,7 @@ package com.gennlife.rws.content;
 
 import com.gennlife.rws.entity.ActiveSqlMap;
 import com.gennlife.rws.util.StringUtils;
+import com.gennlife.rws.util.TransPatientSql;
 
 
 import java.io.IOException;
@@ -76,5 +77,10 @@ public class UqlConfig {
         }
         String where = whereList.stream().map( s -> "("+s+")").collect(joining(" OR "));
         return "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+PROJECT_INDEX_NAME_PREFIX.get(crfId)+projectId+" where " + where +" "+ IndexContent.getGroupBy(crfId);
+    }
+
+    public static String getEnumSql(Set<String> allsql, String projectId, String crfId) {
+        String where = IndexContent.getPatientInfoPatientSn(crfId) + " " + TransPatientSql.transForExtContain(allsql);
+       return  "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)  +" where " + where +" "+ IndexContent.getGroupBy(crfId);
     }
 }

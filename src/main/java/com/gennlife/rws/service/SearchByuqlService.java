@@ -14,30 +14,31 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public interface SearchByuqlService {
-     String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
+    String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-    Map<String, String> saveEnumCortrastiveResultRedisMap(List<ActiveSqlMap> activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException;
-
-    Map<String,String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException;
+    String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-     String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
-
-    AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns, String groupFromId, JSONArray patientSetId, String groupId, String isVariant, String crfId) throws IOException, ExecutionException, InterruptedException;
+    AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns,
+                                          String groupFromId, JSONArray patientSetId, String groupId, String isVariant, String crfId) throws IOException, ExecutionException, InterruptedException;
 
     AjaxObject searchCalcResultByUql(String activeId, String projectId, JSONArray basicColumns, JSONArray visitColumns, Integer activeType,
                                      Integer pageNum, Integer pageSize, String activeResult, String groupFromId, JSONArray patientSetId, String groupId, String crfId) throws InterruptedException, IOException, ExecutionException;
 
     AjaxObject searchCalcExculeByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns,
                                      String isExport, String groupId, String groupName, JSONArray patientSetId, String createId,
-                                     String createName,String groupFromId,boolean autoExoprt, String crfId) throws IOException, ExecutionException, InterruptedException;
+                                     String createName, String groupFromId, boolean autoExoprt, String crfId) throws IOException, ExecutionException, InterruptedException;
+
+    Map<String, String> saveEnumCortrastiveResultRedisMap(List<ActiveSqlMap> activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException;
+
+    Map<String, String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException;
 
     AjaxObject getPatientListByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException;
 
-    AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId) ;
+    AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId);
 
     List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId) throws IOException;
 

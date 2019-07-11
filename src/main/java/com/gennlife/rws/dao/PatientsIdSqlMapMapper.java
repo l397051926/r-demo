@@ -20,4 +20,6 @@ public interface PatientsIdSqlMapMapper {
     List<PatientsIdSqlMap> getPatientSnIdsBypatientSetIdAndExclude(@Param("patientsSetId") String patientsSetId, @Param("export") Integer export);
 
     List<PatientsIdSqlMap> getPatientSnIdsBypatientSetIdsAndExclude(@Param("patientSetIds") List<String> patientSetIds, @Param("export") Integer export);
+
+    List<PatientsIdSqlMap> getPatientSnIdsByIdAndExclude(@Param("id") Integer id, @Param("export") Integer export);
 }

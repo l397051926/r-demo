@@ -101,4 +101,6 @@ public interface PatientSetService {
     List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSets);
 
 	Integer getPatientSetLocalCountByListForPatientSets(List<String> patientSets);
+
+    Set<String> getPatientSetLocalSqlListById(Integer key);
 }

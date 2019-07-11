@@ -341,16 +341,19 @@ public class ActiveSqlMap {
     }
 
     public String getUql() throws IOException {
-        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() +" group by patient_info.DOC_ID ";
+        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where " + getUncomSqlWhere() +" group by patient_info.DOC_ID ";
     }
     public String getUql(String crfId) throws IOException {
-        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + IndexContent.getGroupBy(crfId);
+        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where " + getUncomSqlWhere() + IndexContent.getGroupBy(crfId);
     }
     public String getEnumUql(String patSn) throws IOException {
-        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " and patient_info.PATIENT_SN in ('"+patSn+"') " +" group by patient_info.DOC_ID ";
+        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+ getUncomSqlWhere() + " and patient_info.PATIENT_SN in ('"+patSn+"') " +" group by patient_info.DOC_ID ";
     }
     public String getActiveUql() throws IOException {
-        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUnncomEventWhere() +" group by patient_info.DOC_ID ";
+        return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+ getUnncomEventWhere() +" group by patient_info.DOC_ID ";
+    }
+    public String getSqlJoinSql(String sql) throws IOException {
+        return "select " + getSqlSelect() +" from " + getSqlFrom()  +" where "+ getUncomSqlWhere() + " AND " + sql + " group by patient_info.DOC_ID ";
     }
 
     public String getHavingSql() throws IOException{
