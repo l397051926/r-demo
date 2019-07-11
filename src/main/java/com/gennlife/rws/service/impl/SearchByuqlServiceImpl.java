@@ -2129,15 +2129,19 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         Map<Integer, List<ActiveSqlMap>> groupMap = sqlList.stream().collect(groupingBy(ActiveSqlMap :: getPatSqlGroup,TreeMap::new,toList()));
         Iterator<Integer> iterator = groupMap.keySet().iterator();
-        JSONArray data  = new JSONArray();
+        JSONArray dataAll  = new JSONArray();
+        Integer before = (pageNum - 1 ) * pageSize +1;
         while (iterator.hasNext()){
             Integer mapKey = iterator.next();
             List<ActiveSqlMap> value = groupMap.get(mapKey);
-
+            if(dataAll.size() > pageSize){
+                break;
+            }
+            Integer page = 1;
             Set<String> patientSetLocalSqlLists = patientSetService.getPatientSetLocalSqlListById(mapKey);
             String allSql = UqlConfig.getEnumSql(patientSetLocalSqlLists,projectId,crfId,pageList);
-            String result = httpUtils.querySearch(projectId,allSql,pageNum,pageSize,null, new JSONArray().fluentAdd("patient_info"),false);
-            data  = transforEnumResult(JSON.parseObject(result), value, projectId, activeId,pageSize);
+            String result = httpUtils.querySearch(projectId,allSql,page,pageSize,null, new JSONArray().fluentAdd("patient_info"),false);
+            JSONArray data  = transforEnumResult(JSON.parseObject(result), value, projectId, activeId,pageSize);
             List<String> pasSn = new ArrayList<>();
             int daTasize = data == null ? 0 : data.size();
             Map<String, JSONObject> dataMap = new HashMap<>();
@@ -2147,28 +2151,21 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 dataMap.put(tmpObj.getString("DOC_ID"), tmpObj);
             }
             String patSnWhere = "";
-            if(pasSn.size()==0){
-                patSnWhere = "patient_info.DOC_ID IN ('')";
-            }else {
-                patSnWhere = "patient_info.DOC_ID " +TransPatientSql.transForExtContain(pasSn);
-            }
+            patSnWhere = IndexContent.getPatientDocId(crfId) +TransPatientSql.transForExtContain(pasSn);
             JSONArray source = new JSONArray();
-            source.add("patient_info.DOC_ID");
+            source.add(IndexContent.getPatientDocId(crfId));
 
             for (String refActiveId :refList) {
                 //拼接column
-                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId.substring(1),groupId);
+                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1),groupId,mapKey);
                 if(patSqlList == null || patSqlList.size() == 0 ){
                     referenceCalculate(refActiveId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null, crfId);
-                    patSqlList =activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId,groupId);
+                    patSqlList =activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId,groupId,mapKey);
                 }
                 if(patSqlList.size() == 0 ) continue;
                 ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
-                String patSql = patActiveSqlMap.getUncomActiveSql();
-                String[] patSqls = patSql.split("where");
-                String where = patSqls[1];
-                String newWhere = patSnWhere + " and " + where;
-                String patSnResult = httpUtils.querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, "", source,false);
+                String patSql = patActiveSqlMap.getSqlJoinSql(patSnWhere);
+                String patSnResult = httpUtils.querySearch(projectId, patSql, 1, pageSize, "", source,false);
                 JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
                 int tmpHitsSize = tmpHits.size();
                 for (int j = 0; j < tmpHitsSize; j++) {
@@ -2189,13 +2186,14 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                     }
                 }
             }
+            dataAll.addAll(data);
         }
 
         getSearchUqlAllCount(groupFromId,patientSetId,groupId,projectId);
         Integer count = getSearchUqlAllCount(groupFromId,patientSetId,groupId,projectId);
-        AjaxObject.getReallyDataValue(data,basicColumns);
+        AjaxObject.getReallyDataValue(dataAll,basicColumns);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
-        ajaxObject.setData(data);
+        ajaxObject.setData(dataAll);
         ajaxObject.setCount(count);
         ajaxObject.setColumns(basicColumns);
         WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
