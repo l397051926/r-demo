@@ -659,20 +659,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 selectList.add("inspection_reports.INSPECTION_SN");
             }
             uqlClass.setActiveSelect(String.join(",",selectList));
-
-            if (StringUtils.isEmpty(uqlClass.getWhere())) {
-                if("medical_record_home_page".equals(visits)){
-                    uqlClass.setWhere("medical_record_home_page.DOC_ID in (" + query + ")");
-                }else {
-                    uqlClass.setWhere(visits+".DOC_ID in (" + query + ")");
-                }
-            } else {
-                if("medical_record_home_page".equals(visits)){
-                    uqlClass.setWhere(uqlClass.getWhere() + "and medical_record_home_page.DOC_ID in (" + query + ")");
-                }else {
-                    uqlClass.setWhere(uqlClass.getWhere() + "and "+visits+".DOC_ID in (" + query + ")");
-                }
-            }
+            uqlClass.setWhere(visits+".DOC_ID in (" + query + ")");
             /*查询docId*/
             JSONArray resultSource = new JSONArray();
             String resultJson = httpUtils.querySearch(projectId,uqlClass.getVisitsSql(),1,Integer.MAX_VALUE-1,null,resultSource,false);

@@ -125,11 +125,11 @@ public class ProjectConsumer {
             Long remainTime = importMessage.getLong("estimate_cost_time");
             String userId = importMessage.getString("user_id");
             InputTask task = inputTaskMapper.getInputtaskByInputId(taskId);
-            String projectName = projectMapper.getProjectNameByProjectId(task.getProjectId());
             if(task == null ){
                 LOGGER.warn("不是本套系统的项目 不进行数据处理！");
                 return;
             }
+            String projectName = projectMapper.getProjectNameByProjectId(task.getProjectId());
             //如果已经是 失败 或者完成的任务 不在进行更新
             if(task.getStatus() == InputStratus.FAILURE  || task.getStatus() == InputStratus.FINISH  || task.getStatus() == InputStratus.CANCEL){
                 return;
