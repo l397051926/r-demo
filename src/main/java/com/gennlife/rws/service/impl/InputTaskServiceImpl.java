@@ -333,12 +333,12 @@ public class InputTaskServiceImpl implements InputTaskService {
             return;
         }
         if(isDeleteProject){
-            projectService.deleteProjectIndex(projectId,crfId);
+            projectService.deleteProjectIndex(crfId,projectId);
         }else {
             //判定患者集 如果总数为0 则删除 索引
             Integer allCount = patientsSetMapper.getSumCount(projectId);
             if(allCount != null && allCount==0){
-                projectService.deleteProjectIndex(projectId,crfId);
+                projectService.deleteProjectIndex(crfId,projectId);
             }
         }
         LOGGER.info("取消任务完成 taskid：" + taskId );

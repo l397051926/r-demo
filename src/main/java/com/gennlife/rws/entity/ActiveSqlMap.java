@@ -35,6 +35,10 @@ public class ActiveSqlMap {
     private String groupId;
     private Integer patSqlGroup;
     private String resultDocId;
+    private String activeOtherResult;
+    private String countValue; //统计 count 的value
+    private String sqlMd5;
+
 
 
     public ActiveSqlMap(String projectId, String activeIndexId, String activeSql,
@@ -151,10 +155,6 @@ public class ActiveSqlMap {
     public void setIndexTypeValue(String indexTypeValue) {
         this.indexTypeValue = indexTypeValue;
     }
-
-    private String activeOtherResult;
-    private String countValue; //统计 count 的value
-    private String sqlMd5;
 
     public String getSqlMd5() {
         return sqlMd5;

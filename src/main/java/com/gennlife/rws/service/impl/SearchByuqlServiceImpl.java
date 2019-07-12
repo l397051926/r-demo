@@ -240,18 +240,16 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public String searchByActive(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException {
+    public String searchByActive(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
         UqlClass uqlClass = null;
-        String id = object.getString("id");
+        String patientSql = TransPatientSql.getAllPatientSql(patientsIdSqlMap.getPatientSnIds(),crfId);
         String activeType = object.getString("activeType");
         JSONArray patientSetId = object.getJSONArray("patientSetId");
-        String groupFromId = object.getString("groupFromId");
         String isVariant = object.getString("isVariant");
         String groupToId = object.getString("groupToId");
         groupToId =StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId;
         //获取初筛 sql
-        String projectId = object.getString("projectId").replaceAll("-", "");
-        String patientSql =  getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId, crfId);
+        String projectId = object.getString("projectId");
 
         JSONObject config = object.getJSONArray("config").getJSONObject(0);
         String activeIndexId = config.getString("activeIndexId");//指标id
@@ -301,14 +299,17 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         uqlClass.setActiveSelect(uqlClass.getSelect() + hasCount);
 
         JSONObject contitionObj = contitions.getJSONObject(0);
-        transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId,groupToId,projectId,patientSetId,patientSql, crfId,1);
+        transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId,groupToId,projectId,patientSetId,patientSql, crfId,patientsIdSqlMap.getId());
 
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         String allWhere = "";
         String eventWhere = "";
         if(where.isSameGroup(visits)){
-            uqlClass.setWhere(("sub_inspection".equals(visits) ? "inspection_reports" : visits ) + ".VISIT_SN IS NOT NULL AND ");
+            uqlClass.setWhere(("sub_inspection".equals(visits)
+                ? "inspection_reports"
+                : visits )
+                + ".VISIT_SN IS NOT NULL AND ");
             if (!"all".equals(operator) ) {
                 uqlClass.setWhere(uqlClass.getWhere()+order1 + " IS NOT NULL AND ");
             }
@@ -316,7 +317,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             where.deleteHasChild();
             where.execute(SingleExecutorService.getInstance().getSearchUqlExecutorService());
             uqlClass.setWhere(uqlClass.getWhereNotNull() + "(" + where.toString() + " ) ");
-            boolean isGetVisisn = !where.isEmpty();
             String sqlNew = uqlClass.getSql();
             /*开始搞 MD5 替换sql*/
             sqlMd5 = StringToMd5.stringToMd5(sqlNew);
@@ -326,7 +326,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             //构造新sql 只有 visitSn 搜错功能
             allWhere = uqlClass.getWhere();
             sqlresult = uqlClass;
-            eventWhere = sqlresult.getWhere().contains("join_field") ?sqlresult.getWhere():sqlresult.getWhere()+" and join_field='visit_info'";
+            eventWhere = sqlresult.getWhere().contains("join_field") ? sqlresult.getWhere() : sqlresult.getWhere()+" and join_field='visit_info'";
             if(parts.length>2 && parts[0].equals("visits") && parts[1].equals("inspection_reports") && parts[2].equals("sub_inspection")){
                 sqlresult.setWhere(sqlresult.getWhere()+" AND join_field = 'sub_inspection'");
             }else {
@@ -379,12 +379,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             .stream()
             .map(String.class::cast)
             .collect(toSet());
+        String resultDocId =  String.join(SeparatorContent.VERTIVAL_BAR,allPats);
         patients.removeAll(allPats);
         String otherResult = "";
         if (patients.isEmpty()) {
             otherResult = "";
         } else {
-            otherResult = patients.stream().map(s -> "'" + s + "'").collect(joining(","));
+            otherResult = patients.stream().collect(joining("$"));
         }
 
         ActiveSqlMap activeSqlMap = new ActiveSqlMap(projectId,R_activeIndexId,GzipUtil.compress(newSql),
@@ -393,11 +394,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             sqlMd5,GzipUtil.compress(eventWhere),hasCount.split(",")[1],GzipUtil.compress(otherResult),hasCount.split(",")[1]);
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
         activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
-        int count = activeSqlMapMapper.getCountByActiveIndexId(R_activeIndexId,groupToId);
+        activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
+        activeSqlMap.setResultDocId(resultDocId);
         Long mysqlStartTime = System.currentTimeMillis();
-        if (count > 0) {
-            activeSqlMapMapper.deleteByIndexId(R_activeIndexId);
-        }
         activeSqlMapMapper.insert(activeSqlMap);
         LOG.info("数据库用时 :  "+(System.currentTimeMillis()-mysqlStartTime));
         /*引用依赖计算*/
@@ -584,33 +583,21 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         Long startMysqlTime = System.currentTimeMillis();
         List<ActiveSqlMap> sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId,groupId);
         if(sqlList == null || sqlList.size() == 0 ){
-            referenceCalculate(activeId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null,crfId);
+            referenceCalculate(activeId,projectId,CommonContent.ACTIVE_TYPE_EVENT,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null,crfId);
             sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId,groupId);
         }
         LOG.info("事件 从mysql数据库读取时间为： "+(System.currentTimeMillis()-startMysqlTime));
         activeResult = activeIndexConfigMapper.getActiveResult(activeId.replaceAll("_tmp", ""));
-        UqlClass joinUqlClass = new StandardUqlClass(projectId);
+
+//        Integer total = UqlQureyResult.getTotal(result);
+
+        // --------------开始分批查找
         ActiveSqlMap activeSqlMap = sqlList.get(0);
-        String newSql = sqlList.get(0).getUncomActiveSql();
-        JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());//ids
-        int refSize = refActiveIds == null ? 0 : refActiveIds.size();
         String sourceFilter = activeSqlMap.getSourceFiltere();
-        for (int i = 0; i < refSize; i++) {
-            String refActiveId = refActiveIds.getString(i);
-            String sql = activeSqlMapMapper.getActiveSqlByActiveId(refActiveId.substring(1, refActiveId.length()),groupId);
-            if(StringUtils.isEmpty(sql) ){
-                referenceCalculate(refActiveId.substring(1, refActiveId.length()),projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null,crfId);
-                sql = activeSqlMapMapper.getActiveSqlByActiveId(refActiveId.substring(1, refActiveId.length()),groupId);
-            }
-            joinUqlClass.setJoinValue(refActiveId, sql);
-        }
         /*处理 检验子项 和检验报告命名方式*/
         String activeResultValue = activeSqlMap.getActiveResultValue();
         String parts[] = activeResultValue.split("\\.");
         String visits = parts[parts.length - 1];
-        if( parts.length>2 && parts[0].equals("visits") && parts[1].equals("inspection_reports") && parts[2].equals("sub_inspection") ){
-            visits = "sub_inspection";
-        }
 
         JSONArray source = new JSONArray();
         source.add("patient_info");
@@ -621,26 +608,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             String sourceVal = sourceValue.getString(i);
             source.add(sourceVal);
         }
-        String having ="";
-        if( activeSqlMap.getUncomActiveSql().contains("having")){
-            having = "having"+ activeSqlMap.getUncomActiveSql().split("having")[1];
-        }
+        String having = activeSqlMap.getSqlHaving();
         String activeReuslt = activeSqlMap.getActiveResultDocId();
-        String sql = "";
-        String tmpSql = "";
-        if("medical_record_home_page".equals(visits)){
-            sql = "select " +activeReuslt +"as condition ,count(medical_record_home_page.DOC_ID) as jocount from " + activeSqlMap.getSqlFrom() +" where "+ activeSqlMap.getUncomSqlWhere() + " and medical_record_home_page.DOC_ID is not null group by patient_info.DOC_ID "+having;
-        }else {
-            sql = "select " +activeReuslt +"as condition ,count("+visits +".DOC_ID) as jocount from " + activeSqlMap.getSqlFrom() +" where "+ activeSqlMap.getUncomSqlWhere() + " and "+visits+ ".DOC_ID is not null group by patient_info.DOC_ID "+having;
-        }
-
+        String sql =  "select " +activeReuslt +"as condition ,count("+visits +".DOC_ID) as jocount from " + activeSqlMap.getSqlFrom() +" where "+ activeSqlMap.getUncomSqlWhere() + " and "+visits+ ".DOC_ID is not null group by patient_info.DOC_ID " + having;
         String result = httpUtils.querySearch(projectId,sql,pageNum,pageSize,sourceFilter,source,false);
         /*处理结果*/
-        Integer total = UqlQureyResult.getTotal(result);
-
         JSONArray data = UqlQureyResult.getActiveVisitSn(result, activeId);
         String query = getVisitSns(data);
-
         /*组装新的 uql搜索 搜索新的数据*/
         UqlClass uqlClass = new StandardUqlClass();
         uqlClass.setFrom("rws_emr_" + projectId);
@@ -649,7 +623,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         /*处理病案首页 手术问题*/
         String repeaceActive = activeResult.substring(activeResult.lastIndexOf(".") + 1, activeResult.length());
         array = getSource(visitColumns, repeaceActive, array);
-
         array.remove("patient_info.DATE_OF_BIRTH");
         int size = array == null ? 0 : array.size();
         for (int i = 0; i < size; i++) {
@@ -658,7 +631,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
             uqlClass.setActiveSelect(uqlClass.getSelect() + array.getString(i));
         }
-
         uqlClass.setActiveSelect(uqlClass.getSelect() + ",visit_info.VISIT_SN");
         uqlClass.setActiveSelect(uqlClass.getSelect() + ",visit_info.PATIENT_SN");
         if(!"sub_inspection".equals(visits)){
@@ -689,7 +661,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         Integer count = getSearchUqlAllCount(groupFromId,patientSetId,groupId,projectId);
         ajaxObject.setCount(count);
         ajaxObject.setData(dataObj);
-        WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
+        WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, 0);
         ajaxObject.setWebAPIResult(webAPIResult);
         return ajaxObject;
     }
@@ -2321,7 +2293,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             } else if(2 == activeType) {//指标
                 this.SearchByIndex(obj, resultOrderKey,isSearch, p, crfId);
             }else  if(1 == activeType){ //事件
-                this.searchByActive(obj, resultOrderKey,isSearch, crfId);
+                this.searchByActive(obj, resultOrderKey,isSearch, p, crfId);
             }
         }
 

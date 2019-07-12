@@ -134,7 +134,7 @@ public class ProjectServiceImpl implements ProjectService {
 			projectMapper.updateById(project);
 			// 删除项目相关信息 可考虑异步处理
 			deleteProjectDetail(projectId);
-            deleteProjectIndex(projectId,project.getCrfId());
+            deleteProjectIndex(project.getCrfId(),projectId);
             inputTaskService.cencelInputTasksOnDelProject(project.getCreatorId(),projectId,project.getProjectName(),project.getCrfId());
 		}
 		String content = project.getCreatorName() + "删除了项目： " + project.getProjectName();

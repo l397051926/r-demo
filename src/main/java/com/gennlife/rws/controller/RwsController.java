@@ -280,7 +280,7 @@ public class RwsController {
             } else if (2 == activeType) {//指标
                 searchByuqlService.SearchByIndex(obj, resultOrderKey, isSearch, patientSql, crfId);
             } else if (1 == activeType) { //事件
-                searchByuqlService.searchByActive(obj, resultOrderKey, isSearch, crfId);
+                searchByuqlService.searchByActive(obj, resultOrderKey, isSearch, patientSql, crfId);
             }
         }
     }

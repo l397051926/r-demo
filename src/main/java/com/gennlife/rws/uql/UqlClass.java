@@ -23,18 +23,18 @@ public abstract class UqlClass {
 
     public static final String IS_VARIANT_TRUE = "1";
 
-    private String select= "";
+    private String select = "";
     private String where;
-    private String from ;
+    private String from;
     private String having;
-    private Map<String,String> join;
+    private Map<String, String> join;
     private List<String> source;
     private String sourceFilter;
     private List<AdjointWhere> adjoint;
 
     private String function;
 
-    private String resultValue ;
+    private String resultValue;
     private String resultFunction;
     private String resultFunctionNum;
 
@@ -47,16 +47,16 @@ public abstract class UqlClass {
     private List<String> enumOther = new ArrayList<>();
     private String visitsGroup;
 
-    public void setAdjointVal(AdjointWhere adjointValue){
+    public void setAdjointVal(AdjointWhere adjointValue) {
         this.adjoint.add(adjointValue);
     }
 
-    public String getAdjointTopVal(){
-        return adjoint.get(adjoint.size()-1).getAdjointName();
+    public String getAdjointTopVal() {
+        return adjoint.get(adjoint.size() - 1).getAdjointName();
     }
 
-    public boolean isAdjointTopValBracket(){
-        return adjoint.get(adjoint.size()-1).getAdjointName().contains("(");
+    public boolean isAdjointTopValBracket() {
+        return adjoint.get(adjoint.size() - 1).getAdjointName().contains("(");
     }
 
     public List<String> getEnumOther() {
@@ -71,8 +71,8 @@ public abstract class UqlClass {
         return activeId;
     }
 
-    public void addActiveId(String activeId){
-        if(!this.activeId.contains(activeId)){
+    public void addActiveId(String activeId) {
+        if (!this.activeId.contains(activeId)) {
             this.activeId.add(activeId);
         }
     }
@@ -145,33 +145,33 @@ public abstract class UqlClass {
         this.function = function;
     }
 
-    public UqlClass(){
+    public UqlClass() {
 
     }
 
-    public UqlClass(String from){
-        this.setFrom("rws_emr_"+from);
+    public UqlClass(String from) {
+        this.setFrom("rws_emr_" + from);
         this.setActiveSelect(" patient_info.DOC_ID as pSn, ");
         join = new ConcurrentHashMap<>();
         source = new LinkedList<>();
         adjoint = new LinkedList<>();
     }
 
-    public UqlClass(String from,String crfId){
+    public UqlClass(String from, String crfId) {
         this.setFrom(PROJECT_INDEX_NAME_PREFIX.get(crfId) + from);
-        if(StringUtils.isNotEmpty(crfId)){
-            this.setActiveSelect(" "+ IndexContent.getPatientDocId(crfId)+" as pSn, ");
+        if (StringUtils.isNotEmpty(crfId)) {
+            this.setActiveSelect(" " + IndexContent.getPatientDocId(crfId) + " as pSn, ");
         }
         join = new ConcurrentHashMap<>();
         source = new LinkedList<>();
         adjoint = new LinkedList<>();
     }
 
-    public void setSourceFilterValue(String cond,String value){
-        if(StringUtils.isEmpty(sourceFilter)){
+    public void setSourceFilterValue(String cond, String value) {
+        if (StringUtils.isEmpty(sourceFilter)) {
             this.sourceFilter = value;
-        }else {
-            this.sourceFilter = this.sourceFilter.concat(" "+cond+" "+value);
+        } else {
+            this.sourceFilter = this.sourceFilter.concat(" " + cond + " " + value);
         }
     }
 
@@ -183,12 +183,12 @@ public abstract class UqlClass {
         this.sourceFilter = sourceFilter;
     }
 
-    public void setSourceValue(String value){
+    public void setSourceValue(String value) {
         this.source.add(value);
     }
 
-    public void setJoinValue(String activeId,String value) {
-        this.join.put(activeId,value);
+    public void setJoinValue(String activeId, String value) {
+        this.join.put(activeId, value);
     }
 
     public String getSelect() {
@@ -196,35 +196,37 @@ public abstract class UqlClass {
     }
 
     public void setSelect(String select) {
-        this.select = select +" as condition";
+        this.select = select + " as condition";
     }
 
     public void setActiveSelect(String select) {
         this.select = select;
     }
 
-    public void setJoinSelect(String select){
+    public void setJoinSelect(String select) {
         this.select = select;
     }
 
-    public String getWhereNotNull(){
-        return where==null?"":where;
+    public String getWhereNotNull() {
+        return where == null ? "" : where;
     }
 
     public String getWhere() {
         return where;
     }
-    public String getNotEmptyWhere(){
+
+    public String getNotEmptyWhere() {
         return StringUtils.isEmpty(where) ? " " : where;
     }
 
     public void setWhere(String where) {
         this.where = where;
     }
-    public void setIsEmptyWhere(String where){
-        if(StringUtils.isEmpty(where)){
+
+    public void setIsEmptyWhere(String where) {
+        if (StringUtils.isEmpty(where)) {
             this.where = where;
-        }else {
+        } else {
             this.where = this.where + where;
         }
     }
@@ -237,20 +239,20 @@ public abstract class UqlClass {
         this.from = from;
     }
 
-    public void setFrom(String from,String crfId) {
+    public void setFrom(String from, String crfId) {
         this.setFrom(PROJECT_INDEX_NAME_PREFIX.get(crfId) + from);
     }
 
-    public String getSql(){
-        return "select " + select +" from " + from +" where "+where +" group by patient_info.DOC_ID ";
+    public String getSql() {
+        return "select " + select + " from " + from + " where " + where + " group by patient_info.DOC_ID ";
     }
 
-    public String getCrfSql(){
-        return "select " + select +" from " + from +" where "+where +" group by patient_info.patient_basicinfo.DOC_ID ";
+    public String getCrfSql() {
+        return "select " + select + " from " + from + " where " + where + " group by patient_info.patient_basicinfo.DOC_ID ";
     }
 
-    public String getVisitsSql(){
-        return "select " + select +" from " + from +" where "+where ;
+    public String getVisitsSql() {
+        return "select " + select + " from " + from + " where " + where;
     }
 
     public Map<String, String> getJoin() {
@@ -269,7 +271,7 @@ public abstract class UqlClass {
         this.source = source;
     }
 
-    public void setIndexWhereIsEmpty(String order1, UqlWhere where){
+    public void setIndexWhereIsEmpty(String order1, UqlWhere where) {
         if (where.isEmpty()) {
             if (order1.startsWith("visit_info")) {
                 setWhere(order1 + " IS NOT NULL");
@@ -314,18 +316,19 @@ public abstract class UqlClass {
     public abstract void setWhereIsEmpty(UqlWhere where, String order1, String isVariant, String patientSql, AbstractFieldAnalyzer schema);
 
     public void setSqlHaving(String functionParam) {
-        if(StringUtils.isNotEmpty(functionParam)){
-            having =  " having jocount >=" + functionParam;
+        if (StringUtils.isNotEmpty(functionParam)) {
+            having = " having jocount >=" + functionParam;
         }
 
     }
 
-    public abstract void  setNotAllWhere(String function, String order1, String indexDate, AbstractFieldAnalyzer schema);
+    public abstract void setNotAllWhere(String function, String order1, String indexDate, AbstractFieldAnalyzer schema);
 
-    public abstract  String getHavingSql() ;
-    public abstract  String getHavingSql(String crfId) ;
+    public abstract String getHavingSql();
 
-    public void setVistSnWhere(UqlWhere where,String visits,String order1, AbstractFieldAnalyzer schema) {
+    public abstract String getHavingSql(String crfId);
+
+    public void setVistSnWhere(UqlWhere where, String visits, String order1, AbstractFieldAnalyzer schema) {
 
     }
 
