@@ -589,7 +589,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         LOG.info("事件 从mysql数据库读取时间为： "+(System.currentTimeMillis()-startMysqlTime));
         activeResult = activeIndexConfigMapper.getActiveResult(activeId.replaceAll("_tmp", ""));
 
-//        Integer total = UqlQureyResult.getTotal(result);
+        Integer total = UqlQureyResult.getTotal(result);
 
         // --------------开始分批查找
         ActiveSqlMap activeSqlMap = sqlList.get(0);
@@ -617,7 +617,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String query = getVisitSns(data);
         /*组装新的 uql搜索 搜索新的数据*/
         UqlClass uqlClass = new StandardUqlClass();
-        uqlClass.setFrom("rws_emr_" + projectId);
+        uqlClass.setFrom(IndexContent.getIndexName(crfId,projectId));
         JSONArray array = new JSONArray();
         array = getSource(basicColumns, "patient_info", array);
         /*处理病案首页 手术问题*/
@@ -625,20 +625,20 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         array = getSource(visitColumns, repeaceActive, array);
         array.remove("patient_info.DATE_OF_BIRTH");
         int size = array == null ? 0 : array.size();
+        List<String> selectList = new LinkedList<>();
         for (int i = 0; i < size; i++) {
-            if (i > 0) {
-                uqlClass.setActiveSelect(uqlClass.getSelect() + ",");
-            }
-            uqlClass.setActiveSelect(uqlClass.getSelect() + array.getString(i));
+            selectList.add(array.getString(i));
         }
-        uqlClass.setActiveSelect(uqlClass.getSelect() + ",visit_info.VISIT_SN");
-        uqlClass.setActiveSelect(uqlClass.getSelect() + ",visit_info.PATIENT_SN");
+        selectList.add("visit_info.VISIT_SN");
+        selectList.add("visit_info.PATIENT_SN");
         if(!"sub_inspection".equals(visits)){
-            uqlClass.setActiveSelect(uqlClass.getSelect() + ","+visits+".PATIENT_SN");
+            selectList.add(visits+".PATIENT_SN");
         }
         if("inspection_reports".equals(visits)){
-            uqlClass.setActiveSelect(uqlClass.getSelect() + ",inspection_reports.INSPECTION_SN");
+            selectList.add("inspection_reports.INSPECTION_SN");
         }
+        uqlClass.setActiveSelect(String.join(",",selectList));
+
         if (StringUtils.isEmpty(uqlClass.getWhere())) {
             if("medical_record_home_page".equals(visits)){
                 uqlClass.setWhere("medical_record_home_page.DOC_ID in (" + query + ")");
