@@ -337,7 +337,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         }else {
             //判定患者集 如果总数为0 则删除 索引
             Integer allCount = patientsSetMapper.getSumCount(projectId);
-            if(allCount != null && allCount==0){
+            if(allCount == null || allCount == 0){
                 projectService.deleteProjectIndex(crfId,projectId);
             }
         }

@@ -368,7 +368,6 @@ public class PatientSetServiceImpl implements PatientSetService {
 		String querWhere = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientsSetId));
 		String newquerWhere = TransPatientSql.getAllPatientSql(querWhere,crfId);
 		JSONArray sourceFilter = new JSONArray();
-//		sourceFilter.add(IndexContent.getPatientInfoPatientSn(crfId));
 		String newSql = "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)+" where "+newquerWhere+IndexContent.getGroupBy(crfId);
 		String response = httpUtils.querySearch(projectId,newSql,1,Integer.MAX_VALUE-1,null,sourceFilter,crfId,true);
 		List<String> patients = new KeyPath("hits", "hits", "_id")
@@ -383,8 +382,9 @@ public class PatientSetServiceImpl implements PatientSetService {
 		List<String> patSetSql = patientsSetMapper.getPatientSetSqlByGroupId(groupId);
 		String sqlWhere = String.join(" or ",patSetSql.stream().map(x -> "("+TransPatientSql.getPatientSnSql(TransPatientSql.getUncomPatientSnSql(x),crfId)+")").collect(toList()));
 		JSONArray sourceFilter = new JSONArray();
-//		sourceFilter.add(IndexContent.getPatientInfoPatientSn(crfId));
-		String result = null;
+		if(StringUtils.isEmpty(sqlWhere)){
+			return new ArrayList<>();
+		}
 		String newSql = "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+IndexContent.getIndexName(crfId,projectId)+" where "+sqlWhere+IndexContent.getGroupBy(crfId);
 		String response = httpUtils.querySearch(projectId,newSql,1,Integer.MAX_VALUE-1,null,sourceFilter,crfId,true);
 		List<String> patients = new KeyPath("hits", "hits", "_id")
