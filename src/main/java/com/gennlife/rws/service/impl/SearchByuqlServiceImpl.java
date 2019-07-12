@@ -589,79 +589,101 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         LOG.info("事件 从mysql数据库读取时间为： "+(System.currentTimeMillis()-startMysqlTime));
         activeResult = activeIndexConfigMapper.getActiveResult(activeId.replaceAll("_tmp", ""));
 
-        Integer total = UqlQureyResult.getTotal(result);
+        List<String> allResutList = sqlList.stream().map( x ->x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays ::stream).distinct().collect(toList());
+        List<String> resultList = PagingUtils.getPageContentForString(allResutList,pageNum,pageSize);
+        String  sql = TransPatientSql.getPatientDocIdSql(resultList,crfId);
+        Integer total = allResutList.size(); // 计算后的总数
+        Set<String> allTmpSet = new HashSet<>();
+        //蛋疼的计算  pageNum pageSize
+        Integer before = (pageNum - 1 ) * pageSize + 1;
+        Integer last = pageNum * pageSize;
+        JSONArray dataAll = new JSONArray();
 
         // --------------开始分批查找
-        ActiveSqlMap activeSqlMap = sqlList.get(0);
-        String sourceFilter = activeSqlMap.getSourceFiltere();
-        /*处理 检验子项 和检验报告命名方式*/
-        String activeResultValue = activeSqlMap.getActiveResultValue();
-        String parts[] = activeResultValue.split("\\.");
-        String visits = parts[parts.length - 1];
+        for (ActiveSqlMap sqlMap : sqlList){
 
-        JSONArray source = new JSONArray();
-        source.add("patient_info");
-        /*增加 source value*/
-        JSONArray sourceValue = JSONArray.parseArray(sqlList.get(0).getSourceValue());
-        int sourceSize = sourceValue == null ? 0 : sourceValue.size();
-        for (int i = 0; i < sourceSize; i++) {
-            String sourceVal = sourceValue.getString(i);
-            source.add(sourceVal);
-        }
-        String having = activeSqlMap.getSqlHaving();
-        String activeReuslt = activeSqlMap.getActiveResultDocId();
-        String sql =  "select " +activeReuslt +"as condition ,count("+visits +".DOC_ID) as jocount from " + activeSqlMap.getSqlFrom() +" where "+ activeSqlMap.getUncomSqlWhere() + " and "+visits+ ".DOC_ID is not null group by patient_info.DOC_ID " + having;
-        String result = httpUtils.querySearch(projectId,sql,pageNum,pageSize,sourceFilter,source,false);
-        /*处理结果*/
-        JSONArray data = UqlQureyResult.getActiveVisitSn(result, activeId);
-        String query = getVisitSns(data);
-        /*组装新的 uql搜索 搜索新的数据*/
-        UqlClass uqlClass = new StandardUqlClass();
-        uqlClass.setFrom(IndexContent.getIndexName(crfId,projectId));
-        JSONArray array = new JSONArray();
-        array = getSource(basicColumns, "patient_info", array);
-        /*处理病案首页 手术问题*/
-        String repeaceActive = activeResult.substring(activeResult.lastIndexOf(".") + 1, activeResult.length());
-        array = getSource(visitColumns, repeaceActive, array);
-        array.remove("patient_info.DATE_OF_BIRTH");
-        int size = array == null ? 0 : array.size();
-        List<String> selectList = new LinkedList<>();
-        for (int i = 0; i < size; i++) {
-            selectList.add(array.getString(i));
-        }
-        selectList.add("visit_info.VISIT_SN");
-        selectList.add("visit_info.PATIENT_SN");
-        if(!"sub_inspection".equals(visits)){
-            selectList.add(visits+".PATIENT_SN");
-        }
-        if("inspection_reports".equals(visits)){
-            selectList.add("inspection_reports.INSPECTION_SN");
-        }
-        uqlClass.setActiveSelect(String.join(",",selectList));
-
-        if (StringUtils.isEmpty(uqlClass.getWhere())) {
-            if("medical_record_home_page".equals(visits)){
-                uqlClass.setWhere("medical_record_home_page.DOC_ID in (" + query + ")");
-            }else {
-                uqlClass.setWhere(visits+".DOC_ID in (" + query + ")");
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            tmpSet.removeAll(allTmpSet);
+            allTmpSet.addAll(tmpSet);
+            if(allTmpSet.size() + 1  < before){
+                continue;
             }
-        } else {
-            if("medical_record_home_page".equals(visits)){
-                uqlClass.setWhere(uqlClass.getWhere() + "and medical_record_home_page.DOC_ID in (" + query + ")");
-            }else {
-                uqlClass.setWhere(uqlClass.getWhere() + "and "+visits+".DOC_ID in (" + query + ")");
+            if(dataAll.size() > pageSize){
+                break;
             }
-        }
-        /*查询docId*/
-        JSONArray resultSource = new JSONArray();
-        String resultJson = httpUtils.querySearch(projectId,uqlClass.getVisitsSql(),1,Integer.MAX_VALUE-1,null,resultSource,false);
-        JSONArray dataObj = getActiveResultData(resultJson, basicColumns, visitColumns, repeaceActive,result,visits);
+            int page = 1;
+            int size = last - dataAll.size() + pageNum;
 
+            String sourceFilter = sqlMap.getSourceFiltere();
+            /*处理 检验子项 和检验报告命名方式*/
+            String activeResultValue = sqlMap.getActiveResultValue();
+            String parts[] = activeResultValue.split("\\.");
+            String visits = parts[parts.length - 1];
+
+            JSONArray source = new JSONArray();
+            source.add("patient_info");
+            /*增加 source value*/
+            JSONArray sourceValue = JSONArray.parseArray(sqlList.get(0).getSourceValue());
+            int sourceSize = sourceValue == null ? 0 : sourceValue.size();
+            for (int i = 0; i < sourceSize; i++) {
+                String sourceVal = sourceValue.getString(i);
+                source.add(sourceVal);
+            }
+            String having = sqlMap.getSqlHaving();
+            String activeReuslt = sqlMap.getActiveResultDocId();
+            String allSql =  "select " +activeReuslt +"as condition ,count("+visits +".DOC_ID) as jocount from " + sqlMap.getSqlFrom() +" where "+ sqlMap.getUncomSqlWhere() + " AND " + sql +  " and "+visits+ ".DOC_ID is not null group by patient_info.DOC_ID " + having;
+            String result = httpUtils.querySearch(projectId,allSql,page,size,sourceFilter,source,false);
+            /*处理结果*/
+            JSONArray data = UqlQureyResult.getActiveVisitSn(result, activeId);
+            String query = getVisitSns(data);
+            /*组装新的 uql搜索 搜索新的数据*/
+            UqlClass uqlClass = new StandardUqlClass();
+            uqlClass.setFrom(IndexContent.getIndexName(crfId,projectId));
+            JSONArray array = new JSONArray();
+            array = getSource(basicColumns, "patient_info", array);
+            /*处理病案首页 手术问题*/
+            String repeaceActive = activeResult.substring(activeResult.lastIndexOf(".") + 1, activeResult.length());
+            array = getSource(visitColumns, repeaceActive, array);
+            array.remove("patient_info.DATE_OF_BIRTH");
+            int arraySize = array == null ? 0 : array.size();
+            List<String> selectList = new LinkedList<>();
+            for (int i = 0; i < arraySize; i++) {
+                selectList.add(array.getString(i));
+            }
+            selectList.add("visit_info.VISIT_SN");
+            selectList.add("visit_info.PATIENT_SN");
+            if(!"sub_inspection".equals(visits)){
+                selectList.add(visits+".PATIENT_SN");
+            }
+            if("inspection_reports".equals(visits)){
+                selectList.add("inspection_reports.INSPECTION_SN");
+            }
+            uqlClass.setActiveSelect(String.join(",",selectList));
+
+            if (StringUtils.isEmpty(uqlClass.getWhere())) {
+                if("medical_record_home_page".equals(visits)){
+                    uqlClass.setWhere("medical_record_home_page.DOC_ID in (" + query + ")");
+                }else {
+                    uqlClass.setWhere(visits+".DOC_ID in (" + query + ")");
+                }
+            } else {
+                if("medical_record_home_page".equals(visits)){
+                    uqlClass.setWhere(uqlClass.getWhere() + "and medical_record_home_page.DOC_ID in (" + query + ")");
+                }else {
+                    uqlClass.setWhere(uqlClass.getWhere() + "and "+visits+".DOC_ID in (" + query + ")");
+                }
+            }
+            /*查询docId*/
+            JSONArray resultSource = new JSONArray();
+            String resultJson = httpUtils.querySearch(projectId,uqlClass.getVisitsSql(),1,Integer.MAX_VALUE-1,null,resultSource,false);
+            JSONArray dataObj = getActiveResultData(resultJson, basicColumns, visitColumns, repeaceActive,result,visits);
+            dataAll.addAll(dataObj);
+        }
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
         Integer count = getSearchUqlAllCount(groupFromId,patientSetId,groupId,projectId);
         ajaxObject.setCount(count);
-        ajaxObject.setData(dataObj);
-        WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, 0);
+        ajaxObject.setData(dataAll);
+        WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         ajaxObject.setWebAPIResult(webAPIResult);
         return ajaxObject;
     }
