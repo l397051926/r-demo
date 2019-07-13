@@ -456,7 +456,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(allTmpSet.size() + 1  < before){
                 continue;
             }
-            if(dataAll.size() > pageSize){
+            if(dataAll.size() >= pageSize){
                 break;
             }
             int page = 1;
@@ -608,7 +608,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(allTmpSet.size() + 1  < before){
                 continue;
             }
-            if(dataAll.size() > pageSize){
+            if(dataAll.size() >= pageSize){
                 break;
             }
             int page = 1;
@@ -2112,7 +2112,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         while (iterator.hasNext()){
             Integer mapKey = iterator.next();
             List<ActiveSqlMap> value = groupMap.get(mapKey);
-            if(dataAll.size() > pageSize){
+            if(dataAll.size() >= pageSize){
                 break;
             }
             Integer page = 1;
