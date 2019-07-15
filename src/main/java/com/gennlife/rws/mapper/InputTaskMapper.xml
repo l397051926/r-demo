@@ -296,7 +296,7 @@
     <if test="projectId != null">
       AND project_id = #{projectId,jdbcType=VARCHAR}
     </if>
-    <if test="patientSetName != null">
+    <if test="patientSetId != null">
       AND patient_set_id = #{patientSetId,jdbcType=VARCHAR}
     </if>
     AND(status =3 OR status = 2)

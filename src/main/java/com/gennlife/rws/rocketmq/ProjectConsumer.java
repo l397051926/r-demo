@@ -17,6 +17,7 @@ import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.GzipUtil;
 import com.gennlife.rws.util.HttpUtils;
 import com.gennlife.rws.util.LogUtil;
+import com.gennlife.rws.util.StringUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.*;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
@@ -148,7 +149,7 @@ public class ProjectConsumer {
             }
             if(InputStratus.FINISH == status){//成功
                 JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));
-                if(obj == null ){
+                if(obj == null || StringUtils.isEmpty(obj.getString("uqlQuery")) || obj.getLong("curenntCount") == null || StringUtils.isEmpty(obj.getString("patientSetId"))){
                     Project project = projectMapper.selectByProjectId(task.getProjectId());
                     InputTask taskAll = inputTaskMapper.getInputtaskAllByInputId(task.getInputId());
                     obj = new JSONObject()
