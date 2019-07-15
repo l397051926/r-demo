@@ -1637,12 +1637,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
         activeSqlMap.setResultDocId(resultDocId);
-        int count = activeSqlMapMapper.getCountByActiveIndexId(activeIndexId,groupToId);
-        if (count > 0) {
-            activeSqlMapMapper.updateByActiveId(activeSqlMap);
-        } else {
-            activeSqlMapMapper.insert(activeSqlMap);
-        }
+        activeSqlMapMapper.insert(activeSqlMap);
         return uqlClass.getSql();
     }
 
