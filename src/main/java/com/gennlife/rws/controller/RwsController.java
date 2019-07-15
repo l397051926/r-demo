@@ -274,7 +274,7 @@ public class RwsController {
             }
         } else {
             if (3 == activeType) {//那排
-                searchByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, crfId);
+                searchByuqlService.SearchByExclude(obj, resultOrderKey, isSearch,patientSql, crfId);
             } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
                 searchByuqlService.SearchByEnume(obj, resultOrderKey, isSearch, patientSql, crfId);
             } else if (2 == activeType) {//指标

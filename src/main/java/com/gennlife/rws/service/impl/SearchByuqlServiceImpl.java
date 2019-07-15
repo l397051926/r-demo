@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.stream.Collector;
 
 import static com.gennlife.darren.collection.Pair.makePair;
@@ -562,21 +561,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return   patientSetService.getPatientSetLocalCountByListForPatientSets(patientSets);
     }
 
-
-    private void saveExcludeTask(String activeId, String projectId, Integer total) {
-        ActiveIndexTask activeIndexTask = new ActiveIndexTask();
-        activeIndexTask.setId(StringUtils.getUUID());
-        activeIndexTask.setActiveIndexId(activeId.replaceAll("_tmp", ""));
-        activeIndexTask.setProjectId(projectId);
-        activeIndexTask.setSubmitTime(new Date());
-        activeIndexTask.setStatus(1);
-        activeIndexTask.setMessage("计算完成");
-        activeIndexTask.setComplateTime(new Date());
-        activeIndexTask.setSearchResult(total);
-        activeIndexTask.setMarketApply(total);
-        activeIndexTaskMapper.insert(activeIndexTask);
-    }
-
     @Override/*获取事件结果集*/
     public AjaxObject searchCalcResultByUql(String activeId, String projectId, JSONArray basicColumns, JSONArray visitColumns, Integer activeType, Integer pageNum,
                                             Integer pageSize, String activeResult, String groupFromId, JSONArray patientSetId, String groupId,String crfId) throws InterruptedException, IOException, ExecutionException {
@@ -849,12 +833,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         LOG.info("那排 从mysql数据库读取时间为： "+(System.currentTimeMillis()-startMysqlTime));
         ActiveSqlMap activeSqlMap = sqlList.get(0);
-        List<String> enumList = new ArrayList<>();
         JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());
-        JSONArray sourceValue = JSONArray.parseArray(activeSqlMap.getSourceValue());
-        String sqlQuery = activeSqlMap.getUncomActiveSql();
         int refSize = refActiveIds == null ? 0 : refActiveIds.size();
-        String refActiveIdTmp = null;
 
         for (int i = 0; i < refSize; i++) {
             //拼接columns
@@ -880,9 +860,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         if("1".equals(isExport)){//处理导出数据
             String result =  httpUtils.querySearch(projectId,activeSqlMap.getUncomActiveSql(),pageNum,Integer.MAX_VALUE-1,activeSqlMap.getSourceFiltere(),source,false);
-            Integer total = UqlQureyResult.getTotal(result);
             JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
-            Map<String, JSONObject> dataMap = new HashMap<>();
             boolean flag = true;
             if(patientSetId == null){
                flag = groupService.exportToGroup(data,groupId,groupName,projectId,createId,createName,true,autoExport);
@@ -927,113 +905,114 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 return ajaxObject1;
             }
         }
-        //请求 获取数据
-        String result =  httpUtils.querySearch(projectId,activeSqlMap.getUncomActiveSql(),pageNum,pageSize,activeSqlMap.getSourceFiltere(),source,false);
-        JSONObject applyOutObj = JSONObject.parseObject( httpUtils.querySearch(projectId,activeSqlMap.getUncomActiveSql(),pageNum,Integer.MAX_VALUE-1,activeSqlMap.getSourceFiltere(),source,false));
-        String applyCondition = getApplyCondition(applyOutObj);
-        //处理结果
-        Integer total = UqlQureyResult.getTotal(result);
-        JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
 
-        List<String> pasSn = new ArrayList<>();
-        int size = data == null ? 0 : data.size();
-        Map<String, JSONObject> dataMap = new HashMap<>();
-        for (int i = 0; i < size; i++) {
-            JSONObject tmpObj = data.getJSONObject(i);
-            pasSn.add(tmpObj.getString("DOC_ID"));
-            dataMap.put(tmpObj.getString("DOC_ID"), tmpObj);
-        }
-        String patSnWhere = "";
-        if(pasSn.size()==0){
-            patSnWhere = "patient_info.DOC_ID IN ('')";
-        }else {
-            patSnWhere = "patient_info.DOC_ID " + TransPatientSql.transForExtContain(pasSn);
-        }
+        List<String> allResutList = sqlList.stream().map( x ->x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays ::stream).distinct().collect(toList());
+        List<String> resultList = PagingUtils.getPageContentForString(allResutList,pageNum,pageSize);
+        String  joinSql = TransPatientSql.getPatientDocIdSql(resultList,crfId);
+        Integer total = allResutList.size(); // 计算后的总数
+        Set<String> allTmpSet = new HashSet<>();
+        //蛋疼的计算  pageNum pageSize
+        Integer before = (pageNum - 1 ) * pageSize +1;
+        Integer last = pageNum * pageSize;
+        JSONArray dataAll = new JSONArray();
 
-        for (int i = 0; i < refSize; i++) {
-            //拼接column
-            String refActiveId = refActiveIds.getString(i);
-            List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId,groupId);
-            if(patSqlList == null || patSqlList.size() == 0 ){
-                referenceCalculate(refActiveId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null,crfId);
-                patSqlList =activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId,groupId);
+        for (ActiveSqlMap sqlMap : sqlList){
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            tmpSet.removeAll(allTmpSet);
+            allTmpSet.addAll(tmpSet);
+            if(allTmpSet.size() + 1  < before){
+                continue;
             }
-            String tmpAcId = refActiveId.split("_tmp")[0];
-            List<ActiveIndexConfig> activeIndexConfigs = activeIndexConfigMapper.findAllByActiveIndexId(tmpAcId);
-            String indexType = "";
-            if(activeIndexConfigs.size()>0){
-                indexType = activeIndexConfigs.get(0).getIndexTypeDesc();
+            if(dataAll.size() >= pageSize){
+                break;
             }
-            ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
-            if("自定义枚举类型".equals(indexType)){//那排
-                makeEnumResultData(patSqlList,patSnWhere,dataMap,projectId,pageSize,source,refActiveId);
-            }else if("1".equals(patActiveSqlMap.getActiveType())){//事件
-                String patSql = patActiveSqlMap.getUncomActiveSql();
-                String[] patSqls = patSql.split("where");
-                String where = patActiveSqlMap.getUncomSqlWhere()+"group by patient_info.DOC_ID";//patActiveSqlMap.getEventWhere() +"group by visit_info.PATIENT_SN";// +" and join_field='visit_info' ";
-                String newWhere = patSnWhere+ " and " + where;
-                String patSnResult = httpUtils.querySearch(projectId, patSqls[0] + " where "+ newWhere , 1, pageSize, "", source,false);
-                JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
-                String activeResultDoc = patActiveSqlMap.getActiveResultDocId();
-                boolean isFirst = activeResultDoc.startsWith("first") || activeResultDoc.startsWith("any") || activeResultDoc.startsWith("last");
-                int tmpHitsSize = tmpHits.size();
-                for (int j = 0; j < tmpHitsSize; j++) {
-                    String colle = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONObject("select_field").getString("jocount");
-                    String patSn = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0).getString("DOC_ID");
-                    if(isFirst){
-                        dataMap.get(patSn).put(refActiveId, 1);
-                    }else {
-                        dataMap.get(patSn).put(refActiveId, colle);
-                    }
+            int page = 1;
+            int size = last - dataAll.size() + pageNum;
+            String newSql = activeSqlMap.getSqlJoinSql(joinSql);
+            String result =  httpUtils.querySearch(projectId,newSql,page,size,activeSqlMap.getSourceFiltere(),source,false);
+            //处理结果
+            JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
+            List<String> pasSn = new ArrayList<>();
+            Map<String, JSONObject> dataMap = new HashMap<>();
+            for (int i = 0; i < data.size(); i++) {
+                JSONObject tmpObj = data.getJSONObject(i);
+                pasSn.add(tmpObj.getString("DOC_ID"));
+                dataMap.put(tmpObj.getString("DOC_ID"), tmpObj);
+            }
+            String patSnWhere = IndexContent.getPatientDocId(crfId) + TransPatientSql.transForExtContain(pasSn);
+
+            for (int i = 0; i < refSize; i++) {
+                //拼接column
+                String refActiveId = refActiveIds.getString(i);
+                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlBySqlGroup(projectId, refActiveId,sqlMap.getPatSqlGroup());
+                if(patSqlList == null || patSqlList.size() == 0 ){
+                    referenceCalculate(refActiveId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null,crfId);
+                    patSqlList =activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId,groupId);
                 }
-                for (String key : dataMap.keySet()){
-                    JSONObject obj = dataMap.get(key);
-                    if(!obj.containsKey(refActiveId)){
-                        obj.put(refActiveId,0);
-                    }
-                }
-            }else {//指标
-                String patSql = patActiveSqlMap.getUncomActiveSql();
-                String[] patSqls = patSql.split("where");
-                String where = patSqls[1];
-                String newWhere = patSnWhere + " and " + where;
-                String patSnResult = httpUtils.querySearch(projectId, patSqls[0] + " where "+ newWhere, 1, pageSize, "", source,false);
-                JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
-                int tmpHitsSize = tmpHits.size();
-                for (int j = 0; j < tmpHitsSize; j++) {
-                    String colle = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONObject("select_field").getString("condition");
-                    String patSn = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0).getString("DOC_ID");
-                    dataMap.get(patSn).put(refActiveId, colle);
-                }
-                for (String key : dataMap.keySet()){
-                    JSONObject obj = dataMap.get(key);
-                    if(!obj.containsKey(refActiveId)){
-                        obj.put(refActiveId,"-");
-                    }
+                ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
+                String indexResultValue = patActiveSqlMap.getIndexResultValue();
+                if(StringUtils.isNotEmpty(indexResultValue)){//那排
+                    makeEnumResultData(patSqlList,patSnWhere,dataMap,projectId,pageSize,source,refActiveId);
+                }else if("1".equals(patActiveSqlMap.getActiveType())){//事件
+                    makeActiveResultData(patActiveSqlMap,patSnWhere,dataMap,projectId,pageSize,source,refActiveId);
+                }else {//指标
+                    makeIndexResultData(patActiveSqlMap,patSnWhere,dataMap,projectId,pageSize,source,refActiveId);
                 }
             }
-
+            dataAll.addAll(data);
         }
-        saveExcludeTask(activeId, projectId, total);
-        Integer count = 0 ;
-        //获取总共人数
-
-
-        if("1".equals(groupFromId) || "''".equals(groupFromId) || StringUtils.isEmpty(groupFromId)){
-            count = getPatientSqlCount(patientSetId,projectId);
-        }else {
-            count = getGroupSqlCount(groupFromId);
-        }
-//        Integer count = getProjectCount(projectId);
-        AjaxObject.getReallyDataValue(data,basicColumns);
+        Integer count = getSearchUqlAllCount(groupFromId,patientSetId,groupId,projectId);
+        AjaxObject.getReallyDataValue(dataAll,basicColumns);
         ajaxObject.setCount(count);
-        ajaxObject.setApplyOutCondition(applyCondition);
-        ajaxObject.setWebAPIResult(new WebAPIResult<Object>(pageNum, pageSize, total));
+//        ajaxObject.setApplyOutCondition(applyCondition);
+        ajaxObject.setWebAPIResult(new WebAPIResult<>(pageNum, pageSize, total));
         ajaxObject.setColumns(basicColumns);
-        ajaxObject.setData(data);
+        ajaxObject.setData(dataAll);
 
         return ajaxObject;
 
+    }
+
+    private void makeIndexResultData(ActiveSqlMap patActiveSqlMap, String patSnWhere, Map<String, JSONObject> dataMap, String projectId, Integer pageSize, JSONArray source, String refActiveId) throws IOException {
+        String sql = patActiveSqlMap.getSqlJoinSql(patSnWhere);
+        String patSnResult = httpUtils.querySearch(projectId, sql, 1, pageSize, "", source,false);
+        JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
+        int tmpHitsSize = tmpHits.size();
+        for (int j = 0; j < tmpHitsSize; j++) {
+            String colle = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONObject("select_field").getString("condition");
+            String patSn = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0).getString("DOC_ID");
+            dataMap.get(patSn).put(refActiveId, colle);
+        }
+        for (String key : dataMap.keySet()){
+            JSONObject obj = dataMap.get(key);
+            if(!obj.containsKey(refActiveId)){
+                obj.put(refActiveId,"-");
+            }
+        }
+    }
+
+    private void makeActiveResultData(ActiveSqlMap patActiveSqlMap, String patSnWhere, Map<String, JSONObject> dataMap, String projectId, Integer pageSize, JSONArray source, String refActiveId) throws IOException {
+        String sql = patActiveSqlMap.getSqlJoinSql(patSnWhere);
+        String patSnResult = httpUtils.querySearch(projectId, sql , 1, pageSize, "", source,false);
+        JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
+        String activeResultDoc = patActiveSqlMap.getActiveResultDocId();
+        boolean isFirst = activeResultDoc.startsWith("first") || activeResultDoc.startsWith("any") || activeResultDoc.startsWith("last");
+        int tmpHitsSize = tmpHits.size();
+        for (int j = 0; j < tmpHitsSize; j++) {
+            String colle = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONObject("select_field").getString("jocount");
+            String patSn = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0).getString("DOC_ID");
+            if(isFirst){
+                dataMap.get(patSn).put(refActiveId, 1);
+            }else {
+                dataMap.get(patSn).put(refActiveId, colle);
+            }
+        }
+        for (String key : dataMap.keySet()){
+            JSONObject obj = dataMap.get(key);
+            if(!obj.containsKey(refActiveId)){
+                obj.put(refActiveId,0);
+            }
+        }
     }
 
     private void makeEnumResultData(List<ActiveSqlMap> patSqlList, String patSnWhere, Map<String, JSONObject> dataMap,String projectId,Integer pageSize,JSONArray source,String refActiveId)throws IOException {//处理枚举
@@ -1045,19 +1024,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         Map<String,EnumResult> map = new HashMap<>();
         for (ActiveSqlMap activeSqlMap : patSqlList){
-            String patSql = activeSqlMap.getUncomActiveSql();
-            String where =activeSqlMap.getUncomSqlWhere();
-            String newWhere = patSnWhere + " and (" + where+")";
-            activeSqlMap.setUncomSqlWhere(newWhere);
-            String sql = activeSqlMap.getUql();
+            String sql = activeSqlMap.getSqlJoinSql(patSnWhere);
             String patSnResult = httpUtils.querySearch(projectId, sql, 1, pageSize, "", source,false);
             JSONArray tmpHits = UqlQureyResult.getHitsArray(patSnResult);
             int tmpHitsSize = tmpHits.size();
             String indexResultValue = activeSqlMap.getIndexResultValue();
             for (int j = 0; j < tmpHitsSize; j++) {
-//                String patSn = tmpHits.getJSONObject(j).getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0).getString("PATIENT_SN");
                 String patSn = tmpHits.getJSONObject(j).getString("_id");
-                JSONObject obj = dataMap.get(patSn);
                 if(!map.containsKey(patSn)){
                     EnumResult enumResult = new EnumResult();
                     map.put(patSn,enumResult);
@@ -1641,25 +1614,29 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException {
+    public String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
+        String patientSql = TransPatientSql.getAllPatientSql(patientsIdSqlMap.getPatientSnIds(),crfId);
         String projectId = object.getString("projectId").replaceAll("-", "");
         JSONArray patientSetId = object.getJSONArray("patientSetId");
-        String groupFromId = object.getString("groupFromId");
         String isVariant = object.getString("isVariant");
         String groupToId = object.getString("groupToId");
         groupToId =StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId;
         String activeIndexId = object.getString("id");
         JSONArray config = object.getJSONArray("config");
-        String patientSql = getInitialSQL(groupFromId,isVariant,groupToId,patientSetId,projectId, crfId);
+
         UqlWhere where = new UqlWhere();
         UqlClass uqlClass = new ExcludeUqlClass(projectId);
-        transforConditionForConfig(config, uqlClass, where,groupToId,projectId,patientSetId, crfId);
+        transforConditionForConfig(config, uqlClass, where,groupToId,projectId,patientSetId, crfId,patientsIdSqlMap.getId());
         uqlClass.setInitialPatients(isVariant,patientSql);
         activeIndexId = isSearch == CommonContent.ACTIVE_TYPE_TEMP ? activeIndexId.concat("_tmp") : activeIndexId;
-        ActiveSqlMap activeSqlMap = new ActiveSqlMap(projectId,activeIndexId,GzipUtil.compress(uqlClass.getSql()),uqlClass.getSelect(),uqlClass.getFrom(),
+        String resultDocId = searchDocIdBySql(uqlClass.getSql(),projectId,crfId);
+        ActiveSqlMap activeSqlMap = new ActiveSqlMap(projectId,activeIndexId,GzipUtil.compress(uqlClass.getSql()),
+                                                        uqlClass.getSelect(), uqlClass.getFrom(),
                                                         uqlClass.getActiveId().toJSONString(),JSON.toJSONString(uqlClass.getSource()));
         activeSqlMap.setUncomSqlWhere(uqlClass.getWhere());
+        activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId)? UqlConfig.CORT_INDEX_ID : groupToId);
+        activeSqlMap.setResultDocId(resultDocId);
         int count = activeSqlMapMapper.getCountByActiveIndexId(activeIndexId,groupToId);
         if (count > 0) {
             activeSqlMapMapper.updateByActiveId(activeSqlMap);
@@ -1746,12 +1723,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return  patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSets);
     }
 
-    private void transforConditionForConfig(JSONArray config, UqlClass uqlClass, UqlWhere where,String groupId,String projectId,JSONArray patientSetId, String crfId) throws InterruptedException, ExecutionException {
-        StringBuffer resultBuffer = new StringBuffer();
+    private void transforConditionForConfig(JSONArray config, UqlClass uqlClass, UqlWhere where, String groupId, String projectId, JSONArray patientSetId, String crfId, Integer sqlGroupId) throws InterruptedException, ExecutionException {
         JSONObject incs = config.stream().map(JSONObject.class::cast).filter(o -> "纳入标准".equals(o.getString("activeResult"))).findAny().get();
         JSONObject excs = config.stream().map(JSONObject.class::cast).filter(o -> "排除标准".equals(o.getString("activeResult"))).findAny().get();
-        transforConditionForConditions(incs.getJSONArray("conditions"), uqlClass, where, false, true, true ,false,groupId,projectId,patientSetId, crfId);
-        transforConditionForConditions(excs.getJSONArray("conditions"), uqlClass, where, true, where.isEmpty(), true ,true,groupId,projectId,patientSetId, crfId);
+        transforConditionForConditions(incs.getJSONArray("conditions"), uqlClass, where, false, true, true ,false,groupId,projectId,patientSetId, crfId, sqlGroupId);
+        transforConditionForConditions(excs.getJSONArray("conditions"), uqlClass, where, true, where.isEmpty(), true ,true,groupId,projectId,patientSetId, crfId, sqlGroupId);
         where.addElem(new LiteralUqlWhereElem("AND join_field='visit_info'"));
         where.execute(SingleExecutorService.getInstance().getSearchUqlExecutorService());
         uqlClass.setWhere(where.toString());
@@ -1759,7 +1735,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     private void transforConditionForConditions(JSONArray conditions, UqlClass uqlClass, UqlWhere where, boolean not, boolean first,
-                                                boolean op,boolean isNot,String groupId, String projectId,JSONArray patientSetId, String crfId) {
+                                                boolean op, boolean isNot, String groupId, String projectId, JSONArray patientSetId, String crfId, Integer sqlGroupId) {
         String opStr = op ? "AND" : "OR";
         // noinspection SuspiciousToArrayCall
         for (JSONObject condition: conditions.toArray(new JSONObject[0])) {
@@ -1781,7 +1757,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
             first = false;
             if (!inner.isEmpty()) {
-                transforConditionForConditions(condition.getJSONArray("inner"), uqlClass, where, false, true, subOp ,isNot,groupId,projectId,patientSetId, crfId);
+                transforConditionForConditions(condition.getJSONArray("inner"), uqlClass, where, false, true, subOp ,isNot,groupId,projectId,patientSetId, crfId, sqlGroupId);
                 where.addElem(new LiteralUqlWhereElem(subOpStr));
             }
             details.forEach(o -> {
@@ -1792,18 +1768,14 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                     // 指标或者事件
                     String refId = o.getString("refActiveId");
                     uqlClass.addActiveId(refId);
-                    List<ActiveSqlMap> activeSql = activeSqlMapMapper.getActiveSql(refId,groupId);
+                    List<ActiveSqlMap> activeSql = activeSqlMapMapper.getActiveSqlBySqlGroup(refId, groupId,sqlGroupId);
                     if(activeSql ==null || activeSql.size()==0 ){
                         try {
                             referenceCalculate(refId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null, crfId);
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        activeSql = activeSqlMapMapper.getActiveSql(refId,groupId);
+                        activeSql = activeSqlMapMapper.getActiveSqlBySqlGroup(refId,groupId,sqlGroupId);
                     }
                     if (isEnum) {
                         // 枚举只可能是指标
@@ -2108,7 +2080,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         Map<Integer, List<ActiveSqlMap>> groupMap = sqlList.stream().collect(groupingBy(ActiveSqlMap :: getPatSqlGroup,TreeMap::new,toList()));
         Iterator<Integer> iterator = groupMap.keySet().iterator();
         JSONArray dataAll  = new JSONArray();
-        Integer before = (pageNum - 1 ) * pageSize +1;
         while (iterator.hasNext()){
             Integer mapKey = iterator.next();
             List<ActiveSqlMap> value = groupMap.get(mapKey);
@@ -2296,7 +2267,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         List<PatientsIdSqlMap> patientSql = getInitialSQLTmp(groupFromId,isVariant,groupToId,patientsSetId,projectId,crfId);
         for (PatientsIdSqlMap p : patientSql){
             if (3 == activeType) {//那排
-                this.SearchByExclude(obj, resultOrderKey,isSearch, crfId);
+                this.SearchByExclude(obj, resultOrderKey,isSearch, p, crfId);
             } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
                 this.SearchByEnume(obj, resultOrderKey,isSearch, p, crfId);
             } else if(2 == activeType) {//指标

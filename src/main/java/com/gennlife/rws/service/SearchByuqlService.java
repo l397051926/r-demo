@@ -20,7 +20,7 @@ public interface SearchByuqlService {
 
     String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-    String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
+    String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns,
                                           String groupFromId, JSONArray patientSetId, String groupId, String isVariant, String crfId) throws IOException, ExecutionException, InterruptedException;
