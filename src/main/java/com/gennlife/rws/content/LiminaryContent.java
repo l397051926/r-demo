@@ -18,6 +18,9 @@ public class LiminaryContent {
     @Value("${pre.liminary.groupBlock}")
     private Integer groupBlock;
 
+    @Value("${pre.liminary.groupDataBlock}")
+    private Integer groupDataBlock;
+
     public Integer getMaxMember() {
         return maxMember;
     }
@@ -32,5 +35,13 @@ public class LiminaryContent {
 
     public void setGroupBlock(Integer groupBlock) {
         this.groupBlock = groupBlock;
+    }
+
+    public Integer getGroupDataBlock() {
+        return groupDataBlock;
+    }
+
+    public void setGroupDataBlock(Integer groupDataBlock) {
+        this.groupDataBlock = groupDataBlock;
     }
 }

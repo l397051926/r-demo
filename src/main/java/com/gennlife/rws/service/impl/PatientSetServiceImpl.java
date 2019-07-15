@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.keypath.KeyPath;
 import com.gennlife.rws.content.IndexContent;
+import com.gennlife.rws.content.LiminaryContent;
 import com.gennlife.rws.content.SeparatorContent;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
@@ -66,6 +67,8 @@ public class PatientSetServiceImpl implements PatientSetService {
 	private InputTaskService inputTaskService;
 	@Autowired
 	private PatientsIdSqlMapMapper patientsIdSqlMapMapper;
+	@Autowired
+	private LiminaryContent liminaryContent;
 
     private static final int exportMax = 2000;
 
@@ -216,47 +219,57 @@ public class PatientSetServiceImpl implements PatientSetService {
 	}
 	@Override
 	public Long getPatientSetLocalCountByExclude(String patientSetId, Integer export) {
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,export);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId,export);
 		Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
 		return Long.valueOf(count);
 	}
 
 	@Override
 	public Long getPatientSetLocalCount(String patientSetId) {
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetId(patientSetId);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceId(patientSetId);
 		Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
 		return Long.valueOf(count);
 	}
 
 	@Override
 	public Integer getPatientSetLocalCountByListForPatientSets(List<String> patientSetIds) {
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).collect(toSet()).size();
 	}
 	@Override
 	public String getPatientSetLocalSql(String patientSetId){
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,1);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(joining(SeparatorContent.VERTIVAL_BAR));
 	}
 	@Override
 	public List<String> getPatientSetLocalSqlByList(String patientSetId){
-		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdAndExclude(patientSetId,1);
+		List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId,1);
 		return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
 	}
 	@Override
 	public Set<String> getPatientSetLocalSqlListById(Integer id){
-		PatientsIdSqlMap pid = patientsIdSqlMapMapper.getPatientSnIdsByIdAndExclude(id,1);
+		PatientsIdSqlMap pid = patientsIdSqlMapMapper.getPatientsSqlMapByIdAndExclude(id,1);
 		return Arrays.stream(pid.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
 	}
 
-    @Override
+	@Override
+	public void saveGroupDataByGroupBlock(String groupId, List<String> datas, int num) {
+		patientsIdSqlMapMapper.deleteByDataSourceId(groupId);
+		Integer groupDataBlock = liminaryContent.getGroupDataBlock();
+		for (int i = 0; i < datas.size() / groupDataBlock + 1; i++) {
+			Set<String> resultDatas = PagingUtils.getPageContentForString(datas,i+1,groupDataBlock).stream().collect(toSet());
+			savePatientSetGroupBlock(groupId,resultDatas,num);
+		}
+	}
+
+	@Override
     public List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSetIds){
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);
+        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds,1);
         return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays :: stream).distinct().collect(toList());
     }
     @Override
-	public List<PatientsIdSqlMap> getPatientSetLocalSqlByListForInitialSql(List<String> patientSetIds){
-		return patientsIdSqlMapMapper.getPatientSnIdsBypatientSetIdsAndExclude(patientSetIds,1);
+	public List<PatientsIdSqlMap> getPatientSetByListForInitialSql(List<String> patientSetIds){
+		return patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds,1);
 	}
 
 	private void updatePatientSqlMap(JSONObject obj) {
@@ -265,11 +278,12 @@ public class PatientSetServiceImpl implements PatientSetService {
 	}
 
 	@Override
-	public void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num) {
+	public void savePatientSetGroupBlock(String dataSourceId, Set<String> allPats, Integer num) {
 		String query = String.join(SeparatorContent.VERTIVAL_BAR,allPats);
 		PatientsIdSqlMap patientsIdSqlMap = new PatientsIdSqlMap();
-		patientsIdSqlMap.setPatientsSetId(patientSetId);
+		patientsIdSqlMap.setDataSourceId(dataSourceId);
 		patientsIdSqlMap.setPatientSnIds(query);
+		patientsIdSqlMap.setExport(num);
 		patientsIdSqlMapMapper.insertForGroupid(patientsIdSqlMap);
 	}
 

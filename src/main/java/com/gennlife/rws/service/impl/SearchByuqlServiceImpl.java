@@ -5,16 +5,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.Pair;
 import com.gennlife.darren.collection.keypath.KeyPath;
-import com.gennlife.rws.content.CommonContent;
-import com.gennlife.rws.content.IndexContent;
-import com.gennlife.rws.content.SeparatorContent;
-import com.gennlife.rws.content.UqlConfig;
+import com.gennlife.rws.content.*;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
 import com.gennlife.rws.exception.CustomerException;
 import com.gennlife.rws.query.UqlQureyResult;
-import com.gennlife.rws.schema.AbstractFieldAnalyzer;
-import com.gennlife.rws.schema.EmrFieldAnalyzer;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.uql.*;
 import com.gennlife.rws.uqlcondition.*;
@@ -70,13 +65,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     private RedisMapDataService redisMapDataService;
     @Autowired
     private PatientSetService patientSetService;
-
-    public static Map<String, AbstractFieldAnalyzer> SCHEMAS = force(() -> {
-        Map<String, AbstractFieldAnalyzer> ret = new HashMap<>();
-        ret.put("lymphoma_release_1.0", new EmrFieldAnalyzer("/schema/rws_crf_lymphadenoma_data_schema_V2.0.7.json"));
-        ret.put("lymphoma", new EmrFieldAnalyzer("/schema/rws_crf_lymphadenoma_data_schema_V2.0.7.json"));
-        return ret;
-    });
+    @Autowired
+    private LiminaryContent liminaryContent;
 
     @Override
     public String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException  {
@@ -846,67 +836,36 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             tmpObj.put("id", refActiveId);
             basicColumns.add(tmpObj);
         }
+        patientSetId =  getAllPatientSetId(groupFromId,patientSetId,groupId);
 
-        if(StringUtils.isEmpty(groupFromId) && (patientSetId ==null || patientSetId.size()==0) && StringUtils.isNotEmpty(groupId)){
-            groupFromId = groupMapper.getGroupParentId(groupId);
-            if(StringUtils.isEmpty(groupFromId)){
-                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupId);
-                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
-            }
-        }
-
-        JSONArray source = new JSONArray();
-        source.add("patient_info");
+        JSONArray source = new JSONArray().fluentAdd("patient_info");
+        List<String> allResutList = sqlList.stream().map( x ->x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays ::stream).distinct().collect(toList());
 
         if("1".equals(isExport)){//处理导出数据
-            String result =  httpUtils.querySearch(projectId,activeSqlMap.getUncomActiveSql(),pageNum,Integer.MAX_VALUE-1,activeSqlMap.getSourceFiltere(),source,false);
-            JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
-            boolean flag = true;
-            if(patientSetId == null){
-               flag = groupService.exportToGroup(data,groupId,groupName,projectId,createId,createName,true,autoExport);
-            }else {
-                int size = patientSetId.size();
-                String patients = "";
-                for (int i = 0; i < size; i++) {
-                    String id = patientSetId.getString(i);
-                    groupService.exportToGroupById(data,groupId,groupName,id,projectId,createId,createName,true,autoExport);
-                    if(StringUtils.isNotEmpty(patients)){
-                        patients = patients + "," + patientsSetMapper.getpatientSetNameByPatSetId(id);
-                    }else {
-                        patients  = patientsSetMapper.getpatientSetNameByPatSetId(id);
-                    }
+            //向dataSource添加数据
+            patientSetService.saveGroupDataByGroupBlock(groupId,allResutList,1);
+            for (ActiveSqlMap sqlMap : sqlList){
+                //TODO 可以优化计算逻辑
+                String result =  httpUtils.querySearch(projectId,sqlMap.getUncomActiveSql(),pageNum,Integer.MAX_VALUE-1,sqlMap.getSourceFiltere(),source,false);
+                JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
+                boolean flag = true;
+                if(patientSetId == null){
+                    flag = groupService.exportToGroup(data,groupId,groupName,projectId,createId,createName,true,autoExport);
+                }else {
+                    exportToParentGroup(patientSetId, data, groupId, groupName, projectId, createId, createName, autoExport, result, pageNum, sqlMap, activeId, refActiveIds, source, crfId);
                 }
-                //增加 移除患者列表
-                Set<String> docIds = new KeyPath("hits", "hits", "_id")
-                    .fuzzyResolve(JSON.parseObject(result))
-                    .stream()
-                    .map(String.class::cast)
-                    .collect(toSet());
-                String sql = getPatientSqlForIds(patientSetId,projectId,docIds);
-                String removeQuery = "select patient_info.DOC_ID as pSn from rws_emr_"+projectId+" where "+sql+" group by patient_info.DOC_ID";
-                String re =  httpUtils.querySearch(projectId,removeQuery,pageNum,Integer.MAX_VALUE-1,activeSqlMap.getSourceFiltere(),source,false);
-                JSONArray dataRe = UqlQureyResult.getResultData(re, activeId,refActiveIds,false);
-                for (int i = 0; i < size; i++) {
-                    String id = patientSetId.getString(i);
-                    groupService.exportToRemoveGroup(dataRe,groupId,groupName,id,projectId,createId,createName,true,autoExport);
+                if(flag){
+                    AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
+                    ajaxObject1.setFlag(true);
+                    return ajaxObject1;
+                }else {
+                    AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,"与同层子组有重复患者，导入失败");
+                    ajaxObject1.setFlag(false);
+                    return ajaxObject1;
                 }
-                if(!autoExport){
-                    String content = createName + "将患者集： " + patients + " 添加到组:" + groupName;
-                    logUtil.saveLog(projectId, content, createId, createName);
-                }
-            }
-            if(flag){
-                AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
-                ajaxObject1.setFlag(true);
-                return ajaxObject1;
-            }else {
-                AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,"与同层子组有重复患者，导入失败");
-                ajaxObject1.setFlag(false);
-                return ajaxObject1;
             }
         }
 
-        List<String> allResutList = sqlList.stream().map( x ->x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays ::stream).distinct().collect(toList());
         List<String> resultList = PagingUtils.getPageContentForString(allResutList,pageNum,pageSize);
         String  joinSql = TransPatientSql.getPatientDocIdSql(resultList,crfId);
         Integer total = allResutList.size(); // 计算后的总数
@@ -928,8 +887,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
             int page = 1;
             int size = last - dataAll.size() + pageNum;
-            String newSql = activeSqlMap.getSqlJoinSql(joinSql);
-            String result =  httpUtils.querySearch(projectId,newSql,page,size,activeSqlMap.getSourceFiltere(),source,false);
+            String newSql = sqlMap.getSqlJoinSql(joinSql);
+            String result =  httpUtils.querySearch(projectId,newSql,page,size,sqlMap.getSourceFiltere(),source,false);
             //处理结果
             JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
             List<String> pasSn = new ArrayList<>();
@@ -944,10 +903,10 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             for (int i = 0; i < refSize; i++) {
                 //拼接column
                 String refActiveId = refActiveIds.getString(i);
-                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlBySqlGroup(projectId, refActiveId,sqlMap.getPatSqlGroup());
+                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlBySqlGroup( refActiveId,groupId,sqlMap.getPatSqlGroup());
                 if(patSqlList == null || patSqlList.size() == 0 ){
                     referenceCalculate(refActiveId,projectId,CommonContent.ACTIVE_TYPE_INDEX,UqlConfig.RESULT_ORDER_KEY.get("EMR"),patientSetId,groupId,null,crfId);
-                    patSqlList =activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId,groupId);
+                    patSqlList =activeSqlMapMapper.getActiveSqlBySqlGroup(refActiveId,groupId,sqlMap.getPatSqlGroup());
                 }
                 ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
                 String indexResultValue = patActiveSqlMap.getIndexResultValue();
@@ -971,6 +930,47 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         return ajaxObject;
 
+    }
+
+    private JSONArray getAllPatientSetId(String groupFromId, JSONArray patientSetId, String groupId) {
+        if(StringUtils.isEmpty(groupFromId) && (patientSetId ==null || patientSetId.size()==0) && StringUtils.isNotEmpty(groupId)){
+            groupFromId = groupMapper.getGroupParentId(groupId);
+            if(StringUtils.isEmpty(groupFromId)){
+                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupId);
+                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
+            }
+        }
+        return patientSetId;
+    }
+
+
+    private void exportToParentGroup(JSONArray patientSetId, JSONArray data, String groupId, String groupName, String projectId, String createId, String createName,
+                                     boolean autoExport, String result, Integer pageNum, ActiveSqlMap sqlMap, String activeId, JSONArray refActiveIds, JSONArray source, String crfId) {
+        int size = patientSetId.size();
+        List<String> patientSetIds = patientSetId.toJavaList(String.class);
+        List<String> patients = patientsSetMapper.getpatientSetNameByPatSetIds(patientSetIds);
+        for (int i = 0; i < size; i++) {
+            String id = patientSetId.getString(i);
+            groupService.exportToGroupById(data,groupId,groupName,id,projectId,createId,createName,true,autoExport);
+        }
+        //增加 移除患者列表
+        Set<String> docIds = new KeyPath("hits", "hits", "_id")
+            .fuzzyResolve(JSON.parseObject(result))
+            .stream()
+            .map(String.class::cast)
+            .collect(toSet());
+        String sql = getPatientSqlForIds(patientSetId,projectId,docIds,crfId);
+        String removeQuery = "select patient_info.DOC_ID as pSn from rws_emr_"+projectId+" where "+sql+" group by patient_info.DOC_ID";
+        String re =  httpUtils.querySearch(projectId,removeQuery,pageNum,Integer.MAX_VALUE-1,sqlMap.getSourceFiltere(),source,false);
+        JSONArray dataRe = UqlQureyResult.getResultData(re, activeId,refActiveIds,false);
+        for (int i = 0; i < size; i++) {
+            String id = patientSetId.getString(i);
+            groupService.exportToRemoveGroup(dataRe,groupId,groupName,id,projectId,createId,createName,true,autoExport);
+        }
+        if(!autoExport){
+            String content = createName + "将患者集： " + String.join(",",patients) + " 添加到组:" + groupName;
+            logUtil.saveLog(projectId, content, createId, createName);
+        }
     }
 
     private void makeIndexResultData(ActiveSqlMap patActiveSqlMap, String patSnWhere, Map<String, JSONObject> dataMap, String projectId, Integer pageSize, JSONArray source, String refActiveId) throws IOException {
@@ -1669,13 +1669,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return result;
     }
 
-    private String getPatientSqlForIds(JSONArray patientSetId,String projectId,Set<String> docIds) {
+    private String getPatientSqlForIds(JSONArray patientSetId, String projectId, Set<String> docIds, String crfId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
-        List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
-        String query = String.join(" or ",patientSetSql.stream().map( x -> "("+TransPatientSql.getAllPatientSql(TransPatientSql.getUncomPatientSnSql(x))+")").collect(toList()));
+        List<String> dataList = patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSets);
+        String query = TransPatientSql.getAllPatientSqlForList(dataList,crfId);
         JSONArray sourceFilter = new JSONArray();
         String result = null;
-        String newSql = "select patient_info.DOC_ID as pSn from rws_emr_"+projectId+" where "+query+" group by patient_info.DOC_ID";
+        String newSql = "select  "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)+" where " + query + " and  join_field='patient_info'";
         String response = httpUtils.querySearch(projectId,newSql,1,Integer.MAX_VALUE-1,null,sourceFilter,true);
         Set<String> patients = new KeyPath("hits", "hits", "_id")
             .fuzzyResolve(JSON.parseObject(response))
@@ -1711,7 +1711,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
     private  List<PatientsIdSqlMap> getPatientSqlTmp(JSONArray patientSetId,String projectId,String crfId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
-        return  patientSetService.getPatientSetLocalSqlByListForInitialSql(patientSets);
+        return  patientSetService.getPatientSetByListForInitialSql(patientSets);
+    }
+
+    private  List<PatientsIdSqlMap> getGroupSqlTmp(String patientSetId) {
+        List<String> dataSourceIds = new LinkedList<>();
+        dataSourceIds.add(patientSetId);
+        return  patientSetService.getPatientSetByListForInitialSql(dataSourceIds);
     }
     private List<String> getPatientSqlList(JSONArray patientSetId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
@@ -2355,7 +2361,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return patientSqlList;
     }
 
-
     @Override
     public  List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId){
         List<PatientsIdSqlMap> patientSql = null;
@@ -2370,8 +2375,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(patientSetId !=null && patientSetId.size()>0){
                 patientSql = getPatientSqlTmp(patientSetId,projectId,crfId);
             }else{
-                //TODO 分组分批计算
-//                patientSql = getGroupSql(groupFromId,crfId);
+                patientSql = getGroupSqlTmp(groupFromId);
             }
         }
         return patientSql;

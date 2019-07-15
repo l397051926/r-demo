@@ -185,7 +185,6 @@ public class GroupServiceImpl implements GroupService {
                 list.add(listdata);
                 listdata = new ArrayList<>();
             }
-
             JSONObject patient = data.getJSONObject(i);
             GroupData groupData = new GroupData();
             groupData.setPatientSetId(patientsSetId);

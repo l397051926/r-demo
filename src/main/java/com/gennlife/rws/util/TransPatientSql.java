@@ -62,7 +62,12 @@ public class TransPatientSql {
 
     public static String getAllPatientSql(String sql, String crfId) {
         String[] array = sql.split(SeparatorContent.getRegexVartivalBar());
-        return " " + IndexContent.getPatientInfoPatientSn(crfId) + " " + transForExtContainForArray(array) + " ";
+        //TODO 判定方式太绝对了 后期修改 统一 docId
+        if(array.length > 0 && array[0].startsWith("pat_")){
+            return " " + IndexContent.getPatientInfoPatientSn(crfId) + " " + transForExtContainForArray(array) + " ";
+        }else {
+            return " " + IndexContent.getPatientDocId(crfId) + " " + transForExtContainForArray(array) + " ";
+        }
     }
 
     public static String getAllPatientSqlForList(List<String> sqlList, String crfId) {

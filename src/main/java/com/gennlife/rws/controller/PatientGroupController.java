@@ -268,7 +268,6 @@ public class PatientGroupController {
                 return ajaxObject;
             }
             ajaxObject = patGroupService.getPatientList(object);
-//			ajaxObject = searchByuqlService.getPatientListByUal(object); //uql版本
             return ajaxObject;
         } catch (Exception e) {
             ajaxObject = new AjaxObject(CustomerStatusEnum.UNKONW_ERROR.getCode(), e.getMessage());

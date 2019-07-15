@@ -1,6 +1,7 @@
 package com.gennlife;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.ActiveSqlMap;
 import org.junit.Test;
 
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 //@RunWith(SpringRunner.class)
@@ -58,6 +60,15 @@ public class TestDemo {
         sqlList.add(activeSqlMap3);
 
         Set<String> refList = sqlList.stream().map(sqlMap -> sqlMap.getRefActiveIds()).flatMap(array -> JSONArray.parseArray(array).stream().map(String.class::cast)).collect(toSet());
+        System.out.println();
+    }
+
+    public void LamdaForJSONArray(){
+        JSONArray array = new JSONArray();
+        array.add(new JSONObject().fluentPut("patientSetId","aaa").fluentPut("patientSetName","111"));
+        array.add(new JSONObject().fluentPut("patientSetId","bbb").fluentPut("patientSetName","222"));
+        array.add(new JSONObject().fluentPut("patientSetId","ccc").fluentPut("patientSetName","333"));
+        List<String> patientSetIds = array.stream().map(JSONObject.class :: cast).map( o -> o.getString("patientSetId")).collect(toList());
         System.out.println();
     }
 }

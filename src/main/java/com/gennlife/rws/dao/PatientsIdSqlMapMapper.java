@@ -13,13 +13,15 @@ public interface PatientsIdSqlMapMapper {
 
     void updateExportByPatientSetId(@Param("patientsSetId") String patientsSetId,@Param("export") Integer export);
 
-    List<PatientsIdSqlMap> getPatientSnIdsBypatientSetId(String patientSetId);
+    List<PatientsIdSqlMap> getPatientsSqlMapByDataSourceId(String patientSetId);
 
     void insertForGroupid(PatientsIdSqlMap record);
 
-    List<PatientsIdSqlMap> getPatientSnIdsBypatientSetIdAndExclude(@Param("patientsSetId") String patientsSetId, @Param("export") Integer export);
+    List<PatientsIdSqlMap> getPatientsSqlMapByDataSourceIdAndExclude(@Param("dataSourceId") String dataSourceId, @Param("export") Integer export);
 
-    List<PatientsIdSqlMap> getPatientSnIdsBypatientSetIdsAndExclude(@Param("patientSetIds") List<String> patientSetIds, @Param("export") Integer export);
+    List<PatientsIdSqlMap> getPatientsSqlMapBypatientSetIdsAndExclude(@Param("dataSourceIds") List<String> patientSetIds, @Param("export") Integer export);
 
-    PatientsIdSqlMap getPatientSnIdsByIdAndExclude(@Param("id") Integer id, @Param("export") Integer export);
+    PatientsIdSqlMap getPatientsSqlMapByIdAndExclude(@Param("id") Integer id, @Param("export") Integer export);
+
+    void deleteByDataSourceId(String groupId);
 }

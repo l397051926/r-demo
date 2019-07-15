@@ -7,7 +7,7 @@ package com.gennlife.rws.entity;
  **/
 public class PatientsIdSqlMap {
     private Integer id;
-    private String patientsSetId;
+    private String dataSourceId;
     private Integer patGroupId;
     private String patientSnIds;
     private Integer export = 0;
@@ -20,12 +20,12 @@ public class PatientsIdSqlMap {
         this.id = id;
     }
 
-    public String getPatientsSetId() {
-        return patientsSetId;
+    public String getDataSourceId() {
+        return dataSourceId;
     }
 
-    public void setPatientsSetId(String patientsSetId) {
-        this.patientsSetId = patientsSetId;
+    public void setDataSourceId(String dataSourceId) {
+        this.dataSourceId = dataSourceId;
     }
 
     public Integer getPatGroupId() {

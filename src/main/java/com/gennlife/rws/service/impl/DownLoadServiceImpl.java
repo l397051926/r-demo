@@ -155,7 +155,6 @@ public class DownLoadServiceImpl implements DownLoadService {
             return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"导出数据超过 "+ maxMember + "人， 无法导出数据") ;
         }
         {
-            Integer num = 0;
             esJSon.put("size",groupBlock);
             String value = httpUtils.httpPost(JSON.toJSONString(esJSon),esServiceUrl);
             JSONObject obj = JSONObject.parseObject(value);
@@ -165,9 +164,8 @@ public class DownLoadServiceImpl implements DownLoadService {
                 .stream()
                 .map(String.class::cast)
                 .collect(toSet());
-            patientSetService.savePatientSetGroupBlock(patientSetId,allPats,num);
+            patientSetService.savePatientSetGroupBlock(patientSetId,allPats,0);
             while (true){
-                num ++;
                 JSONObject tmeEsonJson = new JSONObject().fluentPut("indexName",esJSon.getString("indexName"))
                                                             .fluentPut("_scroll_id",scroll_id)
                                                             .fluentPut("_time_out",60*60*1000);
@@ -180,7 +178,7 @@ public class DownLoadServiceImpl implements DownLoadService {
                 if(tmpAllPats.size() == 0){
                     break;
                 }
-                patientSetService.savePatientSetGroupBlock(patientSetId,tmpAllPats,num);
+                patientSetService.savePatientSetGroupBlock(patientSetId,tmpAllPats,0);
             }
         }
 

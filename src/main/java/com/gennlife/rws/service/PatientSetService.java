@@ -94,13 +94,15 @@ public interface PatientSetService {
 
 	List<String> getPatientSetLocalSqlByList(String patientSetId);
 
-	List<PatientsIdSqlMap> getPatientSetLocalSqlByListForInitialSql(List<String> patientSetIds);
+	List<PatientsIdSqlMap> getPatientSetByListForInitialSql(List<String> patientSetIds);
 
-	void savePatientSetGroupBlock(String patientSetId, Set<String> allPats, Integer num);
+	void savePatientSetGroupBlock(String dataSourceId, Set<String> allPats, Integer num);
 
     List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSets);
 
 	Integer getPatientSetLocalCountByListForPatientSets(List<String> patientSets);
 
     Set<String> getPatientSetLocalSqlListById(Integer key);
+
+	void saveGroupDataByGroupBlock(String groupId, List<String> datas, int i);
 }

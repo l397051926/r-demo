@@ -7,15 +7,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.IndexContent;
+import com.gennlife.rws.content.LiminaryContent;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
 import com.gennlife.rws.exception.CustomerException;
 import com.gennlife.rws.exception.SaveGroupAndPatientException;
 import com.gennlife.rws.query.UqlQureyResult;
-import com.gennlife.rws.service.ActiveIndexService;
-import com.gennlife.rws.service.ModuleConvertService;
-import com.gennlife.rws.service.PatientGroupService;
-import com.gennlife.rws.service.SearchByuqlService;
+import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.*;
 import com.gennlife.rws.vo.CustomerStatusEnum;
 import com.gennlife.rws.vo.DataCheckEmpty;
@@ -59,13 +57,14 @@ public class PatientGroupServiceImpl implements PatientGroupService {
     @Autowired
     private ActiveIndexService activeIndexService;
     @Autowired
-    private ModuleConvertService moduleConvertService;
-    @Autowired
     private SearchByuqlService searchByuqlService;
     @Autowired
     private HttpUtils httpUtils;
     @Autowired
     private SearchLogMapper searchLogMapper;
+    @Autowired
+    private PatientSetService patientSetService;
+
     private static final int exportMax = 2000;
 
     @Override
@@ -662,7 +661,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         for (int i = 0; i < size; i++) {
             JSONObject patientObj = result.getJSONObject(i);
             String patientSn = patientObj.getString("PATIENT_SN");
-//            String patSetName = groupDataMapper.getPatSetNameByPatientSn(patientSn, groupId);
             String patSetName = getPatentSetName(patientsSets,patientSn);
             patientObj.put("PatientSetName", patSetName);
         }
@@ -681,8 +679,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
     private String getPatentSetName(List<PatientsSet> patientsSets, String patientSn) throws IOException {
         List<String> patSetNames = new LinkedList<>();
         for (PatientsSet patientsSet : patientsSets){
-            String query = patientsSet.putUncomUqlQuery();
-            Set<String> patSet = TransPatientSql.getSetPatientSql(query);
+            List<String> patSet = patientSetService.getPatientSetLocalSqlByList(patientsSet.getPatientsSetId());
             if(patSet.contains(patientSn)){
                 patSetNames.add(patientsSet.getPatientsSetName());
             }
@@ -811,6 +808,9 @@ public class PatientGroupServiceImpl implements PatientGroupService {
                 groupDataMapper.batchInsert(li);
             }
         }
+        //向分组导入全量数据
+        List<String> patientSetIds = arr.stream().map(JSONObject.class :: cast).map( o -> o.getString("patientSetId")).collect(toList());
+        exportGroupDataMap(patientSetIds,groupId);
 
         int endCount = groupDataMapper.getPatSetAggregationCount(groupId);
         // 将患者集ID 映射成患者集名称
@@ -818,8 +818,13 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         logUtil.saveLog(projectId, content, createId, createName);
         // 逻辑方式 导入的总数据 + 最开始的数据 - 导入后的数据 等于0 全部导入 大于0 有重复数据 小于0 全部为重复数据
         return contCount - endCount >= 0 ? contCount - endCount : contCount;
-
     }
+
+    private void exportGroupDataMap(List<String> patientSetIds,String groupId) {
+        List<String> datas = patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSetIds);
+        patientSetService.saveGroupDataByGroupBlock(groupId,datas,1);
+    }
+
 
     public AjaxObject getPatientSetData( JSONObject data, String crfId, JSONArray patientSetIdTmp,String projectId,Integer pageNum,Integer pageSize, JSONArray showColumns) {
         JSONArray columns = GroupColums.getPatientSetColumnJSON(crfId);
