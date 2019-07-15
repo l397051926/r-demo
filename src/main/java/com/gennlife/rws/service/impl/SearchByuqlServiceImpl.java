@@ -844,25 +844,27 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if("1".equals(isExport)){//处理导出数据
             //向dataSource添加数据
             patientSetService.saveGroupDataByGroupBlock(groupId,allResutList,1);
+            JSONArray dataAll = new JSONArray();
             for (ActiveSqlMap sqlMap : sqlList){
                 //TODO 可以优化计算逻辑
                 String result =  httpUtils.querySearch(projectId,sqlMap.getUncomActiveSql(),pageNum,Integer.MAX_VALUE-1,sqlMap.getSourceFiltere(),source,false);
                 JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
-                boolean flag = true;
-                if(patientSetId == null){
-                    flag = groupService.exportToGroup(data,groupId,groupName,projectId,createId,createName,true,autoExport);
-                }else {
-                    exportToParentGroup(patientSetId, data, groupId, groupName, projectId, createId, createName, autoExport, result, pageNum, sqlMap, activeId, refActiveIds, source, crfId);
-                }
-                if(flag){
-                    AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
-                    ajaxObject1.setFlag(true);
-                    return ajaxObject1;
-                }else {
-                    AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,"与同层子组有重复患者，导入失败");
-                    ajaxObject1.setFlag(false);
-                    return ajaxObject1;
-                }
+                dataAll.addAll(data);
+            }
+            boolean flag = true;
+            if(patientSetId == null){
+                flag = groupService.exportToGroup(dataAll,groupId,groupName,projectId,createId,createName,true,autoExport);
+            }else {
+                exportToParentGroup(patientSetId, dataAll, groupId, groupName, projectId, createId, createName, autoExport, allResutList, pageNum, activeId, refActiveIds, source, crfId);
+            }
+            if(flag){
+                AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
+                ajaxObject1.setFlag(true);
+                return ajaxObject1;
+            }else {
+                AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,"与同层子组有重复患者，导入失败");
+                ajaxObject1.setFlag(false);
+                return ajaxObject1;
             }
         }
 
@@ -945,7 +947,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
 
     private void exportToParentGroup(JSONArray patientSetId, JSONArray data, String groupId, String groupName, String projectId, String createId, String createName,
-                                     boolean autoExport, String result, Integer pageNum, ActiveSqlMap sqlMap, String activeId, JSONArray refActiveIds, JSONArray source, String crfId) {
+                                     boolean autoExport, List<String> allResutList, Integer pageNum, String activeId, JSONArray refActiveIds, JSONArray source, String crfId) {
         int size = patientSetId.size();
         List<String> patientSetIds = patientSetId.toJavaList(String.class);
         List<String> patients = patientsSetMapper.getpatientSetNameByPatSetIds(patientSetIds);
@@ -953,15 +955,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             String id = patientSetId.getString(i);
             groupService.exportToGroupById(data,groupId,groupName,id,projectId,createId,createName,true,autoExport);
         }
-        //增加 移除患者列表
-        Set<String> docIds = new KeyPath("hits", "hits", "_id")
-            .fuzzyResolve(JSON.parseObject(result))
-            .stream()
-            .map(String.class::cast)
-            .collect(toSet());
-        String sql = getPatientSqlForIds(patientSetId,projectId,docIds,crfId);
+        String sql = getPatientSqlForIds(patientSetId,projectId,allResutList.stream().collect(toSet()), crfId);
         String removeQuery = "select patient_info.DOC_ID as pSn from rws_emr_"+projectId+" where "+sql+" group by patient_info.DOC_ID";
-        String re =  httpUtils.querySearch(projectId,removeQuery,pageNum,Integer.MAX_VALUE-1,sqlMap.getSourceFiltere(),source,false);
+        String re =  httpUtils.querySearch(projectId,removeQuery,pageNum,Integer.MAX_VALUE-1,"",source,false);
         JSONArray dataRe = UqlQureyResult.getResultData(re, activeId,refActiveIds,false);
         for (int i = 0; i < size; i++) {
             String id = patientSetId.getString(i);
