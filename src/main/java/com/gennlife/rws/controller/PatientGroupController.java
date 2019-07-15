@@ -378,7 +378,6 @@ public class PatientGroupController {
                 return ajaxObject;
             }
             ajaxObject = patGroupService.groupAggregation(object);
-//			ajaxObject = searchByuqlService.getAggregation(object); //uql 版本
             return ajaxObject;
         } catch (Exception e) {
             ajaxObject = new AjaxObject(CustomerStatusEnum.UNKONW_ERROR.getCode(), e.getMessage());

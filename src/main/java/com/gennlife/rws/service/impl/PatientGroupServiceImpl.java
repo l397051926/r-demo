@@ -300,36 +300,16 @@ public class PatientGroupServiceImpl implements PatientGroupService {
     @Override
     public AjaxObject groupAggregation(JSONObject object) {
         String groupId = object.getString("groupId");
-        JSONArray data = new JSONArray();
-
-        Map<String, Object> mapParam = new HashMap<>();
-        JSONArray aggregationArray = object.getJSONArray("aggregationTeam");
-        int size = aggregationArray == null ? 0 : aggregationArray.size();
-        for (int i = 0; i < size; i++) {
-            mapParam.clear();
-            JSONObject dataObj = new JSONObject();
-            JSONObject arggreObj = aggregationArray.getJSONObject(i);
-            String domainDesc = arggreObj.getString("domain_desc");
-            String domain_id = arggreObj.getString("domain_id");
-            mapParam.put("groupId", groupId);
-            mapParam.put(domain_id, " ");
-            List<GroupAggregation> groupAggregations = groupDataMapper.getPatSetAggregation(mapParam);
-            for(GroupAggregation groupAggregation : groupAggregations){
-                if(StringUtils.isEmpty(groupAggregation.getName())){
-                    groupAggregation.setName("无数据");
-                }
-            }
-            JSONArray domainData = JSONArray.parseArray(JSON.toJSONString(groupAggregations));
-            int count = groupDataMapper.getPatSetAggregationCount(groupId);
-            // 构造数据
-            dataObj.put("domain_data", domainData);
-            dataObj.put("count", count);
-            dataObj.put("domain_desc", domainDesc);
-            data.add(dataObj);
+        String crfId = object.getString("crfId");
+        JSONArray aggregationTeam = object.getJSONArray("aggregationTeam");
+        //TODO 希望前端 增加参数 传入 projectId
+//        String projectId = object.getString("projectId");
+        String projectId = groupMapper.getProjectId(groupId);
+        String patSns = patientSetService.getPatientSetLocalSql(groupId);
+        if(StringUtils.isEmpty(patSns)){
+            return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有数据");
         }
-        AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
-        ajaxObject.setData(data);
-        return ajaxObject;
+        return searchByuqlService.getAggregationData(patSns,crfId,aggregationTeam,projectId);
     }
 
     @Override

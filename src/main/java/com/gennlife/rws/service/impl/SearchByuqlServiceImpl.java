@@ -1088,6 +1088,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         if(StringUtils.isEmpty(patSns)){
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"没有数据");
         }
+       return getAggregationData(patSns,crfId,aggregationTeam,projectId);
+
+    }
+    @Override
+    public AjaxObject getAggregationData(String patSns, String crfId, JSONArray aggregationTeam, String projectId) {
         String  newpatientSetSql = TransPatientSql.getAllPatientSql(patSns,crfId);
         String sql = "select "+IndexContent.getPatientDocId(crfId)+"   from "+ IndexContent.getIndexName(crfId,projectId) + " where "+newpatientSetSql+ " and  join_field='patient_info'";
         JSONArray terms_aggs = new JSONArray();

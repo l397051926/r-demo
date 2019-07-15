@@ -40,6 +40,8 @@ public interface SearchByuqlService {
 
     AjaxObject getAggregationAll(String patientSetId, JSONArray aggregationTeam, String projectId, String crfId);
 
+    AjaxObject getAggregationData(String patSns, String crfId, JSONArray aggregationTeam, String projectId);
+
     List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId) ;
 
     JSONArray getPatientListByPatientSn(List<GroupData> groupDataList, JSONArray columns, Integer activeType, String projectId, String crfId);
