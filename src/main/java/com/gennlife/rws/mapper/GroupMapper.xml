@@ -347,6 +347,14 @@
 		and create_id = #{createId,jdbcType=VARCHAR}
 	</select>
 
+	<select id="getGroupIdsByProjectId" resultType="java.lang.String"  parameterType="java.lang.String">
+		SELECT
+		group_id
+		from p_group
+		where is_delete='0'
+		and project_id = #{projectId,jdbcType=VARCHAR}
+	</select>
+
 	<select id="getpGroupParentName"  resultMap="BaseResultMap" parameterType="java.lang.String">
 		select
 		<include refid="Base_Column_List" />

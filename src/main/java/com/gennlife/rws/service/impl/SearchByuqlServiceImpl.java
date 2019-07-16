@@ -5,7 +5,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.Pair;
 import com.gennlife.darren.collection.keypath.KeyPath;
-import com.gennlife.rws.content.*;
+import com.gennlife.rws.content.CommonContent;
+import com.gennlife.rws.content.IndexContent;
+import com.gennlife.rws.content.SeparatorContent;
+import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
 import com.gennlife.rws.exception.CustomerException;
@@ -72,8 +75,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String patientSql = TransPatientSql.getAllPatientSql(patientsIdSqlMap.getPatientSnIds(), crfId);
         JSONArray patientSetId = object.getJSONArray("patientSetId");
         String name = object.getString("name");
-        String id = object.getString("id");
-        String groupFromId = object.getString("groupFromId");
         String isVariant = object.getString("isVariant");
         String groupToId = object.getString("groupToId");
         String projectId = object.getString("projectId");
@@ -515,13 +516,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
     @Override
     public Integer getSearchUqlAllCount(String groupFromId, JSONArray patientSetId, String groupId, String projectId) {
-        if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupId)) {
-            groupFromId = groupMapper.getGroupParentId(groupId);
-            if (StringUtils.isEmpty(groupFromId)) {
-                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupId);
-                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
-            }
-        }
+        patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupId);
         //获取总共人数
         if (patientSetId != null && patientSetId.size() > 0) {
             return getPatientSqlCount(patientSetId, projectId);
@@ -930,7 +925,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
     }
 
-
     private JSONArray getAllPatientSetId(String groupFromId, JSONArray patientSetId, String groupId) {
         if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupId)) {
             groupFromId = groupMapper.getGroupParentId(groupId);
@@ -941,7 +935,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         return patientSetId;
     }
-
 
     private void exportToParentGroup(JSONArray patientSetId, JSONArray data, String groupId, String groupName, String projectId, String createId, String createName,
                                      boolean autoExport, List<String> allResutList, Integer pageNum, String activeId, JSONArray refActiveIds, JSONArray source, String crfId) {
@@ -1630,11 +1623,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return uqlClass.getSql();
     }
 
-    private String getGroupSql(String groupId, String crfId) {
-        List<String> groupDataPatSn = groupDataMapper.getPatientDocId(groupId);
-        return " " + IndexContent.getPatientDocId(crfId) + " " + TransPatientSql.transForExtContain(groupDataPatSn);
-    }
-
     private String getPatientSqlForIds(JSONArray patientSetId, String projectId, Set<String> docIds, String crfId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         List<String> dataList = patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSets);
@@ -1657,30 +1645,12 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return result;
     }
 
-    private String getPatientSql(JSONArray patientSetId, String projectId, String crfId) {
-        List<String> patientSets = patientSetId.toJavaList(String.class);
-        List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
-        String query = String.join(" or ", patientSetSql.stream().map(x -> "(" + TransPatientSql.getAllPatientSql(TransPatientSql.getUncomPatientSnSql(x), crfId) + ")").collect(toList()));
-        JSONArray sourceFilter = new JSONArray();
-        String result = null;
-        String newSql = "select  " + IndexContent.getPatientDocId(crfId) + " as pSn from " + IndexContent.getIndexName(crfId, projectId) + " where " + query + IndexContent.getGroupBy(crfId);
-        String response = httpUtils.querySearch(projectId, newSql, 1, Integer.MAX_VALUE - 1, null, sourceFilter, crfId, true);
-        Set<String> patients = new KeyPath("hits", "hits", "_id")
-            .fuzzyResolve(JSON.parseObject(response))
-            .stream()
-            .map(String.class::cast)
-            .collect(toSet());
-        result = IndexContent.getPatientDocId(crfId) + TransPatientSql.transForExtContain(patients);
-
-        return result;
-    }
-
-    private List<PatientsIdSqlMap> getPatientSqlTmp(JSONArray patientSetId, String projectId, String crfId) {
+    private List<PatientsIdSqlMap> getPatientSqlForPatientSet(JSONArray patientSetId, String projectId, String crfId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         return patientSetService.getPatientSetByListForInitialSql(patientSets);
     }
 
-    private List<PatientsIdSqlMap> getGroupSqlTmp(String patientSetId) {
+    private List<PatientsIdSqlMap> getPatientSqlMapForGroup(String patientSetId) {
         List<String> dataSourceIds = new LinkedList<>();
         dataSourceIds.add(patientSetId);
         return patientSetService.getPatientSetByListForInitialSql(dataSourceIds);
@@ -2302,35 +2272,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId) {
-        String patientSql = "";
-        if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupToId)) {
-            groupFromId = groupMapper.getGroupParentId(groupToId);
-            if (StringUtils.isEmpty(groupFromId)) {
-                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupToId);
-                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
-            }
-        }
-        if (!"1".equals(isVariant)) {
-            if (patientSetId != null && patientSetId.size() > 0) {
-                patientSql = getPatientSql(patientSetId, projectId, crfId);
-            } else {
-                patientSql = getGroupSql(groupFromId, crfId);
-            }
-        }
-        return patientSql;
-    }
-
-    @Override
     public List<String> getInitialSQLList(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId) {
         List<String> patientSqlList = new ArrayList<>();
-        if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupToId)) {
-            groupFromId = groupMapper.getGroupParentId(groupToId);
-            if (StringUtils.isEmpty(groupFromId)) {
-                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupToId);
-                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
-            }
-        }
+        patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupToId);
         if (!"1".equals(isVariant)) {
             if (patientSetId != null && patientSetId.size() > 0) {
                 patientSqlList = getPatientSqlList(patientSetId);
@@ -2344,19 +2288,15 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     @Override
     public List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId) {
         List<PatientsIdSqlMap> patientSql = null;
-        if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupToId)) {
-            groupFromId = groupMapper.getGroupParentId(groupToId);
-            if (StringUtils.isEmpty(groupFromId)) {
-                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupToId);
-                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
-            }
-        }
+        patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupToId);
         if (!"1".equals(isVariant)) {
             if (patientSetId != null && patientSetId.size() > 0) {
-                patientSql = getPatientSqlTmp(patientSetId, projectId, crfId);
+                patientSql = getPatientSqlForPatientSet(patientSetId, projectId, crfId);
             } else {
-                patientSql = getGroupSqlTmp(groupFromId);
+                patientSql = getPatientSqlMapForGroup(groupFromId);
             }
+        }else {
+            patientSql = getPatientsqlForVariant(projectId);
         }
         return patientSql;
     }
@@ -2471,5 +2411,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         return andGroupCondition.toString();
     }
+
+    public List<PatientsIdSqlMap> getPatientsqlForVariant(String projectId) {
+        List<String> groupIds = groupMapper.getGroupIdsByProjectId(projectId);
+        return patientSetService.getPatientSetByListForInitialSql(groupIds);
+    }
+
 
 }
