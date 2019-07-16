@@ -12,5 +12,5 @@ public interface ProducerService {
 
     void romoveProMember(String uid, String creatorName, String projectName);
 
-    void sendAddProMember(String uid, String creatorName, String projectName, String projectId);
+    void sendAddProMember(String uid, String creatorName, String projectName, String projectId, String crfId);
 }

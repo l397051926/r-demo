@@ -81,11 +81,12 @@ public class ProducerServiceImpl implements ProducerService{
         send(rocketMqContent.getTopicPro(), rocketMqContent.getRemoveProUserTag(), msgObj.toJSONString());
     }
     @Override
-    public void sendAddProMember(String uid, String creatorName, String projectName, String projectId) {
+    public void sendAddProMember(String uid, String creatorName, String projectName, String projectId, String crfId) {
         JSONObject msgObj = new JSONObject()
             .fluentPut("user_id", uid)
             .fluentPut("msg", addProjectMsg(creatorName + "将你加入到“" + projectName + "”项目"))
-            .fluentPut("project_id", projectId);
+            .fluentPut("project_id", projectId)
+            .fluentPut("crfId", crfId);
         //发送一条消息到 rocketmq
         send(rocketMqContent.getTopicPro(), rocketMqContent.getAddProUserTag(), msgObj.toJSONString());
     }

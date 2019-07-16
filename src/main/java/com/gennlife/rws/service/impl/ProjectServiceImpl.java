@@ -209,9 +209,14 @@ public class ProjectServiceImpl implements ProjectService {
 		String crfId = param.getString("crfId");
 		String uid = param.getString("uid");
 		DataCheckEmpty.dataCheckEmpty(crfId, uid);
-		List<Project> projects = projectMapper.getProjectByUid(uid);
+		Map<String, Object> map = new HashMap<>();
+		map.put("uid", uid);
+		List<Project> projects = projectMapper.getProjectList(map);
 		List<Project> resultList = new ArrayList<>();
 		for (Project project : projects) {
+			if(!uid.equals(project.getCreatorId())){
+				continue;
+			}
 			if (crfId.equals(project.getCrfId()) || StringUtils.isEmpty(project.getCrfId())) {
 				resultList.add(project);
 				continue;
