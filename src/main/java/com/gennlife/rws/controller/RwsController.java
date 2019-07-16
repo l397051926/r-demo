@@ -182,24 +182,13 @@ public class RwsController {
 
             List<PatientsIdSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(groupFromId,isVariant == null ? "" : String.valueOf(isVariant),groupToId, obj.getJSONArray("patientSetId"),projectId,crfId);
             String activeIndexId = obj.getJSONArray("config").getJSONObject(0).getString("activeIndexId");//指标id
-            String T_activeIndexId = isSearch == CommonContent.ACTIVE_TYPE_TEMP ? activeIndexId.concat("_tmp") : activeIndexId;
-            int count = activeSqlMapMapper.getCountByActiveIndexId(T_activeIndexId,groupToId);
-            if (count > 0) {
-                activeSqlMapMapper.deleteByIndexId(T_activeIndexId);
-                if( 2 == activeType){
-                    if (UqlConfig.isCrf(crfId)) {
-                        searchCrfByuqlService.RunReferenceCalculate(T_activeIndexId,projectId, crfId);
-                    }else {
-                        searchByuqlService.RunReferenceCalculate(T_activeIndexId,projectId, crfId);
-                    }
-                }
-            }
+            searchByuqlService.computationalInitialization(isSearch, activeIndexId, groupToId, projectId, crfId, activeType, indexTypeDesc, patientsSetId, groupFromId, resultOrderKey);
             //*************  开始计算  *************
             List<Future> futures = new LinkedList<>();
             if (isVariant != null && 1 == isVariant) {
                 SingleExecutorService.getInstance().getBackgroundVariantExecutor().submit(() -> patientSql.forEach(o -> {
                     try {
-                        searchByUqlService(crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc, o);
+                        searchByuqlService.searchByUqlService(crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc, o);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -207,7 +196,7 @@ public class RwsController {
             } else {
                 patientSql.forEach( o -> futures.add(SingleExecutorService.getInstance().getSearchUqlExecutor().submit(() -> {
                     try {
-                        searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
+                        searchByuqlService.searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
                     }catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -258,31 +247,6 @@ public class RwsController {
         }
 
         return ajaxObject;
-    }
-
-    private void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, PatientsIdSqlMap patientSql) throws ExecutionException, InterruptedException, IOException {
-
-        if (UqlConfig.isCrf(crfId)) {
-            if (3 == activeType) {//那排
-                searchCrfByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, patientSql, crfId);
-            } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-                searchCrfByuqlService.SearchByEnume(obj, resultOrderKey, isSearch, patientSql, crfId);
-            } else if (2 == activeType) {//指标
-                searchCrfByuqlService.SearchByIndex(obj, resultOrderKey, isSearch, patientSql, crfId);
-            } else if (1 == activeType) { //事件
-                searchCrfByuqlService.searchByActive(obj, resultOrderKey, isSearch, patientSql, crfId);
-            }
-        } else {
-            if (3 == activeType) {//那排
-                searchByuqlService.SearchByExclude(obj, resultOrderKey, isSearch,patientSql, crfId);
-            } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-                searchByuqlService.SearchByEnume(obj, resultOrderKey, isSearch, patientSql, crfId);
-            } else if (2 == activeType) {//指标
-                searchByuqlService.SearchByIndex(obj, resultOrderKey, isSearch, patientSql, crfId);
-            } else if (1 == activeType) { //事件
-                searchByuqlService.searchByActive(obj, resultOrderKey, isSearch, patientSql, crfId);
-            }
-        }
     }
 
     /**

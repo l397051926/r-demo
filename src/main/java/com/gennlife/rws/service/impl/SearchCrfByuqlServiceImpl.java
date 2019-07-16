@@ -54,27 +54,15 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     @Autowired
     private ActiveSqlMapMapper activeSqlMapMapper;
     @Autowired
-    private GroupMapper groupMapper;
-    @Autowired
-    private ActiveIndexTaskMapper activeIndexTaskMapper;
-    @Autowired
     private ActiveIndexMapper activeIndexMapper;
     @Autowired
     private ActiveIndexConfigMapper activeIndexConfigMapper;
     @Autowired
-    private ActiveIndexService activeIndexService;
-    @Autowired
     private PatientsSetMapper patientsSetMapper;
-    @Autowired
-    private GroupPatientDataMapper groupPatDataMapper;
     @Autowired
     private GroupDataMapper groupDataMapper;
     @Autowired
-    private LogUtil logUtil;
-    @Autowired
     private SearchByuqlServiceImpl searchByuqlService;
-    @Autowired
-    private RedisMapDataService redisMapDataService;
     @Autowired
     private PatientSetService patientSetService;
 
@@ -92,7 +80,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         Long startMysqlTime = System.currentTimeMillis();
         List<ActiveSqlMap> sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId, groupId);
         if (sqlList == null || sqlList.size() == 0) {
-            referenceCalculate(activeId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
+            searchByuqlService.referenceCalculate(activeId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
             sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId, groupId);
         }
         LOG.info("指标 从mysql数据库读取时间为： " + (System.currentTimeMillis() - startMysqlTime));
@@ -189,7 +177,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 String refActiveId = refActiveIds.getString(i);
                 List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, sqlMap.getPatSqlGroup());
                 if (patSqlList == null || patSqlList.size() == 0) {
-                    referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
+                    searchByuqlService.referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
                     patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, sqlMap.getPatSqlGroup());
                 }
                 ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
@@ -238,7 +226,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         Long startMysqlTime = System.currentTimeMillis();
         List<ActiveSqlMap> sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId, groupId);
         if (sqlList == null || sqlList.size() == 0) {
-            referenceCalculate(activeId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
+            searchByuqlService.referenceCalculate(activeId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
             sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId, groupId);
         }
         LOG.info("事件 从mysql数据库读取时间为： " + (System.currentTimeMillis() - startMysqlTime));
@@ -503,7 +491,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         Long startMysqlTime = System.currentTimeMillis();
         List<ActiveSqlMap> sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId, groupId);
         if (sqlList == null || sqlList.size() == 0) {
-            referenceCalculate(activeId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
+            searchByuqlService.referenceCalculate(activeId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
             sqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, activeId, groupId);
         }
         LOG.info("那排 从mysql数据库读取时间为： " + (System.currentTimeMillis() - startMysqlTime));
@@ -574,7 +562,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 String refActiveId = refActiveIds.getString(i);
                 List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlBySqlGroup(refActiveId, groupId, sqlMap.getPatSqlGroup());
                 if (patSqlList == null || patSqlList.size() == 0) {
-                    referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
+                    searchByuqlService.referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
                     patSqlList = activeSqlMapMapper.getActiveSqlBySqlGroup(refActiveId, groupId, sqlMap.getPatSqlGroup());
                 }
                 ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
@@ -926,17 +914,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONObject resultObj = JSONObject.parseObject(resultOrderKey);
 
         int size = configs == null ? 0 : configs.size();
-        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
-        redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(R_activeIndexId));
-        for (Group group : groupList) {
-            String groupId = group.getGroupId();
-            List<ActiveSqlMap> delList = activeSqlMapMapper.getDelRedisActiveSql(R_activeIndexId);
-            if (delList.size() > 0) {
-                for (ActiveSqlMap src : delList) {
-                    redisMapDataService.delete(UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" + groupId);
-                }
-            }
-        }
 
         List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -1407,7 +1384,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if (StringUtils.isNotEmpty(refActiveId)) { // 引用数据
             List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSqlBySqlGroup(refActiveId, groupId, sqlGroupId);
             if (activeSqlMaps == null || activeSqlMaps.size() == 0) {
-                referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
+                searchByuqlService.referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
                 activeSqlMaps = activeSqlMapMapper.getActiveSqlBySqlGroup(refActiveId, groupId, sqlGroupId);
             }
             ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
@@ -1544,7 +1521,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                     List<ActiveSqlMap> activeSql = activeSqlMapMapper.getActiveSqlBySqlGroup(refId, groupId, sqlGroupId);
                     if (activeSql == null || activeSql.size() == 0) {
                         try {
-                            referenceCalculate(refId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientsSetId, groupId, null, crfId);
+                            searchByuqlService.referenceCalculate(refId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientsSetId, groupId, null, crfId);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -1670,8 +1647,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         final AbstractFieldAnalyzer schema = SCHEMAS.get(crfId);
         JSONArray patientSetId = object.getJSONArray("patientSetId");
         String name = object.getString("name");
-        String id = object.getString("id");
-        String groupFromId = object.getString("groupFromId");
         String isVariant = object.getString("isVariant");
         String groupToId = object.getString("groupToId");
         String projectId = object.getString("projectId");
@@ -1699,7 +1674,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         KeyPath indexDatePath = KeyPath.compile(indexDate);
         if (schema.isPackagedField(indexDate)) {
             indexDate = indexDatePath.removeLast(2).stream().map(Object::toString).collect(joining("."));
-            indexDatePath = KeyPath.compile(indexDate);
         } else {
             indexDatePath = "visits".equals(indexDatePath.getFirst()) ? indexDatePath.keyPathByRemovingFirst() : indexDatePath;
             indexDate = indexDatePath.stream().map(Object::toString).collect(joining("."));
@@ -1740,12 +1714,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         UqlClass sqlresult = null;
         String sqlMd5 = "";
-        redisMapDataService.delete(UqlConfig.CORT_INDEX_REDIS_KEY.concat(T_activeIndexId));
-        List<Group> groupList = groupMapper.getGroupListByProjectId(projectId);
-        for (Group group : groupList) {
-            String groupId = group.getGroupId();
-            redisMapDataService.delete(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(T_activeIndexId + "_" + groupId));
-        }
         if (where.isSameGroup(visits)) {
             uqlClass.setWhere(TransData.transDataNumber(order1) + " IS NOT NULL AND ");
             uqlClass.setInitialPatients(isVariant, patientSql);
@@ -1814,7 +1782,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         }
         activeSqlMapMapper.insert(activeSqlMap);
         /*引用依赖计算*/
-        getReferenceActiveIndex(id, resultOrderKey, patientSetId, groupToId, groupFromId, crfId);
         return sqlresult.getCrfSql();
     }
 
@@ -2044,7 +2011,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 //拼接column
                 List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, mapKey);
                 if (patSqlList == null || patSqlList.size() == 0) {
-                    referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
+                    searchByuqlService.referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
                     patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, mapKey);
                 }
                 if (patSqlList.size() == 0) continue;
@@ -2145,81 +2112,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             array.add(obj);
         }
         return array;
-    }
-
-    public void getReferenceActiveIndex(String activeId, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId, String crfId) {
-        int isTmp = 0;
-        List<ActiveIndex> activeIndices = activeIndexMapper.findReferenceActiveIndex(activeId, isTmp);
-
-        for (ActiveIndex activeIndex : activeIndices) {
-            String projectId = activeIndex.getProjectId();
-            String activeIdTmp = activeIndex.getId();
-            Integer activeType = activeIndex.getActiveType();
-            SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
-                try {
-                    if ("1".equals(activeIndex.getIsVariant())) {
-                        referenceCalculate(activeIdTmp, projectId, activeType, resultOrderKey, null, UqlConfig.CORT_INDEX_ID, null, crfId);
-                    } else {
-                        referenceCalculate(activeIdTmp, projectId, activeType, resultOrderKey, patientsSetId, groupToId, groupFromId, crfId);
-                    }
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-    }
-
-    @Override
-    public void RunReferenceCalculate(String T_activeIndexId, String projectId, String crfId) {
-        SingleExecutorService.getInstance().getReferenceActiveExecutor().submit(() -> {
-            try {
-                referenceCalculate(T_activeIndexId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), null, UqlConfig.CORT_INDEX_ID, null, crfId);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    @Override
-    public void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId, String crfId) throws ExecutionException, InterruptedException, IOException {
-
-        ActiveIndex active = null;
-        if (activeType != null && activeType == CommonContent.ACTIVE_TYPE_INOUTN.intValue()) {
-            List<ActiveIndex> activeIndexList = activeIndexService.findeByProjectAndType(projectId, activeType);
-            if (activeIndexList != null && !activeIndexList.isEmpty()) {
-                ActiveIndex index = activeIndexList.get(0);
-                activeId = index.getId();
-            }
-        }
-        active = activeIndexService.findByActiveId(activeId);
-        active = active == null ? new ActiveIndex() : active;
-        JSONObject obj = (JSONObject) JSONObject.toJSON(active);
-        obj.put("patientSetId", patientsSetId);
-        obj.put("groupToId", groupToId);
-        obj.put("groupFromId", groupFromId);
-        JSONArray configss = obj.getJSONArray("config");
-        if (configss.size() < 1) {
-            LOG.error("错误的数据 ： activeId" + activeId);
-            return;
-        }
-        String indexTypeDesc = configss.getJSONObject(0).getString("indexTypeDesc");
-        int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP;
-        String sql = "";
-        activeType = active.getActiveType();
-        if (3 == activeType) {//那排
-            sql = this.SearchByExclude(obj, resultOrderKey, isSearch, null, crfId);
-        } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
-            sql = this.SearchByEnume(obj, resultOrderKey, isSearch, null, crfId);
-        } else if (2 == activeType) {//指标
-            sql = this.SearchByIndex(obj, resultOrderKey, isSearch, null, crfId);
-        } else if (1 == activeType) { //事件
-            sql = this.searchByActive(obj, resultOrderKey, isSearch, null, crfId);
-        }
-
     }
 
     private String getPatientSql(JSONArray patientSetId, String projectId, String crfId) {

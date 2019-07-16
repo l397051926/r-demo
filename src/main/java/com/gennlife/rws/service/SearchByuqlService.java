@@ -48,7 +48,7 @@ public interface SearchByuqlService {
 
     AjaxObject getAggregationData(String patSns, String crfId, JSONArray aggregationTeam, String projectId);
 
-    List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId) ;
+    List<Patient> getpatentByUql(String patientSetId, boolean isExport, String projectId, String crfId);
 
     JSONArray getPatientListByPatientSn(List<GroupData> groupDataList, JSONArray columns, Integer activeType, String projectId, String crfId);
 
@@ -58,6 +58,8 @@ public interface SearchByuqlService {
 
     void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId, String crfId) throws ExecutionException, InterruptedException, IOException;
 
+    void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, PatientsIdSqlMap patientSql) throws ExecutionException, InterruptedException, IOException;
+
     AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId);
 
     String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
@@ -65,4 +67,9 @@ public interface SearchByuqlService {
     List<String> getInitialSQLList(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 
     List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
+
+    /**
+     * 计算初始化
+     */
+    void computationalInitialization(Integer isSearch, String activeIndexId, String groupToId, String projectId, String crfId, Integer activeType, String indexTypeDesc, JSONArray patientsSetId, String groupFromId, String resultOrderKey);
 }

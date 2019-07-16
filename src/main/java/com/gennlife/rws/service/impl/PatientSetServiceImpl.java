@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.darren.collection.keypath.KeyPath;
+import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.content.LiminaryContent;
 import com.gennlife.rws.content.SeparatorContent;
@@ -26,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static java.util.stream.Collectors.*;
 
@@ -320,23 +321,37 @@ public class PatientSetServiceImpl implements PatientSetService {
                 if (active == null) savePatientToGroup(patientSetIds, projectId, crfId, groupId);
                 active = active == null ? new ActiveIndex() : active;
                 JSONObject obj = (JSONObject) JSONObject.toJSON(active);
-
+                String isVariant = active.getIsVariant();
                 obj.put("patientSetId", patientSetIds);
                 obj.put("groupToId", groupId);
                 obj.put("groupFromId", null);
-                if (StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")) {
-                    searchCrfByuqlService.SearchByExclude(obj, null, 0, crfId);
-                    searchCrfByuqlService.searchCalcExculeByUql(groupId, projectId, 1, 1, new JSONArray(), crfId, "1", groupId, group.getGroupName(),
-                        JSONArray.parseArray(JSON.toJSONString(patientSetIds)), group.getCreateId(), group.getCreateName(), null, true);
-                } else {
-                    searchByuqlService.SearchByExclude(obj, null, 0, null, crfId);
-                    searchByuqlService.searchCalcExculeByUql(groupId, projectId, 1, 1, new JSONArray(), "1", groupId, group.getGroupName(), JSONArray.parseArray(JSON.toJSONString(patientSetIds)), group.getCreateId(), group.getCreateName(), null, true, crfId);
+                Integer activeType = active.getActiveType();
+                int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP;
+                List<PatientsIdSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(null, isVariant, groupId, JSONArray.parseArray(JSON.toJSONString(patientSetIds)), projectId, crfId);
+                searchByuqlService.computationalInitialization(isSearch, active.getId(), groupId, projectId, crfId, activeType, null, JSONArray.parseArray(JSON.toJSONString(patientSetIds)), null, null);
+
+                Integer finalActiveType = activeType;
+                List<Future> futures = new LinkedList<>();
+                patientSql.forEach(o -> futures.add(SingleExecutorService.getInstance().getSearchUqlExecutor().submit(() -> {
+                    try {
+                        if (StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR")) {
+                            searchCrfByuqlService.SearchByExclude(obj, null, 0, o, crfId);
+                            searchCrfByuqlService.searchCalcExculeByUql(groupId, projectId, 1, 1, new JSONArray(), crfId, "1", groupId, group.getGroupName(),
+                                JSONArray.parseArray(JSON.toJSONString(patientSetIds)), group.getCreateId(), group.getCreateName(), null, true);
+                        } else {
+                            searchByuqlService.SearchByExclude(obj, null, 0, o, crfId);
+                            searchByuqlService.searchCalcExculeByUql(groupId, projectId, 1, 1, new JSONArray(), "1", groupId, group.getGroupName(), JSONArray.parseArray(JSON.toJSONString(patientSetIds)), group.getCreateId(), group.getCreateName(), null, true, crfId);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                })));
+                for (Future future : futures) {
+                    future.get();
                 }
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+
+
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
