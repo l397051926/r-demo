@@ -44,11 +44,11 @@ public class GroupServiceImpl implements GroupService {
     private LogUtil logUtil;
     @Autowired
     private GroupPatientDataMapper groupPatDataMapper;
+
     private static final int exportMax = 2000;
 
     @Override
     public List<Group> getGroupByProjectId(String groupType,String projectId) {
-
         //获取 分组类型id
         String groupTypeId = groupTypeMapper.getGroupType(groupType);
         //根据分组类型id 和project Id 项目数量>0 获取 分组数据
@@ -135,10 +135,6 @@ public class GroupServiceImpl implements GroupService {
             GroupData groupData = new GroupData();
             groupData.setGroupId(groupId);
             groupData.setPatientSn(patient.getString("PATIENT_SN"));
-            groupData.setEfhnic(patient.getString("ETHNIC"));
-            groupData.setNationality(patient.getString("NATIONALITY"));
-            groupData.setMaritalStatus(patient.getString("MARITAL_STATUS"));
-            groupData.setGender(patient.getString("GENDER"));
             groupData.setPatientDocId(patient.getString("DOC_ID"));
             groupData.setRemove(DelFlag.AVIABLE.toString());
             groupData.setCreateTime(new Date());
@@ -190,10 +186,6 @@ public class GroupServiceImpl implements GroupService {
             groupData.setPatientSetId(patientsSetId);
             groupData.setGroupId(groupId);
             groupData.setPatientSn(patient.getString("PATIENT_SN"));
-            groupData.setEfhnic(patient.getString("ETHNIC"));
-            groupData.setNationality(patient.getString("NATIONALITY"));
-            groupData.setMaritalStatus(patient.getString("MARITAL_STATUS"));
-            groupData.setGender(patient.getString("GENDER"));
             groupData.setPatientDocId(patient.getString("DOC_ID"));
             groupData.setRemove(DelFlag.AVIABLE.toString());
             groupData.setCreateTime(new Date());
@@ -231,10 +223,6 @@ public class GroupServiceImpl implements GroupService {
             groupData.setPatientSetId(patientsSetId);
             groupData.setGroupId(groupId);
             groupData.setPatientSn(patient.getString("PATIENT_SN"));
-            groupData.setEfhnic(patient.getString("ETHNIC"));
-            groupData.setNationality(patient.getString("NATIONALITY"));
-            groupData.setMaritalStatus(patient.getString("MARITAL_STATUS"));
-            groupData.setGender(patient.getString("GENDER"));
             groupData.setPatientDocId(patient.getString("DOC_ID"));
             groupData.setRemove(DelFlag.LOSE.toString());
             groupData.setCreateTime(new Date());

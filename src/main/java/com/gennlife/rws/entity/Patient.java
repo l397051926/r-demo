@@ -24,6 +24,11 @@ public class Patient {
         this.DOC_ID = DOC_ID;
     }
 
+    public Patient(String patientSn, String doc_id) {
+        this.patientSn = patientSn;
+        this.DOC_ID = doc_id;
+    }
+
     public String getDOC_ID() {
         return DOC_ID;
     }

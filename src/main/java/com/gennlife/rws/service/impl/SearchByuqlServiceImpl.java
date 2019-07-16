@@ -847,7 +847,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             JSONArray dataAll = new JSONArray();
             for (ActiveSqlMap sqlMap : sqlList){
                 //TODO 可以优化计算逻辑
-                String result =  httpUtils.querySearch(projectId,sqlMap.getUncomActiveSql(),pageNum,Integer.MAX_VALUE-1,sqlMap.getSourceFiltere(),source,false);
+                String result =  httpUtils.querySearch(projectId,sqlMap.getUncomActiveSql(),pageNum,Integer.MAX_VALUE-1,sqlMap.getSourceFiltere(),new JSONArray().fluentAdd(IndexContent.getPatientInfoPatientSn(crfId)),false);
                 JSONArray data = UqlQureyResult.getResultData(result, activeId,refActiveIds,false);
                 dataAll.addAll(data);
             }
@@ -855,7 +855,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(patientSetId == null){
                 flag = groupService.exportToGroup(dataAll,groupId,groupName,projectId,createId,createName,true,autoExport);
             }else {
-                exportToParentGroup(patientSetId, dataAll, groupId, groupName, projectId, createId, createName, autoExport, allResutList, pageNum, activeId, refActiveIds, source, crfId);
+                exportToParentGroup(patientSetId, dataAll, groupId, groupName, projectId, createId, createName, autoExport, allResutList, pageNum, activeId, refActiveIds, new JSONArray().fluentAdd(IndexContent.getPatientInfoPatientSn(crfId)), crfId);
             }
             if(flag){
                 AjaxObject ajaxObject1 = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
@@ -1127,7 +1127,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String  newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql,crfId);
         String query = "select "+IndexContent.getPatientDocId(crfId)+"  from "+ IndexContent.getIndexName(crfId, projectId) + " where join_field = 'patient_info' and " + newpatientSetSql;
         JSONArray source = new JSONArray();
-        source.add("patient_info");
+        source.add(IndexContent.getPatientInfoPatientSn(crfId));
         JSONObject jsonData = JSONObject.parseObject(httpUtils.querySearch(projectId,query,0,Integer.MAX_VALUE-1,null,source,crfId));
         JSONArray hits = UqlQureyResult.getHitsArray(jsonData);
         int size = hits ==null ? 0 :hits.size();
@@ -1139,12 +1139,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             JSONObject sourceObj = tmpObj.getJSONObject("_source");
             JSONObject patientInfo  = IndexContent.getPatientInfoObj(sourceObj,crfId);
             String patientSn = patientInfo.getString("PATIENT_SN");
-            String efhic = patientInfo.getString("ETHNIC");
-            String nationality = patientInfo.getString("NATIONALITY");
-            String maritalStatus =  patientInfo.getString("MARITAL_STATUS");
-            String gender = patientInfo.getString("GENDER");
             String DOC_ID = patientInfo.getString("DOC_ID");
-            Patient patient = new Patient(patientSn,efhic,nationality,maritalStatus,gender,DOC_ID);
+            Patient patient = new Patient(patientSn,DOC_ID);
             patientList.add(patient);
         }
         return patientList;
