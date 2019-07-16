@@ -2,6 +2,7 @@ package com.gennlife.rws.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.gennlife.rws.entity.PatientsIdSqlMap;
 import com.gennlife.rws.util.AjaxObject;
 
 import java.io.IOException;
@@ -17,7 +18,7 @@ public interface SearchCrfByuqlService {
 
     String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-     String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
+     String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
      String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException;
 

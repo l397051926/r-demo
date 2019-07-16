@@ -264,7 +264,7 @@ public class RwsController {
 
         if (UqlConfig.isCrf(crfId)) {
             if (3 == activeType) {//那排
-                searchCrfByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, crfId);
+                searchCrfByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, patientSql, crfId);
             } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
                 searchCrfByuqlService.SearchByEnume(obj, resultOrderKey, isSearch, crfId);
             } else if (2 == activeType) {//指标

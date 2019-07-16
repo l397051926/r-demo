@@ -1594,7 +1594,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     }
 
     @Override
-    public String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, String crfId) throws ExecutionException, InterruptedException, IOException {
+    public String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException {
         final AbstractFieldAnalyzer schema = SCHEMAS.get(crfId);
         String projectId = object.getString("projectId").replaceAll("-", "");
         JSONArray patientSetId = object.getJSONArray("patientSetId");
