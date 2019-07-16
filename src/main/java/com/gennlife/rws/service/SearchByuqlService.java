@@ -16,6 +16,8 @@ import java.util.concurrent.ExecutionException;
 public interface SearchByuqlService {
     String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
+    String searchDocIdBySql(String newSql, String projectId, String crfId);
+
     String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
@@ -24,6 +26,8 @@ public interface SearchByuqlService {
 
     AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns,
                                           String groupFromId, JSONArray patientSetId, String groupId, String isVariant, String crfId) throws IOException, ExecutionException, InterruptedException;
+
+    Integer getSearchUqlAllCount(String groupFromId, JSONArray patientSetId, String groupId, String projectId);
 
     AjaxObject searchCalcResultByUql(String activeId, String projectId, JSONArray basicColumns, JSONArray visitColumns, Integer activeType,
                                      Integer pageNum, Integer pageSize, String activeResult, String groupFromId, JSONArray patientSetId, String groupId, String crfId) throws InterruptedException, IOException, ExecutionException;
@@ -35,6 +39,8 @@ public interface SearchByuqlService {
     Map<String, String> saveEnumCortrastiveResultRedisMap(List<ActiveSqlMap> activeSqlMap1, String projectId, String crfId, String activeIndexId) throws IOException;
 
     Map<String, String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException;
+
+    AjaxObject exportToGroup(String groupId, List<String> allResutList, List<ActiveSqlMap> sqlList, String projectId, Integer pageNum, String crfId, String activeId, JSONArray refActiveIds, JSONArray patientSetId, String groupName, String createId, String createName, boolean autoExport) throws IOException;
 
     AjaxObject getPatientListByAll(String patientSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId) throws IOException;
 
@@ -55,6 +61,8 @@ public interface SearchByuqlService {
     AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId);
 
     String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
+
+    List<String> getInitialSQLList(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 
     List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 }

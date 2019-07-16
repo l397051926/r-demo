@@ -356,6 +356,10 @@ public class ActiveSqlMap {
         return "select " + getSqlSelect() +" from " + getSqlFrom()  +" where "+ getUncomSqlWhere() + " AND " + sql + " group by patient_info.DOC_ID ";
     }
 
+    public String getSqlJoinSql(String sql,String crfId) throws IOException {
+        return "select " + getSqlSelect() +" from " + getSqlFrom()  +" where "+ getUncomSqlWhere() + " AND " + sql + " " + IndexContent.getGroupBy(crfId);
+    }
+
     public String getHavingSql() throws IOException{
         if(StringUtils.isEmpty(getSqlHaving())){
             return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() +" group by patient_info.DOC_ID ";
@@ -364,11 +368,27 @@ public class ActiveSqlMap {
         }
     }
 
+    public String getHavingSql(String crfId) throws IOException{
+        if(StringUtils.isEmpty(getSqlHaving())){
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " " + IndexContent.getGroupBy(crfId);
+        }else {
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " " + IndexContent.getGroupBy(crfId) + " " + getSqlHaving();
+        }
+    }
+
     public String getHavingSqlJoinSql(String sql) throws IOException {
         if(StringUtils.isEmpty(getSqlHaving())){
             return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " AND " + sql + " group by patient_info.DOC_ID ";
         }else {
             return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " AND " + sql + " group by patient_info.DOC_ID " + getSqlHaving();
+        }
+    }
+
+    public String getHavingSqlJoinSql(String sql,String crfId) throws IOException {
+        if(StringUtils.isEmpty(getSqlHaving())){
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " AND " + sql + " " + IndexContent.getGroupBy(crfId);
+        }else {
+            return "select " + getSqlSelect() +" from " + getSqlFrom() +" where "+getUncomSqlWhere() + " AND " + sql + " " + IndexContent.getGroupBy(crfId) + " " + getSqlHaving();
         }
     }
 }
