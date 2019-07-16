@@ -9,14 +9,17 @@ import com.gennlife.rws.content.CommonContent;
 import com.gennlife.rws.content.IndexContent;
 import com.gennlife.rws.content.SeparatorContent;
 import com.gennlife.rws.content.UqlConfig;
-import com.gennlife.rws.dao.*;
-import com.gennlife.rws.entity.*;
+import com.gennlife.rws.dao.ActiveIndexConfigMapper;
+import com.gennlife.rws.dao.ActiveIndexMapper;
+import com.gennlife.rws.dao.ActiveSqlMapMapper;
+import com.gennlife.rws.entity.ActiveIndex;
+import com.gennlife.rws.entity.ActiveSqlMap;
+import com.gennlife.rws.entity.EnumResult;
+import com.gennlife.rws.entity.PatientsIdSqlMap;
 import com.gennlife.rws.query.UqlQureyResult;
 import com.gennlife.rws.schema.AbstractFieldAnalyzer;
 import com.gennlife.rws.schema.EmrFieldAnalyzer;
-import com.gennlife.rws.service.ActiveIndexService;
 import com.gennlife.rws.service.PatientSetService;
-import com.gennlife.rws.service.RedisMapDataService;
 import com.gennlife.rws.service.SearchCrfByuqlService;
 import com.gennlife.rws.uql.*;
 import com.gennlife.rws.uqlcondition.*;
@@ -58,14 +61,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     @Autowired
     private ActiveIndexConfigMapper activeIndexConfigMapper;
     @Autowired
-    private PatientsSetMapper patientsSetMapper;
-    @Autowired
-    private GroupDataMapper groupDataMapper;
-    @Autowired
     private SearchByuqlServiceImpl searchByuqlService;
     @Autowired
     private PatientSetService patientSetService;
-
 
     public static Map<String, AbstractFieldAnalyzer> SCHEMAS = force(() -> {
         Map<String, AbstractFieldAnalyzer> ret = new HashMap<>();
@@ -631,57 +629,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
     }
 
-    private String getApplyCondition(JSONObject applyOutObj) {
-        Set<String> patients = new KeyPath("hits", "hits", "_source", "patient_info", "PATIENT_SN")
-            .fuzzyResolve(applyOutObj)
-            .stream()
-            .map(String.class::cast)
-            .collect(toSet());
-        return String.join(",", patients);
-    }
-
-    private String getApplyCondition(JSONObject applyOutObj, String crfId) {
-        Set<String> patients;
-        if (StringUtils.isEmpty(crfId) || IndexContent.EMR_CRF_ID.equals(crfId)) {
-            patients = new KeyPath("hits", "hits", "_source", "patient_info", "PATIENT_SN")
-                .fuzzyResolve(applyOutObj)
-                .stream()
-                .map(String.class::cast)
-                .collect(toSet());
-        } else {
-            patients = new KeyPath("hits", "hits", "_source", "patient_info", "patient_basicinfo", "PATIENT_SN")
-                .fuzzyResolve(applyOutObj)
-                .stream()
-                .map(String.class::cast)
-                .collect(toSet());
-        }
-        return String.join(",", patients);
-    }
-
-    private String getPatientSqlForIds(JSONArray patientSetId, String projectId, Set<String> docIds, String crfId) {
-
-        List<String> patientSets = patientSetId.toJavaList(String.class);
-        List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
-        String query = String.join(" or ", patientSetSql.stream().map(x -> "(" + TransPatientSql.getAllPatientSql(TransPatientSql.getUncomPatientSnSql(x), crfId) + ")").collect(toList()));
-        JSONArray sourceFilter = new JSONArray();
-        sourceFilter.add(IndexContent.getPatientInfoPatientSn(crfId));
-        String result = null;
-        String newSql = "select  " + IndexContent.getPatientDocId(crfId) + " as pSn from " + IndexContent.getIndexName(crfId, projectId) + " where " + query + IndexContent.getGroupBy(crfId);
-        String response = httpUtils.querySearch(projectId, newSql, 1, Integer.MAX_VALUE - 1, null, sourceFilter, crfId, true);
-        Set<String> patients = new KeyPath("hits", "hits", "_id")
-            .fuzzyResolve(JSON.parseObject(response))
-            .stream()
-            .map(String.class::cast)
-            .collect(toSet());
-        patients.removeAll(docIds);
-        if (patients.isEmpty()) {
-            result = "patient_info.patient_basicinfo.DOC_ID IN ('')";
-        } else {
-            result = "patient_info.patient_basicinfo.DOC_ID " + TransPatientSql.transForExtContain(patients);
-        }
-        return result;
-    }
-
     private void makeEnumResultData(List<ActiveSqlMap> patSqlList, String patSnWhere, Map<String, JSONObject> dataMap, String projectId, Integer pageSize, JSONArray source, String refActiveId, String crfId) throws IOException {//处理枚举
         String isOtherName = "";
         for (ActiveSqlMap activeSqlMap : patSqlList) {
@@ -1184,21 +1131,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                     }
                 }
             });
-    }
-
-    private void sbcs(UqlWhere where, List<UqlWhereElem> newElems, AbstractFieldAnalyzer schema, String operatorSign) {
-
-        for (UqlWhereElem elem : newElems) {
-            if (elem instanceof SimpleConditionUqlWhereElem) {
-                SimpleConditionUqlWhereElem elem1 = (SimpleConditionUqlWhereElem) elem;
-
-            } else if (elem instanceof ReferenceConditionUqlWhereElem) {
-                ReferenceConditionUqlWhereElem elem1 = (ReferenceConditionUqlWhereElem) elem;
-
-            } else {
-
-            }
-        }
     }
 
     private void addActiveElemsHasChild(UqlWhere where, List<UqlWhereElem> newElems, AbstractFieldAnalyzer schema, String operatorSign) {
@@ -2114,41 +2046,5 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         return array;
     }
 
-    private String getPatientSql(JSONArray patientSetId, String projectId, String crfId) {
-        List<String> patientSets = patientSetId.toJavaList(String.class);
-        List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
-        String query = String.join(" or ", patientSetSql.stream().map(x -> "(" + TransPatientSql.getAllPatientSql(TransPatientSql.getUncomPatientSnSql(x), crfId) + ")").collect(toList()));
-        JSONArray sourceFilter = new JSONArray();
-        String result = null;
-        String newSql = "select  " + IndexContent.getPatientDocId(crfId) + " as pSn from " + IndexContent.getIndexName(crfId, projectId) + " where " + query + IndexContent.getGroupBy(crfId);
-        String response = httpUtils.querySearch(projectId, newSql, 1, Integer.MAX_VALUE - 1, null, sourceFilter, crfId, true);
-        Set<String> patients = new KeyPath("hits", "hits", "_id")
-            .fuzzyResolve(JSON.parseObject(response))
-            .stream()
-            .map(String.class::cast)
-            .collect(toSet());
-        result = IndexContent.getPatientDocId(crfId) + TransPatientSql.transForExtContain(patients);
-        return result;
-    }
-
-    private String getGroupSql(String groupId, String crfId) {
-        List<String> groupDataPatSn = groupDataMapper.getPatientDocId(groupId);
-        return " " + IndexContent.getPatientDocId(crfId) + " " + TransPatientSql.transForExtContain(groupDataPatSn);
-    }
-
-    private Integer getPatientSqlCount(JSONArray patientSetId, String projectId, String crfId) {
-        List<String> patientSets = patientSetId.toJavaList(String.class);
-        List<String> patientSetSql = patientsSetMapper.getPatientsetSqlAll(patientSets);
-        String query = String.join(" or ", patientSetSql.stream().map(x -> "(" + TransPatientSql.getPatientSnSql(TransPatientSql.getUncomPatientSnSql(x), crfId) + ")").collect(toList()));
-        JSONArray sourceFilter = new JSONArray();
-//        sourceFilter.add("patient_info");
-        String newSql = "select " + IndexContent.getPatientDocId(crfId) + " as pSn from " + IndexContent.getIndexName(crfId, projectId) + " where " + query + IndexContent.getGroupBy(crfId);
-        String response = httpUtils.querySearch(projectId, newSql, 1, Integer.MAX_VALUE - 1, null, sourceFilter, crfId, true);
-        return UqlQureyResult.getTotal(response);
-    }
-
-    private Integer getGroupSqlCount(String groupFromId) {
-        return groupDataMapper.getPatSetAggregationCount(groupFromId);
-    }
 
 }

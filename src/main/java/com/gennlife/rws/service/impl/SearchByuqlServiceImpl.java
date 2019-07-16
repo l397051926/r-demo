@@ -64,8 +64,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     @Autowired
     private PatientSetService patientSetService;
     @Autowired
-    private LiminaryContent liminaryContent;
-    @Autowired
     private SearchCrfByuqlService searchCrfByuqlService;
 
     @Override
@@ -1637,29 +1635,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return " " + IndexContent.getPatientDocId(crfId) + " " + TransPatientSql.transForExtContain(groupDataPatSn);
     }
 
-    private String getPatientSql(String patientSetId, String projectId, String crfId) {
-        String patientSetSql = TransPatientSql.getUncomPatientSnSql(patientsSetMapper.getPatientsetSql(patientSetId));
-        if (StringUtils.isEmpty(patientSetSql)) {
-            return null;
-        }
-        String newpatientSetSql = TransPatientSql.getAllPatientSql(patientSetSql, crfId);
-        JSONArray sourceFilter = new JSONArray();
-        String result = null;
-        String newSql = "select  " + IndexContent.getPatientDocId(crfId) + " as pSn from " + IndexContent.getIndexName(crfId, projectId) + " where join_field = 'patient_info' and " + newpatientSetSql;
-        String response = httpUtils.querySearch(projectId, newSql, 1, Integer.MAX_VALUE - 1, null, sourceFilter, crfId, true);
-        Set<String> patients = new KeyPath("hits", "hits", "_id")
-            .fuzzyResolve(JSON.parseObject(response))
-            .stream()
-            .map(String.class::cast)
-            .collect(toSet());
-        if (patients.isEmpty()) {
-            result = IndexContent.getPatientDocId(crfId) + " IN ('')";
-        } else {
-            result = IndexContent.getPatientDocId(crfId) + TransPatientSql.transForExtContain(patients);
-        }
-        return result;
-    }
-
     private String getPatientSqlForIds(JSONArray patientSetId, String projectId, Set<String> docIds, String crfId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         List<String> dataList = patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSets);
@@ -2256,8 +2231,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         Integer finalActiveType = activeType;
         patientSql.forEach(o -> futures.add(SingleExecutorService.getInstance().getSearchUqlExecutor().submit(() -> {
             try {
-                searchByUqlService( crfId, finalActiveType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
-            }catch (Exception e) {
+                searchByUqlService(crfId, finalActiveType, obj, resultOrderKey, isSearch, indexTypeDesc, o);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         })));
@@ -2266,6 +2241,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
 
     }
+
     @Override
     public void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, PatientsIdSqlMap patientSql) throws ExecutionException, InterruptedException, IOException {
         if (UqlConfig.isCrf(crfId)) {
@@ -2280,7 +2256,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
         } else {
             if (3 == activeType) {//那排
-                SearchByExclude(obj, resultOrderKey, isSearch,patientSql, crfId);
+                SearchByExclude(obj, resultOrderKey, isSearch, patientSql, crfId);
             } else if ("自定义枚举类型".equals(indexTypeDesc)) {//处理枚举
                 SearchByEnume(obj, resultOrderKey, isSearch, patientSql, crfId);
             } else if (2 == activeType) {//指标
@@ -2325,16 +2301,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return ajaxObject;
     }
 
-    /**
-     * 获取患者的初筛条件
-     *
-     * @param groupFromId  大组id
-     * @param isVariant    是否为研究变量
-     * @param groupToId    当前组id
-     * @param patientSetId 引入的患者集id
-     * @param projectId    项目id
-     * @return
-     */
     @Override
     public String getInitialSQL(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId) {
         String patientSql = "";
