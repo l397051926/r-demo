@@ -93,17 +93,12 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         ActiveSqlMap activeSqlMap = sqlList.get(0);        //获取sql语句
         JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());//获取 join 的ids
-        int refSize = refActiveIds == null ? 0 : refActiveIds.size();
-        for (int i = 0; i < refSize; i++) {
-            //拼接columns
-            JSONObject tmpObj = new JSONObject();
-            String refActiveId = refActiveIds.getString(i);
-            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refActiveId.substring(1));
-            String name = activeIndex.getName();
-            tmpObj.put("name", name);
-            tmpObj.put("id", refActiveId);
-            basicColumns.add(tmpObj);
+        List<String> activeIndexIds = refActiveIds.toJavaList(String.class);
+        if(activeIndexIds.size()>0){
+            List<ActiveIndex> activeIndices = activeIndexMapper.selectByPrimaryKeys(activeIndexIds);
+            activeIndices.forEach( x -> basicColumns.add(new JSONObject().fluentPut("name",x.getName()).fluentPut("id",x.getId())));
         }
+        int refSize = refActiveIds == null ? 0 : refActiveIds.size();
         List<String> allResutList = sqlList.stream()
             .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
             .flatMap(Arrays::stream)
@@ -119,10 +114,10 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONArray dataAll = new JSONArray();
 
         for (ActiveSqlMap sqlMap : sqlList) {
-            if(total == 0){
+            if (total == 0) {
                 break;
             }
-            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId() == null ? new String[0] : sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
             if (allTmpSet.size() + 1 < before) {
@@ -180,10 +175,10 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             for (int i = 0; i < refSize; i++) {
                 //拼接column
                 String refActiveId = refActiveIds.getString(i);
-                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, sqlMap.getPatSqlGroup());
+                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId, groupId, sqlMap.getPatSqlGroup());
                 if (patSqlList == null || patSqlList.size() == 0) {
                     searchByuqlService.referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
-                    patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, sqlMap.getPatSqlGroup());
+                    patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId, groupId, sqlMap.getPatSqlGroup());
                 }
                 ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
                 String patSql = patActiveSqlMap.getUncomActiveSql();
@@ -218,7 +213,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         AjaxObject.getReallyDataValue(dataAll, basicColumns);
         ajaxObject.setCount(count);
-        ajaxObject.setWebAPIResult(new WebAPIResult<Object>(pageNum, pageSize, total));
+        ajaxObject.setWebAPIResult(new WebAPIResult<>(pageNum, pageSize, total));
         ajaxObject.setColumns(basicColumns);
         ajaxObject.setData(dataAll);
 
@@ -238,7 +233,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         activeResult = activeIndexConfigMapper.getActiveResult(activeId.replaceAll("_tmp", ""));
 
         List<String> allResutList = sqlList.stream()
-            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .map(x -> x.getResultDocId() == null ? new String[0] : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
             .flatMap(Arrays::stream)
             .distinct()
             .collect(toList());
@@ -253,10 +248,10 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         // --------------开始分批查找
         for (ActiveSqlMap sqlMap : sqlList) {
-            if(total == 0){
+            if (total == 0) {
                 break;
             }
-            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId() == null ? new String[0] : sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
             if (allTmpSet.size() + 1 < before) {
@@ -293,7 +288,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             String having = sqlMap.getSqlHaving();
             String activeReuslt = sqlMap.getActiveResultDocId();
             String allSql = "select " + activeReuslt + "as condition ,count(" + visits + ".DOC_ID) as jocount from " + sqlMap.getSqlFrom() + " where " + sqlMap.getUncomSqlWhere() + " and " + visits + ".DOC_ID is not null " + IndexContent.getGroupBy(crfId) + " " + having;
-            String result = httpUtils.querySearch(projectId, allSql, pageNum, pageSize, sourceFilter, source, crfId);
+            String result = httpUtils.querySearch(projectId, allSql, page, size, sourceFilter, source, crfId);
             /*处理结果*/
             JSONArray data = UqlQureyResult.getActiveVisitSn(result, activeId);
 
@@ -509,22 +504,15 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         ActiveSqlMap activeSqlMap = sqlList.get(0);
         JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());
         int refSize = refActiveIds == null ? 0 : refActiveIds.size();
-
-        for (int i = 0; i < refSize; i++) {
-            //拼接columns
-            JSONObject tmpObj = new JSONObject();
-            String refActiveId = refActiveIds.getString(i);
-            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refActiveId);
-            String name = activeIndex.getName();
-            tmpObj.put("name", name);
-            tmpObj.put("id", refActiveId);
-            basicColumns.add(tmpObj);
+        List<String> activeIndexIds = refActiveIds.toJavaList(String.class);
+        if(activeIndexIds.size()>0){
+            List<ActiveIndex> activeIndices = activeIndexMapper.selectByPrimaryKeys(activeIndexIds);
+            activeIndices.forEach( x -> basicColumns.add(new JSONObject().fluentPut("name",x.getName()).fluentPut("id",x.getId())));
         }
-
 
         JSONArray source = new JSONArray().fluentAdd("patient_info.patient_basicinfo");
         List<String> allResutList = sqlList.stream()
-            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .map(x -> x.getResultDocId() == null ? new String[0] : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
             .flatMap(Arrays::stream)
             .distinct()
             .collect(toList());
@@ -532,7 +520,6 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         if ("1".equals(isExport)) {//处理导出数据
             return searchByuqlService.exportToGroup(groupId, allResutList, sqlList, projectId, pageNum, crfId, activeId, refActiveIds, patientSetId, groupName, createId, createName, autoExport);
         }
-
         List<String> resultList = PagingUtils.getPageContentForString(allResutList, pageNum, pageSize);
         String joinSql = TransPatientSql.getPatientDocIdSql(resultList, crfId);
         Integer total = allResutList.size(); // 计算后的总数
@@ -543,10 +530,10 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONArray dataAll = new JSONArray();
 
         for (ActiveSqlMap sqlMap : sqlList) {
-            if(total == 0){
+            if (total == 0) {
                 break;
             }
-            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId() == null ? new String[0] : sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
             if (allTmpSet.size() + 1 < before) {
@@ -804,8 +791,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         Set<String> patients = getProjectPatients(projectId, patientSql, crfId);
 
-        String allSql = "select patient_info.patient_basicinfo.DOC_ID from " + uqlClass.getFrom() + " where " + allWhere + " group by patient_info.patient_basicinfo.DOC_ID";
-        String activeOtherPat = httpUtils.querySearch(projectId, allSql, 1, Integer.MAX_VALUE - 1, null, new JSONArray(), crfId);
+        String activeOtherPat = httpUtils.querySearch(projectId, newSql, 1, Integer.MAX_VALUE - 1, null, new JSONArray(), crfId);
 //        Set<String> patients= getProjectPatients(projectId, crfId);
         Set<String> allPats = new KeyPath("hits", "hits", "_id")
             .fuzzyResolve(JSON.parseObject(activeOtherPat))
@@ -1349,15 +1335,15 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             String sourceValue;
             switch (jsonType) {
                 case "date":
-                    sourceValue = ConditionUtilMap.getIndexSourceValue(stitching, sourceTagName, value, refActiveId, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                    sourceValue = ConditionUtilMap.getIndexSourceValue(stitching, value);
                     break;
                 case "long":
-                    sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, sourceTagName, value, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                    sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, value);
                     break;
                 case "double":
-                    sourceValue = ConditionUtilMap.getIndexSourceValueForDou(stitching, sourceTagName, value, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                    sourceValue = ConditionUtilMap.getIndexSourceValueForDou(stitching, value);
                     if (StringUtils.isEmpty(sourceValue)) {
-                        sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, sourceTagName, value, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                        sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, value);
                     }
                     break;
                 default:
@@ -1925,7 +1911,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             .collect(toSet());
 
         for (String refId : refList) {
-            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refId.substring(1));
+            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refId);
             if (activeIndex == null) continue;
             String name = activeIndex.getName();
             basicColumns.add(new JSONObject().fluentPut("name", name).fluentPut("id", refId));
@@ -1960,10 +1946,10 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             JSONArray source = new JSONArray().fluentAdd("patient_info.patient_basicinfo.PATIENT_SN");
             for (String refActiveId : refList) {
                 //拼接column
-                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, mapKey);
+                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId, groupId, mapKey);
                 if (patSqlList == null || patSqlList.size() == 0) {
                     searchByuqlService.referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get(crfId), patientSetId, groupId, null, crfId);
-                    patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, mapKey);
+                    patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId, groupId, mapKey);
                 }
                 if (patSqlList.size() == 0) continue;
                 ActiveSqlMap patActiveSqlMap = patSqlList.get(0);

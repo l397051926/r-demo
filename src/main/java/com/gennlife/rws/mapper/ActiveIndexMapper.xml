@@ -202,6 +202,16 @@
     where id = #{id,jdbcType=VARCHAR}
   </select>
 
+  <select id="selectByPrimaryKeys" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from active_index
+    where  id IN
+    <foreach collection="activeIndexIds" item="item" index="index" close=")" open="(" separator="," >
+      #{item}
+    </foreach>
+  </select>
+
   <update id="updateTempToActive" parameterType="java.lang.Object">
     update
     active_index set id=#{param1},is_tmp=#{param2},name=#{param4} where id=#{param3}

@@ -185,10 +185,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String newSql = sqlresult.getHavingSql();
         String resultDocId = searchDocIdBySql(newSql, projectId, crfId);
         ActiveSqlMap activeSqlMap = new ActiveSqlMap(projectId, T_activeIndexId, GzipUtil.compress(newSql),
-            sqlresult.getSelect(), sqlresult.getFrom(), uqlClass.getSourceFilter(),
-            uqlClass.getActiveId().toJSONString(), JSON.toJSONString(uqlClass.getSource()), selectValue,
-            indexTypeValue, name, hasCount.split(",")[1],
-            sqlMd5);
+                                                     sqlresult.getSelect(), sqlresult.getFrom(), uqlClass.getSourceFilter(),
+                                                    uqlClass.getActiveId().toJSONString(), JSON.toJSONString(uqlClass.getSource()), selectValue,
+                                                    indexTypeValue, name, hasCount.split(",")[1],sqlMd5);
         activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId) ? UqlConfig.CORT_INDEX_ID : groupToId);
         activeSqlMap.setSqlHaving(uqlClass.getHaving());
@@ -335,7 +334,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if (sqlMd5count > 0) return null;
 
             //构造新sql 只有 visitSn 搜错功能
-            allWhere = uqlClass.getWhere();
             if (StringUtils.isNotEmpty(activeResult) && isGetVisisn) {
                 sqlresult = getIndexSql(uqlClass, operator, operaotrNum, activeResult, indexType, indexDate, projectId, hasCount);
             } else {
@@ -358,8 +356,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String newSql = sqlresult.getHavingSql();
 
         Set<String> patients = getProjectPatients(projectId, patientSql);
-        String allSql = "select patient_info.DOC_ID from " + uqlClass.getFrom() + " where " + allWhere + " group by patient_info.DOC_ID";
-        String activeOtherPat = httpUtils.querySearch(projectId, allSql, 1, Integer.MAX_VALUE - 1, null, new JSONArray(), true);
+        String activeOtherPat = httpUtils.querySearch(projectId, newSql, 1, Integer.MAX_VALUE - 1, null, new JSONArray(), true);
         Set<String> allPats = new KeyPath("hits", "hits", "_id")
             .fuzzyResolve(JSON.parseObject(activeOtherPat))
             .stream()
@@ -415,18 +412,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ActiveSqlMap activeSqlMap = sqlList.get(0);        //获取sql语句
         JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());//获取 join 的ids
         int refSize = refActiveIds == null ? 0 : refActiveIds.size();
-        for (int i = 0; i < refSize; i++) {
-            //拼接columns
-            JSONObject tmpObj = new JSONObject();
-            String refActiveId = refActiveIds.getString(i);
-            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refActiveId.substring(1));
-            String name = activeIndex.getName();
-            tmpObj.put("name", name);
-            tmpObj.put("id", refActiveId);
-            basicColumns.add(tmpObj);
+        if(refSize > 0 ){
+            List<String> activeIndexIds = refActiveIds.toJavaList(String.class);
+            List<ActiveIndex> activeIndices = activeIndexMapper.selectByPrimaryKeys(activeIndexIds);
+            activeIndices.forEach( x -> basicColumns.add(new JSONObject().fluentPut("name",x.getName()).fluentPut("id",x.getId())));
         }
         List<String> allResutList = sqlList.stream()
-            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .map(x -> x.getResultDocId() == null ? new String[0] : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
             .flatMap(Arrays::stream)
             .distinct()
             .collect(toList());
@@ -443,7 +435,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(total == 0){
                 break;
             }
-            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId() == null ? new String[0] : sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
             if (allTmpSet.size() + 1 < before) {
@@ -485,10 +477,10 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             for (int i = 0; i < refSize; i++) {
                 //拼接column
                 String refActiveId = refActiveIds.getString(i);
-                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, sqlMap.getPatSqlGroup());
+                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId, groupId, sqlMap.getPatSqlGroup());
                 if (patSqlList == null || patSqlList.size() == 0) {
                     referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get("EMR"), patientSetId, groupId, null, crfId);
-                    patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId.substring(1), groupId);
+                    patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectId(projectId, refActiveId, groupId);
                 }
                 ActiveSqlMap patActiveSqlMap = patSqlList.get(0);
                 String patSql = patActiveSqlMap.getUncomActiveSql();
@@ -562,7 +554,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeResult = activeIndexConfigMapper.getActiveResult(activeId.replaceAll("_tmp", ""));
 
         List<String> allResutList = sqlList.stream()
-            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .map(x -> x.getResultDocId() == null ? new String[0] : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
             .flatMap(Arrays::stream)
             .distinct()
             .collect(toList());
@@ -581,7 +573,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(total == 0){
                 break;
             }
-            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId() == null ? new String[0] : sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
             if (allTmpSet.size() + 1 < before) {
@@ -834,22 +826,16 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         ActiveSqlMap activeSqlMap = sqlList.get(0);
         JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());
         int refSize = refActiveIds == null ? 0 : refActiveIds.size();
-
-        for (int i = 0; i < refSize; i++) {
-            //拼接columns
-            JSONObject tmpObj = new JSONObject();
-            String refActiveId = refActiveIds.getString(i);
-            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refActiveId);
-            String name = activeIndex.getName();
-            tmpObj.put("name", name);
-            tmpObj.put("id", refActiveId);
-            basicColumns.add(tmpObj);
+        List<String> activeIndexIds = refActiveIds.toJavaList(String.class);
+        if(activeIndexIds.size()>0){
+            List<ActiveIndex> activeIndices = activeIndexMapper.selectByPrimaryKeys(activeIndexIds);
+            activeIndices.forEach( x -> basicColumns.add(new JSONObject().fluentPut("name",x.getName()).fluentPut("id",x.getId())));
         }
         patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupId);
 
         JSONArray source = new JSONArray().fluentAdd("patient_info");
         List<String> allResutList = sqlList.stream()
-            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .map(x -> x.getResultDocId() == null ? new String[0] : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
             .flatMap(Arrays::stream)
             .distinct()
             .collect(toList());
@@ -871,7 +857,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if(total == 0){
                 break;
             }
-            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+            Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId() == null ? new String[0] : sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
             if (allTmpSet.size() + 1 < before) {
@@ -1577,22 +1563,20 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             }
             ActiveSqlMap activeSqlMap = activeSqlMaps.get(0);
             String sql = activeSqlMap.getUncomActiveSql();
-            refActiveId = "t" + refActiveId;
-            uqlClass.getEnumOther().add(activeSqlMap.getUncomSqlWhere());
-            uqlClass.setJoinValue(refActiveId, sql);
             uqlClass.addActiveId(refActiveId);
+            uqlClass.getEnumOther().add(activeSqlMap.getUncomSqlWhere());
             String sourceValue;
             switch (jsonType) {
                 case "date":
-                    sourceValue = ConditionUtilMap.getIndexSourceValue(stitching, sourceTagName, value, refActiveId, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                    sourceValue = ConditionUtilMap.getIndexSourceValue(stitching, value);
                     break;
                 case "long":
-                    sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, sourceTagName, value, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                    sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, value);
                     break;
                 case "double":
-                    sourceValue = ConditionUtilMap.getIndexSourceValueForDou(stitching, sourceTagName, value, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                    sourceValue = ConditionUtilMap.getIndexSourceValueForDou(stitching, value);
                     if (StringUtils.isEmpty(sourceValue)) {
-                        sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, sourceTagName, value, refActiveId, jsonType, uqlClass.getResultValue(), "all", "0", activeIndexId);
+                        sourceValue = ConditionUtilMap.getIndexSourceValueForNum(stitching, value);
                     }
                     break;
                 default:
@@ -2034,7 +2018,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             .collect(toSet());
 
         for (String refId : refList) {
-            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refId.substring(1));
+            ActiveIndex activeIndex = activeIndexMapper.selectByPrimaryKey(refId);
             if (activeIndex == null) continue;
             String name = activeIndex.getName();
             basicColumns.add(new JSONObject().fluentPut("name", name).fluentPut("id", refId));
@@ -2072,7 +2056,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
             for (String refActiveId : refList) {
                 //拼接column
-                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId.substring(1), groupId, mapKey);
+                List<ActiveSqlMap> patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId, groupId, mapKey);
                 if (patSqlList == null || patSqlList.size() == 0) {
                     referenceCalculate(refActiveId, projectId, CommonContent.ACTIVE_TYPE_INDEX, UqlConfig.RESULT_ORDER_KEY.get("EMR"), patientSetId, groupId, null, crfId);
                     patSqlList = activeSqlMapMapper.getActiveSqlMapByProjectIdAndSqlGroup(projectId, refActiveId, groupId, mapKey);

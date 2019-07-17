@@ -727,7 +727,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
     @Transactional
     @Override
     public Integer saveGroupAndPatient(JSONObject obj) throws IOException {
-        boolean isExport = false;
+
         String groupId = obj.getString("groupId");
         String groupName = obj.getString("groupName");
         String createId = obj.getString("createId");
@@ -748,15 +748,14 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         List<List<GroupData>> list = new ArrayList<>();
         List<GroupData> listdata = new ArrayList<>();
 
-        int startCount = groupDataMapper.getPatSetAggregationCount(groupId);
-        int contCount = startCount;
+        int contCount = groupDataMapper.getPatSetAggregationCount(groupId);
         for (int i = 0; i < arr.size(); i++) {
             String patientSetId = arr.getJSONObject(i).getString("patientSetId");
             String patientSetName = arr.getJSONObject(i).getString("patientSetName");
             patientsSetMapper.updateIsFlush(3, patientSetId);
             patients.add(patientSetName);
 
-            List<Patient> listPatients = searchByuqlService.getpatentByUql(patientSetId, isExport, projectId, crfId);
+            List<Patient> listPatients = searchByuqlService.getpatentByUql(patientSetId, false, projectId, crfId);
 
             contCount = contCount + listPatients.size();
             for (int j = 0; j < listPatients.size(); j++) {
@@ -804,7 +803,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         patientSetService.saveGroupDataByGroupBlock(groupId, datas, 1);
     }
 
-    public AjaxObject getPatientSetData(JSONObject data, String crfId, JSONArray patientSetIdTmp, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns) {
+    private AjaxObject getPatientSetData(JSONObject data, String crfId, JSONArray patientSetIdTmp, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns) {
         JSONArray columns = GroupColums.getPatientSetColumnJSON(crfId);
         List<String> patientSetNames = patientsSetMapper.getpatientSetNameByPatSetIds(patientSetIdTmp.toJavaList(String.class));
         String groupNames = String.join(" + ", patientSetNames);
@@ -825,7 +824,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         String name;
         Date createTime;
 
-        public SortName(String name, Date createTime) {
+        SortName(String name, Date createTime) {
             this.name = name;
             this.createTime = createTime;
         }

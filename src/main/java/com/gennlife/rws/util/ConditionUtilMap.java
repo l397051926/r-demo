@@ -235,7 +235,7 @@ public class ConditionUtilMap {
     }
 
 
-    public static String getIndexSourceValue(String stitching, String sourceTagName, String value, String beforId, String afterId, String jsonType, String resultValue, String resultFunction, String resultFunctionNum, String activeIndexId) {
+    public static String getIndexSourceValue(String stitching, String value) {
         if (TIME_SUB_DAY.equals(stitching)) {
             List<Integer> valueList = JSONArray.parseArray(value).toJavaList(Integer.class);
             Integer value1 = valueList.get(0) == null ? Integer.MAX_VALUE : valueList.get(0);
@@ -245,23 +245,7 @@ public class ConditionUtilMap {
             BigInteger bigDate2 = new BigInteger(value2.toString());
             BigInteger date1 = bigDate1.multiply(bigInteger);
             BigInteger date2 = bigDate2.multiply(bigInteger);
-            switch (resultFunction) {
-                case "first": {
-                    return "near_first(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
-                }
-                case "last": {
-                    return "near_last(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
-                }
-                case "index": {
-                    return "near_any(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date2 + ",true," + date1 + ",true," + resultFunctionNum + "," + 1 + ")";
-                }
-                case "reverseindex": {
-                    return "near_any(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date2 + ",true," + date1 + ",true,-" + resultFunctionNum + "," + 1 + ")";
-                }
-                case "all": {
-                    return "near_all(t1.values,t2.condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
-                }
-            }
+            return "near_all(t1.values,t2.condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
         } else if (TIME_ADD_DAY.equals(stitching)) {
             List<Integer> valueList = JSONArray.parseArray(value).toJavaList(Integer.class);
             Integer value1 = valueList.get(0) == null ? Integer.MIN_VALUE : valueList.get(0);
@@ -271,243 +255,65 @@ public class ConditionUtilMap {
             BigInteger bigDate2 = new BigInteger(value2.toString());
             BigInteger date1 = bigDate1.multiply(bigInteger);
             BigInteger date2 = bigDate2.multiply(bigInteger);
-            switch (resultFunction) {
-                case "first": {
-                    return "near_first(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
-                }
-                case "last": {
-                    return "near_last(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
-                }
-                case "index": {
-                    return "near_any(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date1 + ",true," + date2 + ",true," + resultFunctionNum + "," + 0 + ")";
-                }
-                case "reverseindex": {
-                    return "near_any(" + activeIndexId + "." + beforId + "," + afterId + ".condition," + date1 + ",true," + date2 + ",true,-" + resultFunctionNum + "," + 0 + ")";
-                }
-                case "all": {
-                    return "near_all(t1.values,t2.condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
-                }
-            }
+            return "near_all(t1.values,t2.condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
         }
         return null;
     }
 
-    public static String getIndexSourceValueForNum(String stitching, String sourceTagName, String value, String refActiveId, String jsonType, String resultValue, String resultFunction, String resultFunctionNum, String activeIndexId) {
+    public static String getIndexSourceValueForNum(String stitching, String value) {
         if (NUMBER_SUB.equals(stitching)) {
             List<Long> valueList = JSONArray.parseArray(value).toJavaList(Long.class);
             Long date1 = Long.valueOf(valueList.get(0) == null ? Integer.MAX_VALUE : valueList.get(0));
             Long date2 = Long.valueOf(valueList.get(1) == null ? Integer.MIN_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false," + 1 + ")";
-                }
-                case "last": {
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false," + 1 + ")";
-                }
-                case "index": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false," + resultFunctionNum + "," + 1 + ")";
-                }
-                case "reverseindex": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false,-" + resultFunctionNum + "," + 1 + ")";
-                }
-                case "all": {
-                    return "near_all(t1.values,t2.condition," + date2 + ",false," + date1 + ",false," + 1 + ")";
-                }
-            }
+            return "near_all(t1.values,t2.condition," + date2 + ",false," + date1 + ",false," + 1 + ")";
         } else if (NUMBER_ADD.equals(stitching)) {
             List<Long> valueList = JSONArray.parseArray(value).toJavaList(Long.class);
             Long date1 = Long.valueOf(valueList.get(0) == null ? Integer.MIN_VALUE : valueList.get(0));
             Long date2 = Long.valueOf(valueList.get(1) == null ? Integer.MAX_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false," + 0 + ")";
-                }
-                case "last": {
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false," + 0 + ")";
-                }
-                case "index": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false," + resultFunctionNum + "," + 0 + ")";
-                }
-                case "reverseindex": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false,-" + resultFunctionNum + "," + 0 + ")";
-                }
-                case "all": {
-                    return "near_all(t1.values,t2.condition," + date1 + ",false," + date2 + ",false," + 0 + ")";
-                }
-            }
+            return "near_all(t1.values,t2.condition," + date1 + ",false," + date2 + ",false," + 0 + ")";
         } else if (NUMBER_SUB_TO.equals(stitching)) {
             List<Long> valueList = JSONArray.parseArray(value).toJavaList(Long.class);
             Long date1 = Long.valueOf(valueList.get(0) == null ? Integer.MAX_VALUE : valueList.get(0));
             Long date2 = Long.valueOf(valueList.get(1) == null ? Integer.MIN_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
-                }
-                case "last": {
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
-                }
-                case "index": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true," + resultFunctionNum + "," + 1 + ")";
-                }
-                case "reverseindex": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true,-" + resultFunctionNum + "," + 1 + ")";
-                }
-                case "all": {
-                    return "near_all(t1.values,t2.condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
-                }
-            }
+            return "near_all(t1.values,t2.condition," + date2 + ",true," + date1 + ",true," + 1 + ")";
         } else if (NUMBER_ADD_TO.equals(stitching)) {
             List<Long> valueList = JSONArray.parseArray(value).toJavaList(Long.class);
             Long date1 = Long.valueOf(valueList.get(0) == null ? Integer.MIN_VALUE : valueList.get(0));
             Long date2 = Long.valueOf(valueList.get(1) == null ? Integer.MAX_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
-                }
-                case "last": {
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
-                }
-                case "index": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true," + resultFunctionNum + "," + 0 + ")";
-                }
-                case "reverseindex": {
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true,-" + resultFunctionNum + "," + 0 + ")";
-                }
-                case "all": {
-                    return "near_all(t1.values,t2.condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
-                }
-            }
+            return "near_all(t1.values,t2.condition," + date1 + ",true," + date2 + ",true," + 0 + ")";
         }
         return null;
     }
 
-    public static String getIndexSourceValueForDou(String stitching, String sourceTagName, String value, String refActiveId, String jsonType, String resultValue, String resultFunction, String resultFunctionNum, String activeIndexId) {
+    public static String getIndexSourceValueForDou(String stitching, String value) {
         if (NUMBER_RAISEPE_RCENT.equals(stitching)) {
             List<Double> valueList = JSONArray.parseArray(value).toJavaList(Double.class);
             Double date1 = Double.valueOf(valueList.get(0) == null ? Integer.MIN_VALUE : valueList.get(0));
             Double date2 = Double.valueOf(valueList.get(1) == null ? Integer.MAX_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false," + 2 + ")";
-                }
-                case "last": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false," + 2 + ")";
-                }
-                case "index": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false," + resultFunctionNum + "," + 2 + ")";
-                }
-                case "reverseindex": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",false," + date1 + ",false,-" + resultFunctionNum + "," + 2 + ")";
-                }
-                case "all": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_all(t1.values,t2.condition," + date2 + ",false," + date1 + ",false," + 2 + ")";
-                }
-            }
+            date1 = 1 + date1 / 100;
+            date2 = 1 + date2 / 100;
+            return "near_all(t1.values,t2.condition," + date2 + ",false," + date1 + ",false," + 2 + ")";
         } else if (NUMBER_FAIL_PERCENT.equals(stitching)) {
             List<Double> valueList = JSONArray.parseArray(value).toJavaList(Double.class);
             Double date1 = Double.valueOf(valueList.get(0) == null ? Integer.MAX_VALUE : valueList.get(0));
             Double date2 = Double.valueOf(valueList.get(1) == null ? Integer.MIN_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false," + 2 + ")";
-                }
-                case "last": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false," + 2 + ")";
-                }
-                case "index": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false," + resultFunctionNum + "," + 2 + ")";
-                }
-                case "reverseindex": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",false," + date2 + ",false,-" + resultFunctionNum + "," + 2 + ")";
-                }
-                case "all": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_all(t1.values,t2.condition," + date1 + ",false," + date2 + ",false," + 2 + ")";
-                }
-            }
+            date1 = 1 - date1 / 100;
+            date2 = 1 - date2 / 100;
+            return "near_all(t1.values,t2.condition," + date1 + ",false," + date2 + ",false," + 2 + ")";
         } else if (NUMBER_RAISEPE_RCENT_TO.equals(stitching)) {
             List<Double> valueList = JSONArray.parseArray(value).toJavaList(Double.class);
             Double date1 = Double.valueOf(valueList.get(0) == null ? Integer.MIN_VALUE : valueList.get(0));
             Double date2 = Double.valueOf(valueList.get(1) == null ? Integer.MAX_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true," + 2 + ")";
-                }
-                case "last": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true," + 2 + ")";
-                }
-                case "index": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true," + resultFunctionNum + "," + 2 + ")";
-                }
-                case "reverseindex": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date2 + ",true," + date1 + ",true,-" + resultFunctionNum + "," + 2 + ")";
-
-                }
-                case "all": {
-                    date1 = 1 + date1 / 100;
-                    date2 = 1 + date2 / 100;
-                    return "near_all(t1.values,t2.condition," + date2 + ",true," + date1 + ",true," + 2 + ")";
-
-                }
-            }
+            date1 = 1 + date1 / 100;
+            date2 = 1 + date2 / 100;
+            return "near_all(t1.values,t2.condition," + date2 + ",true," + date1 + ",true," + 2 + ")";
         } else if (NUMBER_FAIL_PERCENT_TO.equals(stitching)) {
             List<Double> valueList = JSONArray.parseArray(value).toJavaList(Double.class);
             Double date1 = Double.valueOf(valueList.get(0) == null ? Integer.MAX_VALUE : valueList.get(0));
             Double date2 = Double.valueOf(valueList.get(1) == null ? Integer.MIN_VALUE : valueList.get(1));
-            switch (resultFunction) {
-                case "first": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_first(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true," + 2 + ")";
-                }
-                case "last": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_last(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true," + 2 + ")";
-                }
-                case "index": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true," + resultFunctionNum + "," + 2 + ")";
-                }
-                case "reverseindex": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_any(" + activeIndexId + "." + refActiveId + "," + refActiveId + ".condition," + date1 + ",true," + date2 + ",true,-" + resultFunctionNum + "," + 2 + ")";
-                }
-                case "all": {
-                    date1 = 1 - date1 / 100;
-                    date2 = 1 - date2 / 100;
-                    return "near_all(t1.values,t2.condition," + date1 + ",true," + date2 + ",true," + 2 + ")";
-                }
-            }
+            date1 = 1 - date1 / 100;
+            date2 = 1 - date2 / 100;
+            return "near_all(t1.values,t2.condition," + date1 + ",true," + date2 + ",true," + 2 + ")";
         }
 
         return null;

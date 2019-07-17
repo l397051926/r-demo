@@ -220,39 +220,39 @@ public class PatientSetServiceImpl implements PatientSetService {
     @Override
     public Long getPatientSetLocalCountByExclude(String patientSetId, Integer export) {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, export);
-        Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
+        Integer count = pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
         return Long.valueOf(count);
     }
 
     @Override
     public Long getPatientSetLocalCount(String patientSetId) {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceId(patientSetId);
-        Integer count = pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
+        Integer count = pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
         return Long.valueOf(count);
     }
 
     @Override
     public Integer getPatientSetLocalCountByListForPatientSets(List<String> patientSetIds) {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
-        return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
+        return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
     }
 
     @Override
     public String getPatientSetLocalSql(String patientSetId) {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, 1);
-        return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(joining(SeparatorContent.VERTIVAL_BAR));
+        return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(joining(SeparatorContent.VERTIVAL_BAR));
     }
 
     @Override
     public List<String> getPatientSetLocalSqlByList(String patientSetId) {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, 1);
-        return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
     }
 
     @Override
     public Set<String> getPatientSetLocalSqlListById(Integer id) {
         PatientsIdSqlMap pid = patientsIdSqlMapMapper.getPatientsSqlMapByIdAndExclude(id, 1);
-        return Arrays.stream(pid.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
+        return Arrays.stream(pid.getPatientSnIds() == null ? new String[0] : pid.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
     }
 
     @Override
@@ -268,7 +268,7 @@ public class PatientSetServiceImpl implements PatientSetService {
     @Override
     public List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSetIds) {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
-        return pids.stream().map(o -> o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
     }
 
     @Override
