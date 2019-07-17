@@ -104,7 +104,11 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
             tmpObj.put("id", refActiveId);
             basicColumns.add(tmpObj);
         }
-        List<String> allResutList = sqlList.stream().map(x -> x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        List<String> allResutList = sqlList.stream()
+            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .flatMap(Arrays::stream)
+            .distinct()
+            .collect(toList());
         List<String> resultList = PagingUtils.getPageContentForString(allResutList, pageNum, pageSize);
         String sql = TransPatientSql.getPatientDocIdSql(resultList, crfId);
         Integer total = allResutList.size(); // 计算后的总数
@@ -115,6 +119,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONArray dataAll = new JSONArray();
 
         for (ActiveSqlMap sqlMap : sqlList) {
+            if(total == 0){
+                break;
+            }
             Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
@@ -230,7 +237,11 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         LOG.info("事件 从mysql数据库读取时间为： " + (System.currentTimeMillis() - startMysqlTime));
         activeResult = activeIndexConfigMapper.getActiveResult(activeId.replaceAll("_tmp", ""));
 
-        List<String> allResutList = sqlList.stream().map(x -> x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        List<String> allResutList = sqlList.stream()
+            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .flatMap(Arrays::stream)
+            .distinct()
+            .collect(toList());
         List<String> resultList = PagingUtils.getPageContentForString(allResutList, pageNum, pageSize);
         String sql = TransPatientSql.getPatientDocIdSql(resultList, crfId);
         Integer total = allResutList.size(); // 计算后的总数
@@ -242,7 +253,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
         // --------------开始分批查找
         for (ActiveSqlMap sqlMap : sqlList) {
-
+            if(total == 0){
+                break;
+            }
             Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
@@ -510,7 +523,11 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
 
 
         JSONArray source = new JSONArray().fluentAdd("patient_info.patient_basicinfo");
-        List<String> allResutList = sqlList.stream().map(x -> x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        List<String> allResutList = sqlList.stream()
+            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .flatMap(Arrays::stream)
+            .distinct()
+            .collect(toList());
 
         if ("1".equals(isExport)) {//处理导出数据
             return searchByuqlService.exportToGroup(groupId, allResutList, sqlList, projectId, pageNum, crfId, activeId, refActiveIds, patientSetId, groupName, createId, createName, autoExport);
@@ -526,7 +543,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONArray dataAll = new JSONArray();
 
         for (ActiveSqlMap sqlMap : sqlList) {
-
+            if(total == 0){
+                break;
+            }
             Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);

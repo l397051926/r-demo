@@ -217,7 +217,12 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             .stream()
             .map(String.class::cast)
             .collect(toSet());
-        return String.join(SeparatorContent.VERTIVAL_BAR, patients);
+
+        if(patients.size() > 0){
+            return String.join(SeparatorContent.VERTIVAL_BAR, patients);
+        }
+        return null;
+
     }
 
     @Override
@@ -360,7 +365,10 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             .stream()
             .map(String.class::cast)
             .collect(toSet());
-        String resultDocId = String.join(SeparatorContent.VERTIVAL_BAR, allPats);
+        String resultDocId = null;
+        if(allPats.size() > 0){
+            resultDocId = String.join(SeparatorContent.VERTIVAL_BAR, allPats);
+        }
         patients.removeAll(allPats);
         String otherResult = "";
         if (patients.isEmpty()) {
@@ -417,7 +425,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             tmpObj.put("id", refActiveId);
             basicColumns.add(tmpObj);
         }
-        List<String> allResutList = sqlList.stream().map(x -> x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        List<String> allResutList = sqlList.stream()
+            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .flatMap(Arrays::stream)
+            .distinct()
+            .collect(toList());
         List<String> resultList = PagingUtils.getPageContentForString(allResutList, pageNum, pageSize);
         String sql = TransPatientSql.getPatientDocIdSql(resultList, crfId);
         Integer total = allResutList.size(); // 计算后的总数
@@ -428,6 +440,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         JSONArray dataAll = new JSONArray();
 
         for (ActiveSqlMap sqlMap : sqlList) {
+            if(total == 0){
+                break;
+            }
             Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
@@ -546,7 +561,12 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         LOG.info("事件 从mysql数据库读取时间为： " + (System.currentTimeMillis() - startMysqlTime));
         activeResult = activeIndexConfigMapper.getActiveResult(activeId.replaceAll("_tmp", ""));
 
-        List<String> allResutList = sqlList.stream().map(x -> x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        List<String> allResutList = sqlList.stream()
+            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .flatMap(Arrays::stream)
+            .distinct()
+            .collect(toList());
+
         List<String> resultList = PagingUtils.getPageContentForString(allResutList, pageNum, pageSize);
         String sql = TransPatientSql.getPatientDocIdSql(resultList, crfId);
         Integer total = allResutList.size(); // 计算后的总数
@@ -558,7 +578,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         // --------------开始分批查找
         for (ActiveSqlMap sqlMap : sqlList) {
-
+            if(total == 0){
+                break;
+            }
             Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
@@ -826,7 +848,11 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupId);
 
         JSONArray source = new JSONArray().fluentAdd("patient_info");
-        List<String> allResutList = sqlList.stream().map(x -> x.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+        List<String> allResutList = sqlList.stream()
+            .map(x -> x.getResultDocId() == null ? new String[]{} : x.getResultDocId().split(SeparatorContent.getRegexVartivalBar()))
+            .flatMap(Arrays::stream)
+            .distinct()
+            .collect(toList());
 
         if ("1".equals(isExport)) {
             return exportToGroup(groupId, allResutList, sqlList, projectId, pageNum, crfId, activeId, refActiveIds, patientSetId, groupName, createId, createName, autoExport);
@@ -842,6 +868,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         JSONArray dataAll = new JSONArray();
 
         for (ActiveSqlMap sqlMap : sqlList) {
+            if(total == 0){
+                break;
+            }
             Set<String> tmpSet = Arrays.stream(sqlMap.getResultDocId().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
             tmpSet.removeAll(allTmpSet);
             allTmpSet.addAll(tmpSet);
