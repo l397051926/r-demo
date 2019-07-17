@@ -3,6 +3,7 @@ package com.gennlife.rws.query;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.IndexContent;
+import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.util.StringUtils;
 import com.gennlife.rws.util.TransPatientSql;
 
@@ -120,7 +121,7 @@ public class UqlQureyResult {
             JSONObject selectField = patientInfo.getJSONObject("_source").getJSONObject("select_field");
             setResultDataByEnum(dataObj, activeId, selectField,isFirst);
             JSONObject patient = null;
-            if(StringUtils.isNotEmpty(crfId)){
+            if(UqlConfig.isCrf(crfId)){
                  patient = patientInfo.getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0).getJSONArray("patient_basicinfo").getJSONObject(0);
             }else {
                  patient = patientInfo.getJSONObject("_source").getJSONArray("patient_info").getJSONObject(0);

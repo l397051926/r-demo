@@ -827,7 +827,13 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             List<ActiveIndex> activeIndices = activeIndexMapper.selectByPrimaryKeys(activeIndexIds);
             activeIndices.forEach( x -> basicColumns.add(new JSONObject().fluentPut("name",x.getName()).fluentPut("id",x.getId())));
         }
-        patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupId);
+        if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupId)) {
+            groupFromId = groupMapper.getGroupParentId(groupId);
+            if (StringUtils.isEmpty(groupFromId)) {
+                List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupId);
+                patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
+            }
+        }
 
         JSONArray source = new JSONArray().fluentAdd("patient_info");
         List<String> allResutList = sqlList.stream()
@@ -937,6 +943,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     private JSONArray getAllPatientSetId(String groupFromId, JSONArray patientSetId, String groupId) {
+        if(StringUtils.isNotEmpty(groupFromId)){
+            return new JSONArray().fluentAdd(groupFromId);
+        }
         if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupId)) {
             groupFromId = groupMapper.getGroupParentId(groupId);
             if (StringUtils.isEmpty(groupFromId)) {
@@ -1656,15 +1665,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return result;
     }
 
-    private List<PatientsIdSqlMap> getPatientSqlForPatientSet(JSONArray patientSetId, String projectId, String crfId) {
+    private List<PatientsIdSqlMap> getPatientSqlForPatientSet(JSONArray patientSetId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         return patientSetService.getPatientSetByListForInitialSql(patientSets);
-    }
-
-    private List<PatientsIdSqlMap> getPatientSqlMapForGroup(String patientSetId) {
-        List<String> dataSourceIds = new LinkedList<>();
-        dataSourceIds.add(patientSetId);
-        return patientSetService.getPatientSetByListForInitialSql(dataSourceIds);
     }
 
     private List<String> getPatientSqlList(JSONArray patientSetId) {
@@ -2208,18 +2211,14 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeType = active.getActiveType();
         List<PatientsIdSqlMap> patientSql = getInitialSQLTmp(groupFromId, isVariant, groupToId, patientsSetId, projectId, crfId);
         computationalInitialization(isSearch, activeId, groupToId, projectId, crfId, activeType, indexTypeDesc, patientsSetId, groupFromId, resultOrderKey);
-        List<Future> futures = new LinkedList<>();
         Integer finalActiveType = activeType;
-        patientSql.forEach(o -> futures.add(SingleExecutorService.getInstance().getSearchUqlExecutor().submit(() -> {
+        patientSql.forEach(o -> {
             try {
                 searchByUqlService(crfId, finalActiveType, obj, resultOrderKey, isSearch, indexTypeDesc, o);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        })));
-        for (Future future : futures) {
-            future.get();
-        }
+        });
 
     }
 
@@ -2287,11 +2286,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         List<String> patientSqlList = new ArrayList<>();
         patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupToId);
         if (!"1".equals(isVariant)) {
-            if (patientSetId != null && patientSetId.size() > 0) {
-                patientSqlList = getPatientSqlList(patientSetId);
-            } else {
-                patientSqlList = getPatientSqlList(new JSONArray().fluentAdd(groupFromId));
-            }
+            patientSqlList = getPatientSqlList(patientSetId);
         }
         return patientSqlList;
     }
@@ -2301,11 +2296,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         List<PatientsIdSqlMap> patientSql = null;
         patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupToId);
         if (!"1".equals(isVariant)) {
-            if (patientSetId != null && patientSetId.size() > 0) {
-                patientSql = getPatientSqlForPatientSet(patientSetId, projectId, crfId);
-            } else {
-                patientSql = getPatientSqlMapForGroup(groupFromId);
-            }
+            patientSql = getPatientSqlForPatientSet(patientSetId);
         }else {
             patientSql = getPatientsqlForVariant(projectId);
         }
