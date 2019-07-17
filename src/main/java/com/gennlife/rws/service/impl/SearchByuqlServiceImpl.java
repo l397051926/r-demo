@@ -525,18 +525,14 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     public Integer getSearchUqlAllCount(String groupFromId, JSONArray patientSetId, String groupId, String projectId) {
         patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupId);
         //获取总共人数
-        if (patientSetId != null && patientSetId.size() > 0) {
-            return getPatientSqlCount(patientSetId, projectId);
-        } else {
-            return getGroupSqlCount(groupFromId);
-        }
+        return getPatientSqlCount(patientSetId);
     }
 
     private Integer getGroupSqlCount(String groupFromId) {
         return groupDataMapper.getPatSetAggregationCount(groupFromId);
     }
 
-    private Integer getPatientSqlCount(JSONArray patientSetId, String projectId) {
+    private Integer getPatientSqlCount(JSONArray patientSetId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         return patientSetService.getPatientSetLocalCountByListForPatientSets(patientSets);
     }
@@ -920,7 +916,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         for (ActiveSqlMap sqlMap : sqlList) {
             //TODO 可以优化计算逻辑
             String result = httpUtils.querySearch(projectId, sqlMap.getUncomActiveSql(), pageNum, Integer.MAX_VALUE - 1, sqlMap.getSourceFiltere(), new JSONArray().fluentAdd(IndexContent.getPatientInfoPatientSn(crfId)), crfId, false);
-            JSONArray data = UqlQureyResult.getResultData(result, activeId, refActiveIds, false);
+            JSONArray data = UqlQureyResult.getResultData(result, activeId, refActiveIds, false ,crfId);
             dataAll.addAll(data);
         }
         boolean flag = true;
@@ -946,6 +942,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             if (StringUtils.isEmpty(groupFromId)) {
                 List<String> patSetIds = groupPatDataMapper.getPatSetByGroupId(groupId);
                 patientSetId = JSONArray.parseArray(JSON.toJSONString(patSetIds));
+            }else {
+                return new JSONArray().fluentAdd(groupFromId);
             }
         }
         return patientSetId;

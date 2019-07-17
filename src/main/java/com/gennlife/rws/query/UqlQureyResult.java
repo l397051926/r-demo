@@ -16,7 +16,7 @@ import java.util.Set;
  * @desc
  **/
 public class UqlQureyResult {
-    private static final String PATIENT_SN = "PATIENT_SN";
+    private static final String PATIENT_SN = "DOC_ID";
 
     public static JSONObject getHits(String result) {
         JSONObject object = JSONObject.parseObject(result);
@@ -159,8 +159,7 @@ public class UqlQureyResult {
                 dataObj.put(activeId, resultObj.getString(key));
             }else if(key.contains(activeId+".condition") && !dataObj.containsKey(activeId)) {
                 dataObj.put(activeId, resultObj.getString(key));
-            }
-            else if ("condition".equals(key) || "t1.condition".equals(key) ) {
+            }else if ("condition".equals(key) || "t1.condition".equals(key) ) {
                 String colle = resultObj.getString(key);
                 if(colle.contains(".")){
                     try {
@@ -178,41 +177,6 @@ public class UqlQureyResult {
                 dataObj.put(key, resultObj.getString(key));
             }
         }
-    }
-
-    public static void main(String[] args) {
-        long maxLong = Long.MAX_VALUE;
-        long minLong = Long.MIN_VALUE;
-
-        double max = Double.MAX_VALUE;
-        double min = Double.MIN_VALUE;
-        System.out.println("maxlong"+maxLong);
-        System.out.println("minlong"+minLong);
-        System.out.println("maxDoublt"+max);
-        System.out.println("minDouble"+min);
-
-        System.out.println(max > maxLong);
-
-        String val = "{\"a\":13,\"b\":10.1,\"c\":\"aaa\"}";
-        JSONObject obj = JSONObject.parseObject(val);
-        String a = obj.getString("a");
-        long b = obj.getLong("a");
-        double c =obj.getDouble("a");
-
-        long d = obj.getLong("b");
-        double e = obj.getDouble("b");
-        String f = obj.getString("b");
-
-//        String xx = "123";
-//        String yy = "abd";
-//        long zz = Long.valueOf(xx);
-//        long z2 = Long.valueOf(yy);
-
-//        long g =obj.getLong("c");
-//        double h = obj.getDouble("c");
-//        String i = obj.getString("c");
-
-        System.out.println("----");
     }
 
     private static Object transForExcludeValue(Object value){

@@ -22,122 +22,124 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping(value="/rws/",produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/rws/", produces = "application/json;charset=UTF-8")
 public class CortrastiveAnalysisController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CortrastiveAnalysisController.class);
 
     @Autowired
     private GroupService groupService;
-
     @Autowired
     private CortrastiveAnalysisService cortrastiveAnalysisService;
-
     @Autowired
     private ActiveIndexService activeIndexService;
-
     @Autowired
     private ContrastiveAnalysisActiveService contrastiveAnalysisActiveService;
 
     //根据项目id 用户id 样本名称 搜索条件
-    @RequestMapping(value = "/cort/getPatientGroupCondition",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject getPatientGroupCondition(@RequestBody String param){
+    @RequestMapping(value = "/cort/getPatientGroupCondition", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject getPatientGroupCondition(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
-            LOG.info("获取患者分组信息  参数： "+paramObj);
+            LOG.info("获取患者分组信息  参数： " + paramObj);
             String groupType = paramObj.getString("groupType");
             String projectId = paramObj.getString("projectId");
             String uid = paramObj.getString("uid");
             Integer cortType = paramObj.getInteger("cortType");
             String createId = paramObj.getString("createId");
             //获取项目分组 信息
-            List<Group> groupList =groupService.getGroupByProjectId(groupType,projectId);
-            List<GroupCondition> groupConditionList = groupService.getGroupConditionProjectId(uid,projectId,cortType);
-            ajaxObject = cortrastiveAnalysisService.getPatientGroupCondition(groupList,groupConditionList);
+            List<Group> groupList = groupService.getGroupByProjectId(groupType, projectId);
+            List<GroupCondition> groupConditionList = groupService.getGroupConditionProjectId(uid, projectId, cortType);
+            ajaxObject = cortrastiveAnalysisService.getPatientGroupCondition(groupList, groupConditionList);
         } catch (Exception e) {
-            LOG.error("获取患者分组信息，异常信息{}",e);
+            LOG.error("获取患者分组信息，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("获取患者分组信息,错误原因"+e.getMessage());
+            ajaxObject.setMessage("获取患者分组信息,错误原因" + e.getMessage());
         }
         return ajaxObject;
     }
+
     //获取研究变量参数
-    @RequestMapping(value = "/cort/getResearchVariable",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject getResearchVariable(@RequestBody String param){
+    @RequestMapping(value = "/cort/getResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject getResearchVariable(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
-            LOG.info("获取研究变量参数 "+paramObj);
+            LOG.info("获取研究变量参数 " + paramObj);
             String uid = paramObj.getString("uid");
             String projectId = paramObj.getString("projectId");
             Integer cortType = paramObj.getInteger("cortType");
             String createId = paramObj.getString("createId");
-            ajaxObject= activeIndexService.getContrastiveActive(createId,projectId,cortType);
+            ajaxObject = activeIndexService.getContrastiveActive(createId, projectId, cortType);
         } catch (Exception e) {
-            LOG.error("获取用户研究变量，异常信息{}",e);
+            LOG.error("获取用户研究变量，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("获取用户研究变量,错误原因"+e.getMessage());
+            ajaxObject.setMessage("获取用户研究变量,错误原因" + e.getMessage());
         }
         return ajaxObject;
     }
+
     //获取全部研究变量参数
-    @RequestMapping(value = "/cort/getAllResearchVariable",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject getAllResearchVariable(@RequestBody String param){
+    @RequestMapping(value = "/cort/getAllResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject getAllResearchVariable(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
-            LOG.info("获取全部研究变量参数 "+paramObj);
+            LOG.info("获取全部研究变量参数 " + paramObj);
             String uid = paramObj.getString("uid");
             String projectId = paramObj.getString("projectId");
             Integer cortType = paramObj.getInteger("cortType");
             String createId = paramObj.getString("createId");
-            ajaxObject= activeIndexService.getAllResearchVariable(createId,projectId,cortType,uid);
+            ajaxObject = activeIndexService.getAllResearchVariable(createId, projectId, cortType, uid);
         } catch (Exception e) {
-            LOG.error("获取用户研究变量，异常信息{}",e);
+            LOG.error("获取用户研究变量，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("获取用户研究变量,错误原因"+e.getMessage());
+            ajaxObject.setMessage("获取用户研究变量,错误原因" + e.getMessage());
         }
         return ajaxObject;
     }
+
     //存储研究变量参数
-    @RequestMapping(value = "/cort/saveResearchVariable",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject saveResearchVariable(@RequestBody String param){
+    @RequestMapping(value = "/cort/saveResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject saveResearchVariable(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
-            LOG.info("存储研究变量参数 "+paramObj);
-            ajaxObject= contrastiveAnalysisActiveService.saveContrastiveActive(paramObj);
+            LOG.info("存储研究变量参数 " + paramObj);
+            ajaxObject = contrastiveAnalysisActiveService.saveContrastiveActive(paramObj);
         } catch (Exception e) {
-            LOG.error("存储研究变量参数，异常信息{}",e);
+            LOG.error("存储研究变量参数，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("存储研究变量参数,错误原因"+e.getMessage());
+            ajaxObject.setMessage("存储研究变量参数,错误原因" + e.getMessage());
         }
         return ajaxObject;
     }
-      //删除研究变量参数 {"activeIndexId","projectId","createId"}
-    @RequestMapping(value = "/cort/deleteResearchVariable",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject deleteResearchVariable(@RequestBody String param){
+
+    //删除研究变量参数 {"activeIndexId","projectId","createId"}
+    @RequestMapping(value = "/cort/deleteResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject deleteResearchVariable(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
-            LOG.info("删除研究变量参数 "+paramObj);
-            ajaxObject= contrastiveAnalysisActiveService.deleteContrastiveActive(paramObj);
+            LOG.info("删除研究变量参数 " + paramObj);
+            ajaxObject = contrastiveAnalysisActiveService.deleteContrastiveActive(paramObj);
         } catch (Exception e) {
-            LOG.error("删除研究变量参数，异常信息{}",e);
+            LOG.error("删除研究变量参数，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("删除研究变量参数,错误原因"+e.getMessage());
+            ajaxObject.setMessage("删除研究变量参数,错误原因" + e.getMessage());
         }
         return ajaxObject;
     }
+
     //获取结果 图形列表
-    @RequestMapping(value = "/cort/getContResult",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject getContResult(@RequestBody String param){
+    @RequestMapping(value = "/cort/getContResult", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject getContResult(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
@@ -147,21 +149,22 @@ public class CortrastiveAnalysisController {
             Boolean showSubGroup = paramObj.getBoolean("showSubGroup");
             String createId = paramObj.getString("createId");
             String crfId = paramObj.getString("crfId");
-            if(StringUtils.isEmpty(createId) || "undefined".equals(createId)){
+            if (StringUtils.isEmpty(createId) || "undefined".equals(createId)) {
                 createId = uid;
             }
-            ajaxObject =  cortrastiveAnalysisService.getContResult(createId,projectId,cortType,showSubGroup,crfId,uid, false);
+            ajaxObject = cortrastiveAnalysisService.getContResult(createId, projectId, cortType, showSubGroup, crfId, uid, false);
         } catch (Exception e) {
-            LOG.error("获取计算结果 的统计图形列表，异常信息{}",e);
+            LOG.error("获取计算结果 的统计图形列表，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("获取计算结果 的统计图形列表,错误原因"+e.getMessage());
+            ajaxObject.setMessage("获取计算结果 的统计图形列表,错误原因" + e.getMessage());
         }
         return ajaxObject;
     }
+
     //获取计算结果的患者列表
-    @RequestMapping(value = "/cort/getContResultForPatient",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject getContResultForPatient(@RequestBody String param){
+    @RequestMapping(value = "/cort/getContResultForPatient", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject getContResultForPatient(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
@@ -173,21 +176,22 @@ public class CortrastiveAnalysisController {
             Integer cortType = paramObj.getInteger("cortType");
             String createId = paramObj.getString("createId");
             String crfId = paramObj.getString("crfId");
-            if(StringUtils.isEmpty(createId) || "undefined".equals(createId)){
+            if (StringUtils.isEmpty(createId) || "undefined".equals(createId)) {
                 createId = uid;
             }
-            ajaxObject = cortrastiveAnalysisService.getContResultForPatient(createId,projectId,pageNum,pageSize,showColumns,cortType,crfId,uid);
+            ajaxObject = cortrastiveAnalysisService.getContResultForPatient(createId, projectId, pageNum, pageSize, showColumns, cortType, crfId, uid);
         } catch (Exception e) {
-            LOG.error("获取计算结果的患者列表，异常信息{}",e);
+            LOG.error("获取计算结果的患者列表，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("获取计算结果的患者列表,错误原因"+e.getMessage());
-         }
+            ajaxObject.setMessage("获取计算结果的患者列表,错误原因" + e.getMessage());
+        }
         return ajaxObject;
     }
+
     //存储分组条件param:{uname:xx,uid:xx , projectId :xx,groupIds[1,2,3,4,5]}
-    @RequestMapping(value = "/cort/saveGroupCondition",method = {RequestMethod.POST,RequestMethod.GET})
-    public AjaxObject saveGroupCondition(@RequestBody String param){
+    @RequestMapping(value = "/cort/saveGroupCondition", method = {RequestMethod.POST, RequestMethod.GET})
+    public AjaxObject saveGroupCondition(@RequestBody String param) {
         AjaxObject ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
@@ -198,51 +202,51 @@ public class CortrastiveAnalysisController {
             String uname = paramObj.getString("uname");
             Integer cortType = paramObj.getInteger("cortType");
             String groupTypeId = paramObj.getString("groupTypeId");
-            ajaxObject = cortrastiveAnalysisService.saveGroupCondition(uname,uid,projectId,groupsIds,cortType,groupTypeId,createId);
+            ajaxObject = cortrastiveAnalysisService.saveGroupCondition(uname, uid, projectId, groupsIds, cortType, groupTypeId, createId);
         } catch (Exception e) {
-            LOG.error("存储分组条件，异常信息{}",e);
+            LOG.error("存储分组条件，异常信息{}", e);
             ajaxObject = new AjaxObject();
             ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
-            ajaxObject.setMessage("存储分组条件,错误原因"+e.getMessage());
+            ajaxObject.setMessage("存储分组条件,错误原因" + e.getMessage());
         }
         return ajaxObject;
     }
 
-    @RequestMapping(value = "/export/calculationResult",method = {RequestMethod.POST,RequestMethod.GET})
-    public Object calculationResult(@RequestBody String param){
+    @RequestMapping(value = "/export/calculationResult", method = {RequestMethod.POST, RequestMethod.GET})
+    public Object calculationResult(@RequestBody String param) {
         Object ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             ajaxObject = cortrastiveAnalysisService.calculationResult(paramObj);
         } catch (Exception e) {
-            LOG.error("存储分组条件，异常信息{}",e);
-            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"计算研究变量结果 发送问题"+e.getMessage());
+            LOG.error("存储分组条件，异常信息{}", e);
+            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "计算研究变量结果 发送问题" + e.getMessage());
         }
         return ajaxObject;
     }
 
-    @RequestMapping(value = "/export/calculationResultOne",method = {RequestMethod.POST,RequestMethod.GET})
-    public Object calculationResultOne(@RequestBody String param){
+    @RequestMapping(value = "/export/calculationResultOne", method = {RequestMethod.POST, RequestMethod.GET})
+    public Object calculationResultOne(@RequestBody String param) {
         Object ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             ajaxObject = cortrastiveAnalysisService.calculationResultOne(paramObj);
         } catch (Exception e) {
-            LOG.error("存储分组条件，异常信息{}",e);
-            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"计算研究变量结果 发送问题"+e.getMessage());
+            LOG.error("存储分组条件，异常信息{}", e);
+            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "计算研究变量结果 发送问题" + e.getMessage());
         }
         return ajaxObject;
     }
 
-    @RequestMapping(value = "/export/snapshootActiveResult",method = {RequestMethod.POST,RequestMethod.GET})
-    public Object snapshootActiveResult(@RequestBody String param){
+    @RequestMapping(value = "/export/snapshootActiveResult", method = {RequestMethod.POST, RequestMethod.GET})
+    public Object snapshootActiveResult(@RequestBody String param) {
         Object ajaxObject = null;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             ajaxObject = cortrastiveAnalysisService.snapshootActiveResult(paramObj);
         } catch (Exception e) {
-            LOG.error("快照导出任务结果，异常信息{}",e);
-            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"快照导出任务结果 发送问题"+e.getMessage());
+            LOG.error("快照导出任务结果，异常信息{}", e);
+            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "快照导出任务结果 发送问题" + e.getMessage());
         }
         return ajaxObject;
     }

@@ -406,8 +406,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
 
     private List<Group> copeGroupList(List<Group> groupList) {
         List<Group> list = new ArrayList<>();
-        for (int i = 0; i < groupList.size(); i++) {
-            JSONObject object = JSON.parseObject(JSON.toJSONString(groupList.get(i)));
+        for (Group aGroupList : groupList) {
+            JSONObject object = JSON.parseObject(JSON.toJSONString(aGroupList));
             list.add(JSONObject.toJavaObject(object, Group.class));
         }
         return list;
@@ -418,7 +418,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         for (Group group : groupList) {
             map.put(group.getGroupId(), group);
         }
-        Set<String> set = groupConditionList.stream().map(x -> x.getGroupId()).collect(toSet());
+        Set<String> set = groupConditionList.stream().map(GroupCondition::getGroupId).collect(toSet());
         for (GroupCondition groupCondition : groupConditionList) {
             String id = groupCondition.getGroupId();
             Group group = map.get(id);
@@ -444,8 +444,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                 }
                 Integer level = group.getGroupLevel();
                 if (0 == level && !resultMap.containsKey(group.getGroupId())) {
-                    Set<Group> tmpSet = new HashSet<>();
-                    resultMap.put(group.getGroupId(), tmpSet);
+                    resultMap.put(group.getGroupId(), new HashSet<>());
                 } else {
                     if (resultMap.containsKey(group.getGroupParentId()) && (group.getChildGroup() == null || group.getChildGroup().size() == 0)) {
                         resultMap.get(group.getGroupParentId()).add(group);
@@ -460,9 +459,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     }
 
     @Override
-    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws IOException, ExecutionException, InterruptedException {
+    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws  ExecutionException, InterruptedException {
         Integer startNum = (pageNum - 1) * pageSize;
-        Integer endNum = pageSize;
         List<GroupCondition> groupConditionList = groupConditionMapper.getGroupByProjectId(uid, projectId, 2);
         List<Group> groupList = groupService.getGroupByProjectId("001", projectId);
         for (GroupCondition groupCondition : groupConditionList) {
@@ -484,12 +482,12 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         Set<String> patSns = groupDataMapper.getPatientSnListsByGroupIds(groupIds);
         String applyOutCondition = String.join(",", patSns);
 
-        List<GroupData> patientSns = groupDataMapper.getPatientSnByGroupIds(groupIds, startNum, endNum);
+        List<GroupData> patientSns = groupDataMapper.getPatientSnByGroupIds(groupIds, startNum, pageSize);
         String patientSnQuery = IndexContent.getPatientInfoPatientSn(crfId) + TransPatientSql.transForExtContainForGroupData(patientSns);
-        String vistPatientSnQuery = IndexContent.getPatientSn(crfId) + TransPatientSql.transForExtContainForGroupData(patientSns);
         List<String> activeIndexIds = contrastiveAnalysisActiveService.getActiveIndexes(uid, projectId, 2);
         Integer counts = groupDataMapper.getPatSetCountBygroupIds(groupIds);
         if (activeIndexIds == null || activeIndexIds.isEmpty()) {
+
             JSONArray data = getContResultForPatientDataByNoActiveIndex(crfId, projectId, patientSnQuery, pageSize, patientSns);
             AjaxObject.getReallyDataValue(data, showColumns);
             AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
@@ -503,7 +501,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         String query = "select " + IndexContent.getPatientDocId(crfId) + " as patSn  from " + IndexContent.getIndexName(crfId, projectId) + " where " + patientSnQuery + " and  join_field='patient_info'";
         JSONArray source = new JSONArray().fluentAdd("patient_info");
         String resultSearch = httpUtils.querySearch(projectId, query, 1, pageSize, null, source, crfId);
-        Map<String, JSONObject> resultMap = new HashMap<>();
+        Map<String, JSONObject> resultMap;
         if (StringUtils.isEmpty(crfId) || IndexContent.EMR_CRF_ID.equals(crfId)) {
             resultMap = new KeyPath("hits", "hits")
                 .resolveAsJSONArray(JSON.parseObject(resultSearch))
@@ -524,7 +522,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         LOG.info("time1");
         long time1 = System.currentTimeMillis();
         for (String activeIndexId : activeIndexIds) {
-            Map<String, JSONObject> finalResultMap1 = resultMap;
             futures.add(SingleExecutorService.getInstance().getCortrastiveAnalysisExecutor().submit(() -> {
                 List<ActiveSqlMap> activeSqlMaps = activeSqlMapMapper.getActiveSql(activeIndexId, UqlConfig.CORT_INDEX_ID);
                 activeSqlMaps = referenceCalculateSearch(projectId, crfId, activeIndexId, activeSqlMaps);
@@ -536,20 +533,19 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     JSONObject obj = new JSONObject().fluentPut("id", activeId).fluentPut("name", activeName);
                     showColumns.add(obj);
                     String indexResultValue = activeSqlMap.getIndexResultValue();
-                    Map<String, JSONObject> finalResultMap = finalResultMap1;
                     if (redisMapDataService.exists(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId))) {
-                        for (String key : finalResultMap.keySet()) {
+                        for (String key : resultMap.keySet()) {
                             String val = redisMapDataService.hmGetKey(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId), key);
-                            finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(val) ? "-" : val);
+                            resultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(val) ? "-" : val);
                         }
                     } else {
                         try {
                             if (StringUtils.isEmpty(indexResultValue)) {//指标
                                 Map<String, String> map = searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap, projectId, crfId, activeIndexId);
-                                foreach(finalResultMap.keySet(), key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
+                                foreach(resultMap.keySet(), key -> resultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
                             } else {//枚举
                                 Map<String, String> map = searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMaps, projectId, crfId, activeIndexId);
-                                foreach(finalResultMap.keySet(), key -> finalResultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
+                                foreach(resultMap.keySet(), key -> resultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -1258,8 +1254,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                 }
             }
         }
-        JSONArray newArray = new JSONArray();
-
 
         return jsonArray;
     }
@@ -1269,7 +1263,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         String query = "select " + IndexContent.getPatientDocId(crfId) + " as patSn  from " + IndexContent.getIndexName(crfId, projectId) + " where " + patientSnQuery + " and  join_field='patient_info'";
         JSONArray source = new JSONArray().fluentAdd("patient_info");
         String resultSearch = httpUtils.querySearch(projectId, query, 1, pageSize, null, source, crfId);
-        Map<String, JSONObject> resultMap = new HashMap<>();
+        Map<String, JSONObject> resultMap;
         if (StringUtils.isEmpty(crfId) || IndexContent.EMR_CRF_ID.equals(crfId)) {
             resultMap = new KeyPath("hits", "hits")
                 .resolveAsJSONArray(JSON.parseObject(resultSearch))
