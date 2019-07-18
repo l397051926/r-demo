@@ -5,7 +5,6 @@ import com.gennlife.rws.entity.ContrastiveAnalysisCount;
 import com.gennlife.rws.entity.PatientsIdSqlMap;
 import com.gennlife.rws.entity.PatientsSet;
 import com.gennlife.rws.entity.SearchLog;
-import com.gennlife.rws.util.AjaxObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -104,5 +103,5 @@ public interface PatientSetService {
 
     Set<String> getPatientSetLocalSqlListById(Integer key);
 
-	void saveGroupDataByGroupBlock(String groupId, List<String> datas, int i);
+	void saveGroupDataByGroupBlock(String groupId, List<String> datas, int i, String projectId, boolean isSearch);
 }

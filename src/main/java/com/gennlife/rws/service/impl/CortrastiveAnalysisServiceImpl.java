@@ -201,14 +201,16 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                         item = new DiscreteItem();
                         item.total = total;
                         item.suffix = " — 人数（百分比）";
-                        for (ActiveSqlMap src : condition) {
+                        Map<String,List<ActiveSqlMap>> groupActiveMap = condition.stream().collect(groupingBy(ActiveSqlMap :: getIndexResultValue));
+                        Iterator<String> iterator = groupActiveMap.keySet().iterator();
+                        while (iterator.hasNext()){
+                            List<ActiveSqlMap> val = groupActiveMap.get(iterator.next());
+                            ActiveSqlMap src = val.get(0);
                             DiscreteCell cell = new DiscreteCell();
-                            cell.redisMapDataService = redisMapDataService;
                             cell.projectId = projectId;
-                            cell.indexName = src.getSqlFrom();
-                            cell.where = src.getUncomSqlWhere();
                             cell.patsCondition = patsCondition;
                             cell.crfId = crfId;
+                            cell.sqlMaps = condition;
                             String redisKey = UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" + group.getGroupId();
                             if (redisMapDataService.exists(redisKey)) {
                                 if (autoCort) {
@@ -229,13 +231,9 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                         item.suffix = " — 均值 ± 标准差 / 范围 / 中位数";
                         ContinuousCell cell = new ContinuousCell();
                         cell.redisMapDataService = redisMapDataService;
-                        cell.activeId = source.getActiveIndexId();
+                        cell.sqlMaps = condition;
                         cell.projectId = projectId;
-                        cell.indexName = source.getSqlFrom();
-                        cell.having = source.getSqlHaving();
-                        cell.where = source.getUncomSqlWhere();//.replace("visit_info.VISIT_SN in ( '') and ", "");
                         cell.patsCondition = patsCondition;
-                        cell.select = source.getSqlSelect();
                         cell.varName = "condition";
                         cell.crfId = crfId;
                         cell.groupId = group.getGroupId();
@@ -459,7 +457,7 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     }
 
     @Override
-    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws  ExecutionException, InterruptedException {
+    public AjaxObject getContResultForPatient(String createId, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns, Integer cortType, String crfId, String uid) throws ExecutionException, InterruptedException {
         Integer startNum = (pageNum - 1) * pageSize;
         List<GroupCondition> groupConditionList = groupConditionMapper.getGroupByProjectId(uid, projectId, 2);
         List<Group> groupList = groupService.getGroupByProjectId("001", projectId);
@@ -487,7 +485,6 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         List<String> activeIndexIds = contrastiveAnalysisActiveService.getActiveIndexes(uid, projectId, 2);
         Integer counts = groupDataMapper.getPatSetCountBygroupIds(groupIds);
         if (activeIndexIds == null || activeIndexIds.isEmpty()) {
-
             JSONArray data = getContResultForPatientDataByNoActiveIndex(crfId, projectId, patientSnQuery, pageSize, patientSns);
             AjaxObject.getReallyDataValue(data, showColumns);
             AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
@@ -541,11 +538,23 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     } else {
                         try {
                             if (StringUtils.isEmpty(indexResultValue)) {//指标
-                                Map<String, String> map = searchByuqlService.saveCortrastiveResultRedisMap(activeSqlMap, projectId, crfId, activeIndexId);
-                                foreach(resultMap.keySet(), key -> resultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
+                                Map<String, String> mapAll = new HashMap<>();
+                                for (ActiveSqlMap sqlMap : activeSqlMaps) {
+                                    Map<String, String> map = searchByuqlService.saveCortrastiveResultRedisMap(sqlMap, projectId, crfId, activeIndexId);
+                                    mapAll.putAll(map);
+                                }
+                                foreach(resultMap.keySet(), key -> resultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(mapAll.get(key)) ? "-" : mapAll.get(key)));
                             } else {//枚举
-                                Map<String, String> map = searchByuqlService.saveEnumCortrastiveResultRedisMap(activeSqlMaps, projectId, crfId, activeIndexId);
-                                foreach(resultMap.keySet(), key -> resultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(map.get(key)) ? "-" : map.get(key)));
+                                Map<String, String> mapAll = new HashMap<>();
+                                Map<Integer, List<ActiveSqlMap>> groupMap = activeSqlMaps.stream().collect(groupingBy(ActiveSqlMap::getPatSqlGroup, TreeMap::new, toList()));
+                                Iterator<Integer> iterator = groupMap.keySet().iterator();
+                                while (iterator.hasNext()) {
+                                    Integer mapKey = iterator.next();
+                                    List<ActiveSqlMap> value = groupMap.get(mapKey);
+                                    Map<String, String> map = searchByuqlService.saveEnumCortrastiveResultRedisMap(value, projectId, crfId, activeIndexId);
+                                    mapAll.putAll(map);
+                                }
+                                foreach(resultMap.keySet(), key -> resultMap.get(key).put(activeSqlMap.getActiveIndexId(), StringUtils.isEmpty(mapAll.get(key)) ? "-" : mapAll.get(key)));
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -1300,40 +1309,41 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
     static class DiscreteCell extends Cell {
         String redisKey;
         String projectId;
-        String indexName;
-        String where;
-        String having;
         String patsCondition;
         Set<String> patients;
         String crfId;
         RedisMapDataService redisMapDataService;
+        List<ActiveSqlMap> sqlMaps;
 
         @Override
         Future execute(ExecutorService es) {
-            String newsql = "SELECT " + IndexContent.getPatientDocId(crfId) + " FROM " + indexName + " WHERE (" + where + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
-            if (StringUtils.isNotEmpty(having)) {
-                newsql = newsql + " " + having;
-            }
-            String finalNewsql = newsql;
             return es.submit(() -> {
-                String response = ApplicationContextHelper
-                    .getBean(HttpUtils.class)
-                    .querySearch(
-                        projectId,
-                        finalNewsql,
-                        1,
-                        Integer.MAX_VALUE - 1,
-                        null,
-                        null,
-                        crfId,
-                        true);
-                patients = new KeyPath("hits", "hits", "_id")
-                    .fuzzyResolve(JSON.parseObject(response))
-                    .stream()
-                    .map(String.class::cast)
-                    .collect(toSet());
+                for (ActiveSqlMap sqlMap : sqlMaps){
+                    String newsql = "SELECT " + IndexContent.getPatientDocId(crfId) + " FROM " + sqlMap.getSqlFrom() + " WHERE (" + sqlMap.getSqlWhere() + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
+                    if (StringUtils.isNotEmpty(sqlMap.getSqlHaving())) {
+                        newsql = newsql + " " + sqlMap.getSqlHaving();
+                    }
+                    String finalNewsql = newsql;
+                    String response = ApplicationContextHelper
+                        .getBean(HttpUtils.class)
+                        .querySearch(
+                            projectId,
+                            finalNewsql,
+                            1,
+                            Integer.MAX_VALUE - 1,
+                            null,
+                            null,
+                            crfId,
+                            true);
+                    patients.addAll(
+                        new KeyPath("hits", "hits", "_id")
+                        .fuzzyResolve(JSON.parseObject(response))
+                        .stream()
+                        .map(String.class::cast)
+                        .collect(toSet()));
+                }
                 redisMapDataService.setSets(redisKey, patients);
-                redisMapDataService.setOutTime(redisKey, 5 * 24 * 60 * 60);
+                redisMapDataService.setOutTime(redisKey, 7 * 24 * 60 * 60);
                 LOG.info("插入 redis 缓存 成功 " + redisKey);
             });
         }
@@ -1354,55 +1364,57 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
 
     static class ContinuousCell extends Cell {
         String projectId;
-        String indexName;
-        String where;
         String patsCondition;
-        String select;
         String varName;
         String crfId;
-        String having;
+        List<ActiveSqlMap> sqlMaps;
         Long count = null;
         SummaryStatistics summary = null;
         double median = Double.NaN;
         RedisMapDataService redisMapDataService;
-        String activeId;
+
         String groupId;
 
         @Override
         Future execute(ExecutorService es) {
-            String newsql = "SELECT " + select + " FROM " + indexName + " WHERE (" + where + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
-            if (StringUtils.isNotEmpty(having)) {
-                newsql = newsql + " " + having;
-            }
-            String finalNewsql = newsql;
+            String activeId = sqlMaps.get(0).getActiveIndexId();
             return es.submit(() -> {
-                JSONArray arr = null;
+                JSONArray arrAll = new JSONArray();
                 if (redisMapDataService.exists(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId))) {
                     String val = redisMapDataService.getDataBykey(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId));
-                    arr = JSONArray.parseArray(val);
-                } else {
-                    JSONObject response = JSON.parseObject(ApplicationContextHelper
-                        .getBean(HttpUtils.class)
-                        .querySearch(
-                            projectId,
-                            finalNewsql,
-                            1,
-                            Integer.MAX_VALUE - 1,
-                            null,
-                            null,
-                            crfId,
-                            true));
-                    arr = new KeyPath("hits", "hits", "_source", "select_field", varName).fuzzyResolve(response);
-                    redisMapDataService.set(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId), arr.toJSONString());
-                    redisMapDataService.setOutTime(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId), 5 * 24 * 60 * 60);
-                    LOG.info("插入 redis 缓存 成功 " + UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId));
+                    arrAll = JSONArray.parseArray(val);
+                }else{
+                    for (ActiveSqlMap sqlMap : sqlMaps) {
+                        String newsql = null;
+                        newsql = "SELECT " + sqlMap.getSqlSelect() + " FROM " + sqlMap.getSqlFrom() + " WHERE (" + sqlMap.getSqlWhere() + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
+                        if (StringUtils.isNotEmpty(sqlMap.getSqlHaving())) {
+                            newsql = newsql + " " + sqlMap.getSqlHaving();
+                        }
+                        String finalNewsql = newsql;
+                        JSONObject response = JSON.parseObject(ApplicationContextHelper
+                            .getBean(HttpUtils.class)
+                            .querySearch(
+                                projectId,
+                                finalNewsql,
+                                1,
+                                Integer.MAX_VALUE - 1,
+                                null,
+                                null,
+                                crfId,
+                                true));
+                        JSONArray arr = new KeyPath("hits", "hits", "_source", "select_field", varName).fuzzyResolve(response);
+                        arrAll.add(arr);
+                    }
                 }
-                if (arr.isEmpty() || !arr.stream().allMatch(o -> o instanceof Number || o instanceof String && doublePresentable((String) o))) {
+                redisMapDataService.set(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId), arrAll.toJSONString());
+                redisMapDataService.setOutTime(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId), 7 * 24 * 60 * 60);
+                LOG.info("插入 redis 缓存 成功 " + UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId));
+                if (arrAll.isEmpty() || !arrAll.stream().allMatch(o -> o instanceof Number || o instanceof String && doublePresentable((String) o))) {
                     summary = null;
                     median = Double.NaN;
                 } else {
                     summary = new SummaryStatistics();
-                    double values[] = arr.stream()
+                    double values[] = arrAll.stream()
                         .mapToDouble(o -> o instanceof Number ? ((Number) o).doubleValue() : Double.parseDouble((String) o))
                         .sorted()
                         .peek(summary::addValue)

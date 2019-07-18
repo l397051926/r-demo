@@ -67,6 +67,8 @@ public class PatientGroupServiceImpl implements PatientGroupService {
     private SearchLogMapper searchLogMapper;
     @Autowired
     private PatientSetService patientSetService;
+    @Autowired
+    private PatientsIdSqlMapMapper patientsIdSqlMapMapper;
 
     private static final int exportMax = 2000;
 
@@ -251,8 +253,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         ajaxObject.setData(result);
         ajaxObject.setColumns(columns);
         ajaxObject.setApplyOutCondition(applyOutCondition);
-        Map<String, Object> mapParam = new HashMap<>();
-        mapParam.put("groupId", groupId);
         int total = groupDataMapper.getPatSetCountByGroupIdAndOperType(groupId, operType, willRecoverPatientList, willRemovePatientList);
         WebAPIResult webAPIResult = new WebAPIResult(pageNum, pageSize, total);
         ajaxObject.setWebAPIResult(webAPIResult);
@@ -539,7 +539,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
             maxTol = patients == null ? 0 : patients.size();
             if (patients != null) {
                 // 移除数量
-                int removeNum = 0;
                 for (int i = 0; i < patients.size(); i++) {
                     // 操作类型 1=移除 0 = 复原
                     String operType = patients.getJSONObject(i).getString("operType");
@@ -571,10 +570,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
                     if ("0".equals(operType)) {
                         resNum++;
                     }
-                    removeNum++;
-//                    if (DelFlag.LOSE.toString().equals(operType)) {
-//                        removeNum++;
-//                    }
                 }
 
             }
@@ -583,15 +578,12 @@ public class PatientGroupServiceImpl implements PatientGroupService {
             content = createName + "在 " + groupName + "组移除了" + remNum + "名患者";
             logUtil.saveLog(projectId, content, createId, createName);
         }
-        // 复原数量
-//                int restore = patients.size() - removeNum;
+
         if (resNum > 0) {
             content = createName + "在 " + groupName + "组复原了" + resNum + "名患者";
             logUtil.saveLog(projectId, content, createId, createName);
-//                    inFinalTol = distPatients.size() - removeNum;
         }
         List<Group> groupChildList = groupMapper.getgroupChildIds(groupId);
-//        List<String> groupChildList = groupMapper.getgroupChildIds(groupId);
         obj.put("patients", patientsArray);
         if (patientsArray.size() > 0) { //如果为1 的话才 移除 复原不复原所有
             for (Group group : groupChildList) {
@@ -636,7 +628,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
     }
 
     // 增加 患者集从哪个患者集来的 数据
-    private void addPatientSetFrom(JSONArray result, String groupId) throws IOException {
+    private void addPatientSetFrom(JSONArray result, String groupId){
         int size = result == null ? 0 : result.size();
         //递归找父及id
         String groupParId = getGroupParentId(groupId);
@@ -659,7 +651,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         return groupId;
     }
 
-    private String getPatentSetName(List<PatientsSet> patientsSets, String patientSn) throws IOException {
+    private String getPatentSetName(List<PatientsSet> patientsSets, String patientSn) {
         List<String> patSetNames = new LinkedList<>();
         for (PatientsSet patientsSet : patientsSets) {
             List<String> patSet = patientSetService.getPatientSetLocalSqlByList(patientsSet.getPatientsSetId());
@@ -672,8 +664,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
 
     /**
      * 递归找 所有父组
-     *
-     * @param groupParentId
      */
     private void getParentGroup(String groupParentId, List<String> groupNames) {
         Group group = groupMapper.selectByGroupId(groupParentId);
@@ -682,11 +672,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         if (StringUtils.isNotEmpty(groupParentIdTmp)) {
             getParentGroup(groupParentIdTmp, groupNames);
         }
-    }
-
-    private Integer getPatientSnCount(String groupId) {
-        List<String> list = groupDataMapper.getPatientSnList(groupId);
-        return list.size();
     }
 
     private Integer getPatientSnCount(String groupId, String projectId) {
@@ -718,15 +703,16 @@ public class PatientGroupServiceImpl implements PatientGroupService {
                 if (listGroupData != null && listGroupData.size() > 0) {
                     groupDataMapper.deleteByGroupId(groupId);
                 }
+                patientsIdSqlMapMapper.deleteByDataSourceId(groupId);
             }
-            String content = createName + "删除了组： " + group.getGroupName();
+            String content = createName + "删除了组： " + Objects.requireNonNull(group).getGroupName();
             logUtil.saveLog(group.getProjectId(), content, createId, createName);
         }
     }
 
     @Transactional
     @Override
-    public Integer saveGroupAndPatient(JSONObject obj) throws IOException {
+    public Integer saveGroupAndPatient(JSONObject obj) {
 
         String groupId = obj.getString("groupId");
         String groupName = obj.getString("groupName");
@@ -734,8 +720,6 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         String createName = obj.getString("createName");
         String projectId = obj.getString("projectId");
         String crfId = obj.getString("crfId");
-        Map<String, Object> mapParam = new HashMap<>();
-        mapParam.put("groupId", groupId);
         DataCheckEmpty.dataCheckEmpty(groupId, projectId, createName, groupName);
         // 传递患者集ID 数组
         JSONArray arr = JSONObject.parseArray(obj.get("data").toString());
@@ -788,7 +772,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         }
         //向分组导入全量数据
         List<String> patientSetIds = arr.stream().map(JSONObject.class::cast).map(o -> o.getString("patientSetId")).collect(toList());
-        exportGroupDataMap(patientSetIds, groupId);
+        exportGroupDataMap(patientSetIds, groupId,projectId);
 
         int endCount = groupDataMapper.getPatSetAggregationCount(groupId);
         // 将患者集ID 映射成患者集名称
@@ -798,9 +782,9 @@ public class PatientGroupServiceImpl implements PatientGroupService {
         return contCount - endCount >= 0 ? contCount - endCount : contCount;
     }
 
-    private void exportGroupDataMap(List<String> patientSetIds, String groupId) {
+    private void exportGroupDataMap(List<String> patientSetIds, String groupId, String projectId) {
         List<String> datas = patientSetService.getPatientSetLocalSqlByListForPatientSets(patientSetIds);
-        patientSetService.saveGroupDataByGroupBlock(groupId, datas, 1);
+        patientSetService.saveGroupDataByGroupBlock(groupId, datas, 1, projectId,false);
     }
 
     private AjaxObject getPatientSetData(JSONObject data, String crfId, JSONArray patientSetIdTmp, String projectId, Integer pageNum, Integer pageSize, JSONArray showColumns) {

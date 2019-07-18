@@ -68,6 +68,8 @@ public class PatientSetServiceImpl implements PatientSetService {
     private PatientsIdSqlMapMapper patientsIdSqlMapMapper;
     @Autowired
     private LiminaryContent liminaryContent;
+    @Autowired
+    private CortrastiveAnalysisService cortrastiveAnalysisService;
 
     private static final int exportMax = 2000;
 
@@ -177,6 +179,7 @@ public class PatientSetServiceImpl implements PatientSetService {
                 }
             }
             patientsSetMapper.updateById(patSet);
+            patientsIdSqlMapMapper.deleteByDataSourceId(patientsSetId);
             String content = createName + "删除了患者集： " + patSet.getPatientsSetName();
             logUtil.saveLog(patSet.getProjectId(), content, createId, createName);
 
@@ -256,19 +259,39 @@ public class PatientSetServiceImpl implements PatientSetService {
     }
 
     @Override
-    public void saveGroupDataByGroupBlock(String groupId, List<String> datas, int num) {
-        patientsIdSqlMapMapper.deleteByDataSourceId(groupId);
+    public void saveGroupDataByGroupBlock(String groupId, List<String> datas, int num, String projectId, boolean isSearch) {
+        if(isSearch){
+            patientsIdSqlMapMapper.deleteByDataSourceId(groupId);
+        }
+        Set<String> oldDatas = getPatientSetLocalSqlByProjectId(projectId);
         Integer groupDataBlock = liminaryContent.getGroupDataBlock();
         for (int i = 0; i < datas.size() / groupDataBlock + 1; i++) {
-            Set<String> resultDatas = PagingUtils.getPageContentForString(datas, i + 1, groupDataBlock).stream().collect(toSet());
+            Set<String> resultDatas = new HashSet<>(PagingUtils.getPageContentForString(datas, i + 1, groupDataBlock));
             savePatientSetGroupBlock(groupId, resultDatas, num);
         }
+        Set<String> newDatas = getPatientSetLocalSqlByProjectId(projectId);
+        newDatas.removeAll(oldDatas);
+        if( newDatas.size() > 0){
+            LOG.info("总数据发生变动 从新计算所有研究变量");
+            searchByuqlService.autoBackgroundCecortForGroup(projectId);
+        }
+        //判定group 是否发生改变 若发生改变 重新计算这个项目里的研究变量
     }
 
     @Override
     public List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSetIds) {
         List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
         return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
+    }
+
+    public Set<String> getPatientSetLocalSqlByProjectId(String projectId){
+        List<String> groupIds = groupMapper.getGroupIdsByProjectId(projectId);
+        return getPatientSetLocalSqlBySetForPatientSets(groupIds);
+    }
+
+    public Set<String> getPatientSetLocalSqlBySetForPatientSets(List<String> patientSetIds) {
+        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
+        return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet());
     }
 
     @Override
@@ -318,8 +341,10 @@ public class PatientSetServiceImpl implements PatientSetService {
             ActiveIndex active = null;
             try {
                 active = activeIndexService.findByActiveId(groupId);
-                if (active == null) savePatientToGroup(patientSetIds, projectId, crfId, groupId);
-                active = active == null ? new ActiveIndex() : active;
+                if (active == null){
+                    savePatientToGroup(patientSetIds, projectId, crfId, groupId);
+                    return;
+                }
                 JSONObject obj = (JSONObject) JSONObject.toJSON(active);
                 String isVariant = active.getIsVariant();
                 obj.put("patientSetId", patientSetIds);

@@ -111,4 +111,6 @@ public interface ActiveIndexMapper {
     List<ActiveIndex> getClasActiveIdsNameAndIdsByProjectId(String projectId);
 
     List<ActiveIndex> getClasActiveIdsNameAndIdsOnContCheck(@Param("projectId") String projectId, @Param("createId") String uid, @Param("cortType") Integer cortType);
+
+    List<ActiveIndex> findByProjectIdAndIsVariant(@Param("projectId") String projectId,@Param("isVariant") int isVariant);
 }

@@ -70,4 +70,6 @@ public interface SearchByuqlService {
      * 计算初始化
      */
     void computationalInitialization(Integer isSearch, String activeIndexId, String groupToId, String projectId, String crfId, Integer activeType, String indexTypeDesc, JSONArray patientsSetId, String groupFromId, String resultOrderKey);
+
+    void autoBackgroundCecortForGroup(String projectId);
 }

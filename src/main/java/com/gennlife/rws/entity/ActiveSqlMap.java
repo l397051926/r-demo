@@ -258,7 +258,7 @@ public class ActiveSqlMap {
         this.sqlSelect = sqlSelect;
     }
 
-    public String getSqlWhere() throws IOException {
+    public String getSqlWhere() {
         return sqlWhere;
     }
     public String getUncomSqlWhere() throws IOException {
@@ -273,7 +273,7 @@ public class ActiveSqlMap {
     }
 
 
-    public String getSqlFrom() throws IOException {
+    public String getSqlFrom() {
         return sqlFrom;
     }
 

@@ -21,9 +21,7 @@ public class CrfExcludeUqlClass extends UqlClass {
 
     @Override
     public void setInitialPatients(String isVariant, String patientSql) {
-        if(!IS_VARIANT_TRUE.equals(isVariant)){
-            setWhere(getWhereNotNull()+ " AND "+ patientSql);
-        }
+        setWhere(getWhereNotNull()+ " AND "+ patientSql);
     }
 
     @Override

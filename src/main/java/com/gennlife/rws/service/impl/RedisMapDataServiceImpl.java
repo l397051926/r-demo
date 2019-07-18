@@ -125,6 +125,19 @@ public class RedisMapDataServiceImpl implements RedisMapDataService{
     }
 
     @Override
+    public Long hset(String key, String mKey,String mVal) {
+        JedisCluster jedis = null;
+        Long res = null;
+        try {
+            jedis = jedisClusters.getJedisCluster();
+            res = jedis.hset(key,mKey,mVal);
+        } catch (Exception e) {
+            LOG.error(e.getMessage());
+        }
+        return res;
+    }
+
+    @Override
     public Long AddSet(String key, String val) {
         JedisCluster jedis = null;
         Long res = null;

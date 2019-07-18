@@ -15,7 +15,7 @@ public interface PatientGroupService {
      * @description 保存分组和患者的对应关系
      * @date 2018年7月2日
      */
-    Integer saveGroupAndPatient(JSONObject obj) throws IOException;
+    Integer saveGroupAndPatient(JSONObject obj);
 
     /**
      * @param param

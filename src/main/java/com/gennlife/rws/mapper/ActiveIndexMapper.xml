@@ -576,5 +576,17 @@
     where is_variant=1 and project_id=#{projectId,jdbcType=VARCHAR}
   </select>
 
-
+  <select id="findByProjectIdAndIsVariant" resultMap="BaseResultMap" parameterType="java.lang.Object">
+    SELECT
+    id,name,active_type ,project_id
+    from active_index
+    <where>
+      <if test="projectId != null">
+        project_id=#{projectId}
+      </if>
+      <if test="isVariant != null ">
+        AND is_variant = #{isVariant}
+      </if>
+    </where>
+  </select>
 </mapper>

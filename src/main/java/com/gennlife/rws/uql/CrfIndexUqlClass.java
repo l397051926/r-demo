@@ -52,9 +52,7 @@ public class CrfIndexUqlClass extends UqlClass {
 
     @Override
     public void setInitialPatients(String isVariant, String patientSql) {
-        if(!IS_VARIANT_TRUE.equals(isVariant)){
-            setWhere(getWhereNotNull() + patientSql+" AND ");
-        }
+        setWhere(getWhereNotNull() + patientSql+" AND ");
     }
 
     @Override

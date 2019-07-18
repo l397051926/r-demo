@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.stream.Collector;
 
 import static com.gennlife.darren.collection.Pair.makePair;
@@ -68,6 +67,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     private PatientSetService patientSetService;
     @Autowired
     private SearchCrfByuqlService searchCrfByuqlService;
+    @Autowired
+    private ProjectMapper projectMapper;
 
     @Override
     public String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
@@ -126,8 +127,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         uqlClass.setVisitsGroup(visits);
         //处理 条件
-        transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId, groupToId, projectId, patientSetId, patientSql,
-            crfId, patientsIdSqlMap.getId());
+        transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId, groupToId, projectId, patientSetId, patientSql,crfId, patientsIdSqlMap.getId());
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         /*------------------------------------------------------------------------------*/
@@ -917,7 +917,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
     @Override
     public AjaxObject exportToGroup(String groupId, List<String> allResutList, List<ActiveSqlMap> sqlList, String projectId, Integer pageNum, String crfId, String activeId, JSONArray refActiveIds, JSONArray patientSetId, String groupName, String createId, String createName, boolean autoExport) throws IOException {
-        patientSetService.saveGroupDataByGroupBlock(groupId, allResutList, 1);
+        patientSetService.saveGroupDataByGroupBlock(groupId, allResutList, 1,projectId, true);
         JSONArray dataAll = new JSONArray();
         for (ActiveSqlMap sqlMap : sqlList) {
             //TODO 可以优化计算逻辑
@@ -1292,7 +1292,6 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
     @Override
     public Map<String, String> saveCortrastiveResultRedisMap(ActiveSqlMap activeSqlMap, String projectId, String crfId, String activeIndexId) throws IOException {
-        activeSqlMap.setUncomSqlWhere(activeSqlMap.getUncomSqlWhere());
         String result = httpUtils.querySearch(projectId, activeSqlMap.getUncomActiveSql(), 1, Integer.MAX_VALUE - 1, null, new JSONArray(), crfId);
         Map<String, String> map = new KeyPath("hits", "hits")
             .resolveAsJSONArray(JSON.parseObject(result))
@@ -1313,7 +1312,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         }
         String res = redisMapDataService.hmset(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId), map);
         redisMapDataService.setOutTime(UqlConfig.CORT_INDEX_REDIS_KEY.concat(activeIndexId), 7 * 24 * 60 * 60);
-        LOG.info(activeIndexId + " 插入 ---- redis" + res);
+        LOG.info(activeIndexId + " 插入 ---- redis" + res + "批次： " + activeSqlMap.getPatSqlGroup());
         return map;
     }
 
@@ -2333,6 +2332,36 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
                 }
                 getReferenceActiveIndex(activeIndexId, resultOrderKey, patientsSetId, groupToId, groupFromId, crfId);
             }
+        }
+    }
+
+    @Override
+    public void autoBackgroundCecortForGroup(String projectId) {
+        Project project = projectMapper.selectByProjectId(projectId);
+        List<ActiveIndex> activeIndices = activeIndexMapper.findByProjectIdAndIsVariant(projectId,1);
+        for (ActiveIndex active : activeIndices){
+            String activeId = active.getId();
+            active = activeIndexService.findByActiveId(activeId);
+            active = active == null ? new ActiveIndex() : active;
+            String isVariant = active.getIsVariant();
+            JSONObject obj = (JSONObject) JSONObject.toJSON(active);
+            JSONArray configss = obj.getJSONArray("config");
+            if (configss.size() < 1) {
+                LOG.error("错误的数据 ： activeId" + activeId);
+                return;
+            }
+            String indexTypeDesc = configss.getJSONObject(0).getString("indexTypeDesc");
+            int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP;
+            Integer activeType = active.getActiveType();
+            List<PatientsIdSqlMap> patientSql = getInitialSQLTmp(null, isVariant, null, null, projectId, project.getCrfId());
+            computationalInitialization(isSearch, activeId, null, projectId, project.getCrfId(), activeType, indexTypeDesc, null, null, UqlConfig.RESULT_ORDER_KEY.get(project.getCrfId()));
+            patientSql.forEach(o -> {
+                try {
+                    searchByUqlService(project.getCrfId(), activeType, obj, UqlConfig.RESULT_ORDER_KEY.get(project.getCrfId()), isSearch, indexTypeDesc, o);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 

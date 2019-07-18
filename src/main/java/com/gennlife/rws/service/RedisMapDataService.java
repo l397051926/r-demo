@@ -17,7 +17,10 @@ public interface RedisMapDataService {
     public Long delete(String key);
     public String getDataBykey(String key);
     String set(String key , String val);
-    Long AddSet(String key,String val);
+
+    Long hset(String key, String mKey, String mVal);
+
+    Long AddSet(String key, String val);
     boolean sismemberSet(String key,String val);
     Set<String> getAllSet(String key);
     Long setOutTime(String key,Integer time);
