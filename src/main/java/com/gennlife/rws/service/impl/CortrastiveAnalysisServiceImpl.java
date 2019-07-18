@@ -210,7 +210,8 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                             cell.projectId = projectId;
                             cell.patsCondition = patsCondition;
                             cell.crfId = crfId;
-                            cell.sqlMaps = condition;
+                            cell.sqlMaps = val;
+                            cell.redisMapDataService = redisMapDataService;
                             String redisKey = UqlConfig.CORT_CONT_ENUM_REDIS_KEY + src.getActiveIndexId() + "_" + src.getId() + "_" + group.getGroupId();
                             if (redisMapDataService.exists(redisKey)) {
                                 if (autoCort) {
@@ -1318,29 +1319,35 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
         @Override
         Future execute(ExecutorService es) {
             return es.submit(() -> {
-                for (ActiveSqlMap sqlMap : sqlMaps){
-                    String newsql = "SELECT " + IndexContent.getPatientDocId(crfId) + " FROM " + sqlMap.getSqlFrom() + " WHERE (" + sqlMap.getSqlWhere() + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
-                    if (StringUtils.isNotEmpty(sqlMap.getSqlHaving())) {
-                        newsql = newsql + " " + sqlMap.getSqlHaving();
+                try {
+                    patients = new HashSet<>();
+                    for (ActiveSqlMap sqlMap : sqlMaps){
+                        String newsql = null;
+                        newsql = "SELECT " + IndexContent.getPatientDocId(crfId) + " FROM " + sqlMap.getSqlFrom() + " WHERE (" + sqlMap.getUncomSqlWhere() + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
+                        if (StringUtils.isNotEmpty(sqlMap.getSqlHaving())) {
+                            newsql = newsql + " " + sqlMap.getSqlHaving();
+                        }
+                        String finalNewsql = newsql;
+                        String response = ApplicationContextHelper
+                            .getBean(HttpUtils.class)
+                            .querySearch(
+                                projectId,
+                                finalNewsql,
+                                1,
+                                Integer.MAX_VALUE - 1,
+                                null,
+                                null,
+                                crfId,
+                                true);
+                        patients.addAll(
+                            new KeyPath("hits", "hits", "_id")
+                                .fuzzyResolve(JSON.parseObject(response))
+                                .stream()
+                                .map(String.class::cast)
+                                .collect(toSet()));
                     }
-                    String finalNewsql = newsql;
-                    String response = ApplicationContextHelper
-                        .getBean(HttpUtils.class)
-                        .querySearch(
-                            projectId,
-                            finalNewsql,
-                            1,
-                            Integer.MAX_VALUE - 1,
-                            null,
-                            null,
-                            crfId,
-                            true);
-                    patients.addAll(
-                        new KeyPath("hits", "hits", "_id")
-                        .fuzzyResolve(JSON.parseObject(response))
-                        .stream()
-                        .map(String.class::cast)
-                        .collect(toSet()));
+                } catch (IOException e) {
+                    LOG.error("计算发生了异常。。。。。");
                 }
                 redisMapDataService.setSets(redisKey, patients);
                 redisMapDataService.setOutTime(redisKey, 7 * 24 * 60 * 60);
@@ -1384,26 +1391,30 @@ public class CortrastiveAnalysisServiceImpl implements CortrastiveAnalysisServic
                     String val = redisMapDataService.getDataBykey(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId));
                     arrAll = JSONArray.parseArray(val);
                 }else{
-                    for (ActiveSqlMap sqlMap : sqlMaps) {
-                        String newsql = null;
-                        newsql = "SELECT " + sqlMap.getSqlSelect() + " FROM " + sqlMap.getSqlFrom() + " WHERE (" + sqlMap.getSqlWhere() + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
-                        if (StringUtils.isNotEmpty(sqlMap.getSqlHaving())) {
-                            newsql = newsql + " " + sqlMap.getSqlHaving();
+                    try {
+                        for (ActiveSqlMap sqlMap : sqlMaps) {
+                            String newsql = null;
+                            newsql = "SELECT " + sqlMap.getSqlSelect() + " FROM " + sqlMap.getSqlFrom() + " WHERE (" + sqlMap.getUncomSqlWhere() + ") AND " + patsCondition + IndexContent.getGroupBy(crfId);
+                            if (StringUtils.isNotEmpty(sqlMap.getSqlHaving())) {
+                                newsql = newsql + " " + sqlMap.getSqlHaving();
+                            }
+                            String finalNewsql = newsql;
+                            JSONObject response = JSON.parseObject(ApplicationContextHelper
+                                .getBean(HttpUtils.class)
+                                .querySearch(
+                                    projectId,
+                                    finalNewsql,
+                                    1,
+                                    Integer.MAX_VALUE - 1,
+                                    null,
+                                    null,
+                                    crfId,
+                                    true));
+                            JSONArray arr = new KeyPath("hits", "hits", "_source", "select_field", varName).fuzzyResolve(response);
+                            arrAll.add(arr);
                         }
-                        String finalNewsql = newsql;
-                        JSONObject response = JSON.parseObject(ApplicationContextHelper
-                            .getBean(HttpUtils.class)
-                            .querySearch(
-                                projectId,
-                                finalNewsql,
-                                1,
-                                Integer.MAX_VALUE - 1,
-                                null,
-                                null,
-                                crfId,
-                                true));
-                        JSONArray arr = new KeyPath("hits", "hits", "_source", "select_field", varName).fuzzyResolve(response);
-                        arrAll.add(arr);
+                    } catch (IOException e) {
+                        LOG.error("计算发生了异常。。。。。");
                     }
                 }
                 redisMapDataService.set(UqlConfig.CORT_CONT_ACTIVE_REDIS_KEY.concat(activeId + "_" + groupId), arrAll.toJSONString());
