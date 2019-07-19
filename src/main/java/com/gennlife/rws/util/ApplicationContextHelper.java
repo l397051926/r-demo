@@ -24,7 +24,7 @@ public class ApplicationContextHelper implements ApplicationContextAware {
 
     @SuppressWarnings("unchecked")
     public static <T> T getBean(String name) throws BeansException {
-        return (T)_context.getBean(name);
+        return (T) _context.getBean(name);
     }
 
     @SuppressWarnings("unchecked")

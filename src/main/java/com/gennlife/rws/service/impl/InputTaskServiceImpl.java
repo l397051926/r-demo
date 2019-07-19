@@ -10,7 +10,6 @@ import com.gennlife.rws.dao.PatientsSetMapper;
 import com.gennlife.rws.dao.ProjectMapper;
 import com.gennlife.rws.entity.InputTask;
 import com.gennlife.rws.entity.Project;
-import com.gennlife.rws.local.ProjectLocal;
 import com.gennlife.rws.query.BuildIndexRws;
 import com.gennlife.rws.rocketmq.ProducerService;
 import com.gennlife.rws.service.InputTaskService;
@@ -295,7 +294,7 @@ public class InputTaskServiceImpl implements InputTaskService {
     public Object decideInputs(JSONObject object) {
         String projectId = object.getString("projectId");
         Integer num = inputTaskMapper.getRunTimeTaskByProjectId(projectId);
-        if(num>0 || ProjectLocal.PROJECT_LOCAL.contains(projectId) ){
+        if(num>0 ){
             return new JSONObject().fluentPut("status",300).fluentPut("message","项目内患者正在变更，请稍后再试");
         }
         return new JSONObject().fluentPut("status",200).fluentPut("message","操作成功");

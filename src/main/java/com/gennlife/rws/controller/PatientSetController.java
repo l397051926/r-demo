@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.ContrastiveAnalysisCount;
 import com.gennlife.rws.entity.PatientsSet;
 import com.gennlife.rws.entity.SearchLog;
-import com.gennlife.rws.local.ProjectLocal;
 import com.gennlife.rws.service.PatientSetService;
 import com.gennlife.rws.service.SearchByuqlService;
 import com.gennlife.rws.util.AjaxObject;
@@ -195,7 +194,6 @@ public class PatientSetController {
     @RequestMapping(value = "/deletePatientSet", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject deletePatientSet(@RequestBody String param) {
         AjaxObject ajaxObject;
-        String projectId = null;
         try {
             JSONObject object;
             try {
@@ -205,7 +203,6 @@ public class PatientSetController {
                     CustomerStatusEnum.FORMATJSONERROR.getMessage());
                 return ajaxObject;
             }
-            projectId = object.getString("projectId");
             patientSetService.deletePatientSet(object);
             ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
             ajaxObject.setData(object.getString("patientsSetId"));
@@ -213,8 +210,6 @@ public class PatientSetController {
         } catch (Exception e) {
             ajaxObject = new AjaxObject(CustomerStatusEnum.UNKONW_ERROR.getCode(), e.getMessage());
             return ajaxObject;
-        } finally {
-            ProjectLocal.PROJECT_LOCAL.remove(projectId);
         }
     }
 

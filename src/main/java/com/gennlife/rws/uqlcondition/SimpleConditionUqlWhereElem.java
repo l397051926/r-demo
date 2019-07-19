@@ -1,6 +1,5 @@
 package com.gennlife.rws.uqlcondition;
 
-import com.gennlife.rws.util.TransData;
 
 /**
  * @author
@@ -32,7 +31,7 @@ public class SimpleConditionUqlWhereElem extends UqlWhereElem {
     }
     public void updateStr(String newValue){
         value =  value + "," + newValue;
-        str = sourceTagName + " " + condition + " " + TransData.transDataNumber(value) ;
+        str = sourceTagName + " " + condition + " " + value ;
     }
     public void updateResult(String newValue){
         value = value + "," + newValue;

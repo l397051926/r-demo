@@ -60,55 +60,61 @@ public class HttpUtils {
     private String esSearchUqlCompress;
 
     private RequestConfig requestConfig = RequestConfig.custom()
-            .setSocketTimeout(30*60*1000)
-            .setConnectTimeout(30*60*1000)
-            .setConnectionRequestTimeout(30*60*1000)
-            .build();
-    public HttpUtils(){}
+        .setSocketTimeout(30 * 60 * 1000)
+        .setConnectTimeout(30 * 60 * 1000)
+        .setConnectionRequestTimeout(30 * 60 * 1000)
+        .build();
 
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId) {
-        return querySearch(projectId,newSql,pageNum,pageSize,sourceFilter,source,crfId,false);
+    public HttpUtils() {
     }
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,boolean fetchAllGroupByResult) {
-       return querySearch(projectId,newSql,pageNum,pageSize,sourceFilter,source,IndexContent.EMR_CRF_ID,fetchAllGroupByResult);
+
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source, String crfId) {
+        return querySearch(projectId, newSql, pageNum, pageSize, sourceFilter, source, crfId, false);
     }
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId,boolean fetchAllGroupByResult) {
-       return querySearch(projectId,newSql,pageNum,pageSize,sourceFilter,source,crfId,fetchAllGroupByResult,null);
+
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source, boolean fetchAllGroupByResult) {
+        return querySearch(projectId, newSql, pageNum, pageSize, sourceFilter, source, IndexContent.EMR_CRF_ID, fetchAllGroupByResult);
     }
-    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source,String crfId,boolean fetchAllGroupByResult,JSONObject agges) {
+
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source, String crfId, boolean fetchAllGroupByResult) {
+        return querySearch(projectId, newSql, pageNum, pageSize, sourceFilter, source, crfId, fetchAllGroupByResult, null);
+    }
+
+    public String querySearch(String projectId, String newSql, Integer pageNum, Integer pageSize, String sourceFilter, JSONArray source, String crfId, boolean fetchAllGroupByResult, JSONObject agges) {
         Long startTime = System.currentTimeMillis();
         QuerySearch querySearch = new QuerySearch();
-        querySearch.setIndexName(IndexContent.getIndexName(crfId,projectId));
+        querySearch.setIndexName(IndexContent.getIndexName(crfId, projectId));
         querySearch.setQuery(newSql);
         querySearch.setPage(pageNum);
         querySearch.setSize(pageSize);
         querySearch.setSource_filter(sourceFilter);
         querySearch.setSource(source);
-        if(agges != null){
+        if (agges != null) {
             querySearch.setAggs(agges);
         }
         querySearch.setFetchAllGroupByResult(fetchAllGroupByResult);
         String url = getEsSearchUqlCompress();
         String param = JSON.toJSONString(querySearch);
-        String result="";
+        String result = "";
         try {
             result = GzipUtil.uncompress(httpPost(GzipUtil.compress(param), url).trim());
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             LOG.error("gzip 解析失败 传统方式 重新请求");
-            result = httpPost(param,getEsSearchUql());
+            result = httpPost(param, getEsSearchUql());
         } catch (Exception e) {
-            LOG.error("计算发生异常 error: "+ e.getMessage() +" 参数为： " + param);
+            LOG.error("计算发生异常 error: " + e.getMessage() + " 参数为： " + param);
             throw new SearchUqlCasetException("计算发生问题");
         }
         Long time = System.currentTimeMillis() - startTime;
         LOG.info("搜索 --消耗时间为：" + time);
-        if(time > 40*1000){
+        if (time > 40 * 1000) {
             LOG.warn("查询速度过慢 超过 40 秒 参数为:" + param);
         }
         JSONObject data = JSON.parseObject(result);
         Object error = data.get("error");
         if (error != null) {
-            LOG.error("计算发生发生异常  error： " + error);LOG.error("参数为： " + param);
+            LOG.error("计算发生发生异常  error： " + error);
+            LOG.error("参数为： " + param);
             throw new SearchUqlCasetException("计算发生问题");
         }
         return result;
@@ -131,19 +137,19 @@ public class HttpUtils {
 
     public int[] byteArrayToInt(byte[] b) {
         int length = b.length;
-        if(b == null || length <=0){
+        if (b == null || length <= 0) {
             return new int[1];
         }
         int[] result = new int[length];
-        int i =0 ;
-        for (byte by:b) {
+        int i = 0;
+        for (byte by : b) {
             result[i] = by;
             i++;
         }
         return result;
     }
 
-    public String httpPost(String param,String url) {
+    public String httpPost(String param, String url) {
         HttpPost post = null;
         post = new HttpPost(url);
 
@@ -153,13 +159,13 @@ public class HttpUtils {
         return post(post);
     }
 
-    public String  deleteIndex(String param){
+    public String deleteIndex(String param) {
         String url = this.deleteIndex;
-        return httpPost(param,url);
+        return httpPost(param, url);
     }
 
     public String fromEsGetData(String param) {
-        LOG.info("es 地址:{},参数={}",esServiceUrl,param);
+        LOG.info("es 地址:{},参数={}", esServiceUrl, param);
         HttpPost post = new HttpPost(esServiceUrl);
         StringEntity entity = getStringEntity(param);
         post.setEntity(entity);
@@ -174,11 +180,11 @@ public class HttpUtils {
         return entity;
     }
 
-    public int getResultTotal(String param){
+    public int getResultTotal(String param) {
         String result = fromEsGetData(param);
-        JSONObject object1 =JSONObject.parseObject(result);
+        JSONObject object1 = JSONObject.parseObject(result);
         JSONObject hits = object1.getJSONObject("hits");
-        if(hits == null ){
+        if (hits == null) {
             return 0;
         }
         Integer total = hits.getInteger("total");
@@ -186,28 +192,28 @@ public class HttpUtils {
         return totals;
     }
 
-    private String post(HttpPost post){
+    private String post(HttpPost post) {
         CloseableHttpClient httpClient = null;
         CloseableHttpResponse response = null;
         HttpEntity entity = null;
         String responseContent = null;
         try {
             // 创建默认的httpClient实例.
-            httpClient =HttpClients.createDefault();
+            httpClient = HttpClients.createDefault();
             post.setConfig(requestConfig);
             // 执行请求
             response = httpClient.execute(post);
-            if(response.getStatusLine().getStatusCode() == 504){
-                LOG.info("超时了 504 url 超时时间 getConnectTimeout" + requestConfig.getConnectTimeout()+" socketTimeout:  "+requestConfig.getSocketTimeout() + "result : " + EntityUtils.toString(response.getEntity()));
+            if (response.getStatusLine().getStatusCode() == 504) {
+                LOG.info("超时了 504 url 超时时间 getConnectTimeout" + requestConfig.getConnectTimeout() + " socketTimeout:  " + requestConfig.getSocketTimeout() + "result : " + EntityUtils.toString(response.getEntity()));
             }
             entity = response.getEntity();
             responseContent = EntityUtils.toString(entity, "UTF-8");
         } catch (Exception e) {
             JSONObject object = new JSONObject();
-            object.put("status",500);
-            object.put("message",e.getMessage());
+            object.put("status", 500);
+            object.put("message", e.getMessage());
             responseContent = object.toJSONString();
-            LOG.error("请求packaging service 出错{}",e.getMessage());
+            LOG.error("请求packaging service 出错{}", e.getMessage());
         } finally {
             try {
                 // 关闭连接,释放资源
@@ -226,9 +232,9 @@ public class HttpUtils {
 
     public String buildIndexRws(BuildIndexRws buildIndexRws) {
         String param = JSON.toJSONString(buildIndexRws);
-        LOG.info("导出数据 参数:"+param);
-        String result = httpPost(param,esExceportRws);
-        LOG.info("导出数据结果: "+result);
+        LOG.info("导出数据 参数:" + param);
+        String result = httpPost(param, esExceportRws);
+        LOG.info("导出数据结果: " + result);
         return result;
     }
 

@@ -6,10 +6,8 @@ package com.gennlife.rws.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.gennlife.rws.web.WebAPIResult;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,27 +71,33 @@ public class AjaxObject {
         this.flag = flag;
     }
 
-    public AjaxObject(){}
-    public AjaxObject(int status,String message){
+    public AjaxObject() {
+    }
+
+    public AjaxObject(int status, String message) {
         this.status = status;
         this.message = message;
     }
-    public AjaxObject(int status,String message,int modifiable){
+
+    public AjaxObject(int status, String message, int modifiable) {
         this.status = status;
         this.message = message;
         this.modifiable = modifiable;
     }
-    public AjaxObject(int status,String message,Object data){
+
+    public AjaxObject(int status, String message, Object data) {
         this.status = status;
         this.message = message;
         this.data = data;
     }
-    public AjaxObject(int status,String message,Object data,boolean flag){
+
+    public AjaxObject(int status, String message, Object data, boolean flag) {
         this.status = status;
         this.message = message;
         this.data = data;
         this.flag = flag;
     }
+
     public int getStatus() {
         return status;
     }
@@ -122,22 +126,22 @@ public class AjaxObject {
         return columns;
     }
 
-    public  void setColumns(Object columns) {
+    public void setColumns(Object columns) {
         this.columns = columns;
     }
 
     public static void getReallyDataValue(JSONArray data, JSONArray showColumns) {
         int size = showColumns.size();
-        Map<String,String> showMap = new HashMap<>();
+        Map<String, String> showMap = new HashMap<>();
         for (int i = 0; i < size; i++) {
             JSONObject obj = showColumns.getJSONObject(i);
-            showMap.put(obj.getString("id"),obj.getString("name"));
+            showMap.put(obj.getString("id"), obj.getString("name"));
         }
         for (int i = 0; i < data.size(); i++) {
             JSONObject obj = data.getJSONObject(i);
-            for (Map.Entry<String,String> entry : showMap.entrySet()){
-                if (!obj.containsKey(entry.getKey())){
-                    obj.put(entry.getKey(),"-");
+            for (Map.Entry<String, String> entry : showMap.entrySet()) {
+                if (!obj.containsKey(entry.getKey())) {
+                    obj.put(entry.getKey(), "-");
                 }
             }
         }

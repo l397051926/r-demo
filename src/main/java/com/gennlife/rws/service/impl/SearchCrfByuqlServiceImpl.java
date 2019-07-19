@@ -94,9 +94,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         ActiveSqlMap activeSqlMap = sqlList.get(0);        //获取sql语句
         JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());//获取 join 的ids
         List<String> activeIndexIds = refActiveIds.toJavaList(String.class);
-        if(activeIndexIds.size()>0){
+        if (activeIndexIds.size() > 0) {
             List<ActiveIndex> activeIndices = activeIndexMapper.selectByPrimaryKeys(activeIndexIds);
-            activeIndices.forEach( x -> basicColumns.add(new JSONObject().fluentPut("name",x.getName()).fluentPut("id",x.getId())));
+            activeIndices.forEach(x -> basicColumns.add(new JSONObject().fluentPut("name", x.getName()).fluentPut("id", x.getId())));
         }
         int refSize = refActiveIds == null ? 0 : refActiveIds.size();
         List<String> allResutList = sqlList.stream()
@@ -505,9 +505,9 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONArray refActiveIds = JSONArray.parseArray(activeSqlMap.getRefActiveIds());
         int refSize = refActiveIds == null ? 0 : refActiveIds.size();
         List<String> activeIndexIds = refActiveIds.toJavaList(String.class);
-        if(activeIndexIds.size()>0){
+        if (activeIndexIds.size() > 0) {
             List<ActiveIndex> activeIndices = activeIndexMapper.selectByPrimaryKeys(activeIndexIds);
-            activeIndices.forEach( x -> basicColumns.add(new JSONObject().fluentPut("name",x.getName()).fluentPut("id",x.getId())));
+            activeIndices.forEach(x -> basicColumns.add(new JSONObject().fluentPut("name", x.getName()).fluentPut("id", x.getId())));
         }
 
         JSONArray source = new JSONArray().fluentAdd("patient_info.patient_basicinfo");
@@ -1368,7 +1368,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         value = disposeArrayByContain(value, condition);
         condition = disposeConditionByContain(value, condition);
         value = disposeValue(sourceTagName, value, jsonType, schema, condition);
-        stringBuffer.append(TransData.transDataNumber(sourceTagName));
+        stringBuffer.append(sourceTagName);
         stringBuffer.append(" " + condition);
         stringBuffer.append(" " + value);
         String result = stringBuffer.toString();
@@ -1630,7 +1630,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
                 indexColumn = KeyPath.compile(indexColumn).removeLast(2).stream().map(Object::toString).collect(joining("."));
             }
             uqlClass = new CrfIndexUqlClass(projectId, crfId);
-            String order = FunctionUtilMap.getUqlFunction(function, functionParam, TransData.transDataNumber(indexColumn), indexType, TransData.transDataNumber(indexDate));
+            String order = FunctionUtilMap.getUqlFunction(function, functionParam, indexColumn, indexType, indexDate);
             selectValue = order;
             uqlClass.setSelect(uqlClass.getSelect() + order);
             order1 = indexColumn;
@@ -1652,12 +1652,12 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         if (where.isSameGroup(visits)) {
-            uqlClass.setWhere(TransData.transDataNumber(order1) + " IS NOT NULL AND ");
+            uqlClass.setWhere(order1 + " IS NOT NULL AND ");
             uqlClass.setInitialPatients(isVariant, patientSql);
             String orderKey = order1.substring(0, order1.lastIndexOf("."));
             String indexDateKey = indexDate.substring(0, indexDate.lastIndexOf("."));
             if (orderKey.equals(indexDateKey)) {
-                uqlClass.setWhere(uqlClass.getWhere() + TransData.transDataNumber(indexDate) + " IS NOT NULL AND ");
+                uqlClass.setWhere(uqlClass.getWhere() + indexDate + " IS NOT NULL AND ");
             } else {
                 uqlClass.setNotAllWhere(function, order1, indexDate, schema);
             }
@@ -1754,7 +1754,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
         JSONArray valueArray = JSONArray.parseArray(value);
         String date1 = valueArray.getString(0);
         String date2 = valueArray.getString(1);
-        stringBuffer.append(TransData.transDataNumber(sourceTagName) + " between '" + date1 + "' and '" + date2 + "'");
+        stringBuffer.append(sourceTagName + " between '" + date1 + "' and '" + date2 + "'");
     }
 
     private UqlClass getIndexSql(UqlClass uqlClass, String function, String functionParam, String indexColumn, String indexType, String indexDate, String projectId, String hascount, String crfId) {
@@ -1768,7 +1768,7 @@ public class SearchCrfByuqlServiceImpl implements SearchCrfByuqlService {
     }
 
     private String getIndexResultWhere(UqlClass uqlClass, String function, String functionParam, String indexColumn, String indexType, String indexDate, String projectId, String hasCount, String crfId) {
-        String order = FunctionUtilMap.getUqlFunction(function, functionParam, "visitinfo.DOC_ID", indexType, TransData.transDataNumber(indexDate));
+        String order = FunctionUtilMap.getUqlFunction(function, functionParam, "visitinfo.DOC_ID", indexType, indexDate);
         uqlClass.setSelect(order);
         uqlClass.setSelect(" group_concat(visitinfo.DOC_ID,',') ");
         uqlClass.setWhere("join_field='visitinfo' AND " + uqlClass.getWhereNotNull());

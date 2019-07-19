@@ -77,8 +77,8 @@ public enum DataType {
                         : field + " " + op + " " + t1;
 
                 }else {
-                    long t1 = 0;
-                    long t2 = 0;
+                    long t1 = 0L;
+                    long t2 = 0L;
                     try {
                         Calendar calendar1 = Calendar.getInstance();
                         calendar1.setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(arr[0]));

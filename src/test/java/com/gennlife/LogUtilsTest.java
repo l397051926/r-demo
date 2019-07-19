@@ -4,7 +4,6 @@ package com.gennlife;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.InputStratus;
-import com.gennlife.rws.content.RedisContent;
 import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.*;
 import com.gennlife.rws.entity.*;
@@ -14,7 +13,6 @@ import com.gennlife.rws.service.CortrastiveAnalysisService;
 import com.gennlife.rws.service.GroupService;
 import com.gennlife.rws.service.RedisMapDataService;
 import com.gennlife.rws.service.SearchByuqlService;
-import com.gennlife.rws.util.GzipUtil;
 import com.gennlife.rws.util.LogUtil;
 import com.gennlife.rws.util.SingleExecutorService;
 import org.junit.Ignore;
@@ -46,7 +44,7 @@ public class LogUtilsTest {
     private RedisMapDataService redisMapDataService;
 
     @Autowired
-     private GroupService groupService;
+    private GroupService groupService;
 
     @Autowired
     private InputTaskMapper inputTaskMapper;
@@ -74,17 +72,18 @@ public class LogUtilsTest {
     private CortrastiveAnalysisService cortrastiveAnalysisService;
     @Autowired
     private ProjectMapper projectMapper;
+
     @Test
     public void saveGroupPat() throws IOException {
-        boolean isExport =  false;
+        boolean isExport = false;
         String patientSetId = "d86b3731af6f428bab42e4baa055fa55";
         String projectId = "af51da2834fd4f33814d2600188687c2";
         String crfId = "EMR";
-        List<Patient> listPatients = searchByuqlService.getpatentByUql(patientSetId,isExport,projectId,crfId);
+        List<Patient> listPatients = searchByuqlService.getpatentByUql(patientSetId, isExport, projectId, crfId);
     }
 
     @Test
-    public void getCreateId(){
+    public void getCreateId() {
 //        String id = projectMapper.getCreateIdByTaskId("1bf2852d-85fa-42f8-ab94-bdc9d13e9906");
 //        System.out.println(id);
 //        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService("6f87691e-ab42-4649-bd7b-5914667a488a")));
@@ -92,36 +91,38 @@ public class LogUtilsTest {
         System.out.println();
 
     }
+
     @Test
     public void testThread() throws InterruptedException, ExecutionException, TimeoutException {
-            Future future = SingleExecutorService.getInstance().getAutoCortrastiveExecutor().submit(() -> {
-                try {
-                    Thread.sleep(30000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                System.out.println("this is threaddddd");
-            });
-            for (int i = 0; i < 20; i++) {
-                Thread.sleep(1000);
-                System.out.println(future.isDone());
+        Future future = SingleExecutorService.getInstance().getAutoCortrastiveExecutor().submit(() -> {
+            try {
+                Thread.sleep(30000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            System.out.println("this is endddddd");
-            Thread.sleep(13000);
+            System.out.println("this is threaddddd");
+        });
+        for (int i = 0; i < 20; i++) {
+            Thread.sleep(1000);
             System.out.println(future.isDone());
+        }
+        System.out.println("this is endddddd");
+        Thread.sleep(13000);
+        System.out.println(future.isDone());
 
     }
 
     @Test
     public void test() throws InterruptedException, ExecutionException, IOException {
         JSONObject param = new JSONObject();
-        param.put("projectId","7457dea269354dbd93cfc8e19f887b8f");
-        param.put("uid","0884a6d1-fdc2-4f70-9366-e16dd7703f8b");
-        param.put("crfId","EMR");
-        param.put("calculations",new JSONArray().fluentAdd("426F3893DEFC461DB1B285775AED9E2A").fluentAdd("BDAC0A21EA0A4592B4C453725FA62E25"));
-        param.put("patientSns",new JSONArray().fluentAdd("pat_004c6164300dbece57fc1ef7743ac1d1"));
+        param.put("projectId", "7457dea269354dbd93cfc8e19f887b8f");
+        param.put("uid", "0884a6d1-fdc2-4f70-9366-e16dd7703f8b");
+        param.put("crfId", "EMR");
+        param.put("calculations", new JSONArray().fluentAdd("426F3893DEFC461DB1B285775AED9E2A").fluentAdd("BDAC0A21EA0A4592B4C453725FA62E25"));
+        param.put("patientSns", new JSONArray().fluentAdd("pat_004c6164300dbece57fc1ef7743ac1d1"));
         cortrastiveAnalysisService.calculationResultOne(param);
     }
+
     private static ExecutorService executorService1 = Executors.newFixedThreadPool(8);
 
     @Test
@@ -173,7 +174,7 @@ public class LogUtilsTest {
     }
 
     @Test
-    public void RedisSet(){
+    public void RedisSet() {
 //        Long a = redisMapDataService.AddSet("demo_rws","aaa");
 //        Long b = redisMapDataService.AddSet("demo_rws","bbb");
 //        Long c = redisMapDataService.AddSet("demo_rws","ccc");
@@ -183,29 +184,29 @@ public class LogUtilsTest {
         set.add("b");
         set.add("c");
         set.add("d");
-        Long ls  = redisMapDataService.setSets("demo_rws",set);
+        Long ls = redisMapDataService.setSets("demo_rws", set);
         Set<String> stringSet = redisMapDataService.getAllSet("demo_rws");
-        boolean df = redisMapDataService.sismemberSet("demo_rws","aaa");
+        boolean df = redisMapDataService.sismemberSet("demo_rws", "aaa");
         redisMapDataService.delete("demo_rws");
         System.out.println(df);
     }
 
     @Test
-    public void testGroupMapperBigData(){
+    public void testGroupMapperBigData() {
         Long time = System.currentTimeMillis();
         List<List<GroupData>> list = new ArrayList<>();
         List<GroupData> groupDataList = new ArrayList<>();
         for (int i = 0; i < 10000; i++) {
-            if(i != 0 &&  i % 5000 == 0  ){
+            if (i != 0 && i % 5000 == 0) {
                 list.add(groupDataList);
                 groupDataList = new ArrayList<>();
             }
             GroupData groupData = new GroupData();
             groupData.setGroupId("154e846e374d46ea85ed25efd27774df");
-            groupData.setPatientSn("pat_004c6164300dbece57fc1ef7743ac1"+i);
+            groupData.setPatientSn("pat_004c6164300dbece57fc1ef7743ac1" + i);
             groupData.setRemove("0");
             groupData.setPatientSetId("355626762e944c5e8cb9fc74856447ds");
-            groupData.setPatientDocId(i+"");
+            groupData.setPatientDocId(i + "");
             groupDataList.add(groupData);
         }
         list.add(groupDataList);
@@ -218,17 +219,17 @@ public class LogUtilsTest {
 //        for (Future future : futures){
 //            System.out.println("A");
 //        }
-        for (List<GroupData> li : list){
+        for (List<GroupData> li : list) {
             groupDataMapper.batchInsert(li);
         }
-        System.out.println("插入时间: " + (System.currentTimeMillis()-time));
+        System.out.println("插入时间: " + (System.currentTimeMillis() - time));
 
     }
 
-	@Test
-	public void getGroupNamePath(){
-	  String name =   groupService.getGroupNamePath("5901fcda26764a9eb04638672d8931b3","版本");
-	  System.out.println(name);
+    @Test
+    public void getGroupNamePath() {
+        String name = groupService.getGroupNamePath("5901fcda26764a9eb04638672d8931b3", "版本");
+        System.out.println(name);
     }
 
     @Test
@@ -251,7 +252,7 @@ public class LogUtilsTest {
     @Test
     public void readRedisTest() throws IOException {
         String uid = "9cccc006-c89a-4864-a59f-662cbe560eb8";
-        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(uid)));
+        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(uid));
         SearchLog searchLog = new SearchLog();
         searchLog.setCreateId(obj.getString("createId"));
         searchLog.setCreateTime(new Date());

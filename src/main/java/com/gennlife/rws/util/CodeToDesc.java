@@ -13,12 +13,12 @@ import com.gennlife.rws.content.CommonContent;
  */
 public class CodeToDesc {
 
-    public static String activeTypeToDesc(Integer activeType){
-        if(CommonContent.ACTIVE_TYPE_EVENT.intValue() == activeType.intValue()){
+    public static String activeTypeToDesc(Integer activeType) {
+        if (CommonContent.ACTIVE_TYPE_EVENT.intValue() == activeType.intValue()) {
             return CommonContent.ACTIVE_TYPE_EVENT_DESC;
-        }else if(CommonContent.ACTIVE_TYPE_INDEX.intValue() == activeType.intValue()){
+        } else if (CommonContent.ACTIVE_TYPE_INDEX.intValue() == activeType.intValue()) {
             return CommonContent.ACTIVE_TYPE_INDEX_DESC;
-        }else{
+        } else {
             return CommonContent.ACTIVE_TYPE_INOUTN_DESC;
         }
     }

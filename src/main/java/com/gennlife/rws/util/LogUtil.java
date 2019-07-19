@@ -1,7 +1,6 @@
 package com.gennlife.rws.util;
 
 
-import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.dao.OperLogsMapper;
 import com.gennlife.rws.entity.OperLogs;
 import org.springframework.beans.factory.annotation.Autowired;

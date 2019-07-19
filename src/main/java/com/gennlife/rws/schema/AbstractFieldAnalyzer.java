@@ -44,7 +44,7 @@ public abstract class AbstractFieldAnalyzer {
 	/**
 	 * 获取索引中使用的列名
 	 * 
-	 * @param fieldCnName
+	 * @param fieldUIName
 	 *            列中文名,UI搜素所用列名
 	 * 
 	 * @return
@@ -72,7 +72,7 @@ public abstract class AbstractFieldAnalyzer {
 	/**
 	 * 获取指定列的日期格式
 	 * 
-	 * @param fieldUIName
+	 * @param fieldName
 	 *            UI 搜素所用列名
 	 * 
 	 * @return
