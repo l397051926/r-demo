@@ -349,6 +349,20 @@
     (status =3 OR status = 2)
   </select>
 
+  <select id="getRunTimeInputIdsByPatientSetId" resultType="java.lang.String"  parameterType="java.lang.String">
+    select
+    input_id
+    from p_input_task
+    where patient_set_id = #{patientSetId,jdbcType=VARCHAR} and (status = 2 or status = 3)
+  </select>
+
+  <select id="getRunTimeInputIdsByProjectId" resultType="java.lang.String"  parameterType="java.lang.String">
+    select
+    input_id
+    from p_input_task
+    where project_id = #{projectId,jdbcType=VARCHAR} and (status =3 OR status = 2)
+  </select>
+
   <update id="updateInputTaskRemainTime" parameterType="com.gennlife.rws.entity.InputTask" >
     UPDATE p_input_task
     <set>

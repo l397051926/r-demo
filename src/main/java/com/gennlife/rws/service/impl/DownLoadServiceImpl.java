@@ -145,14 +145,14 @@ public class DownLoadServiceImpl implements DownLoadService {
         }
         Integer count = UqlQureyResult.getTotal(value1);//本次导出人数
         if( count > maxMember){
-            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"导出数据超过 "+ maxMember + "人， 无法导出数据") ;
+            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"人数超出限制，无法导入") ;
         }
         //曾经的人数
         Integer allCount = patientsSetMapper.getSumCount(projectId) == null ? 0 :  patientsSetMapper.getSumCount(projectId);
         Integer runTaskSumCount = inputTaskMapper.getRunTaskSumCountByProjcetId(projectId);
         runTaskSumCount = runTaskSumCount == null ? 0 : runTaskSumCount;
         if(allCount +runTaskSumCount + count >maxMember){
-            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"导出数据超过 "+ maxMember + "人， 无法导出数据") ;
+            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"人数超出限制，无法导入") ;
         }
         {
             esJSon.put("size",groupBlock);

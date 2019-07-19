@@ -112,7 +112,7 @@ public class PreLiminaryController {
             //导出任务项目数据
             Integer quereCount = inputTaskMapper.getInputQueueTask(createId);
             if (quereCount > 2) {
-                return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS, "排队已满3个， 无法导出数据");
+                return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"排队任务数较多，请完成后再导入") ;
             }
             String uqlQuery = "";
             object = downLoadService.sysBuildIndex(downLoadService, patientSetId, esJSon, crfId, createId, createName, patientName, projectId, uqlQuery, projectName, crfName);

@@ -55,4 +55,8 @@ public interface InputTaskMapper {
     InputTask getInputtaskAllByInputId(String taskId);
 
     void updateInputTaskOnDecideStatus(InputTask inputTask);
+
+    List<String> getRunTimeInputIdsByPatientSetId(String patientsSetId);
+
+    List<String> getRunTimeInputIdsByProjectId(String projectId);
 }

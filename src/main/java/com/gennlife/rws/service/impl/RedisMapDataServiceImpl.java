@@ -179,7 +179,6 @@ public class RedisMapDataServiceImpl implements RedisMapDataService{
     @Override
     public Long setOutTime(String key,Integer time){
         JedisCluster jedis = null;
-        time =30 * 60;
         Long res = null;
         try {
             jedis = jedisClusters.getJedisCluster();

@@ -160,14 +160,14 @@ public class InputTaskServiceImpl implements InputTaskService {
 
         Integer quereCount = inputTaskMapper.getInputQueueTask(createId);
         if(quereCount >2){
-            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"排队已满3个， 无法导出数据") ;
+            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"排队任务数较多，请完成后再导入") ;
         }
         Integer maxMember = liminaryContent.getMaxMember();
         Integer allCount = patientsSetMapper.getSumCount(projectId) == null ? 0 :  patientsSetMapper.getSumCount(projectId);
         Integer runTaskSumCount = inputTaskMapper.getRunTaskSumCountByProjcetId(projectId);
         runTaskSumCount = runTaskSumCount == null ? 0 : runTaskSumCount;
         if(allCount +runTaskSumCount + count >maxMember){
-            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"导出数据超过 "+ maxMember + "人， 无法导出数据") ;
+            return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"人数超出限制，无法导入") ;
         }
         //更新 input task mapper createTime
         InputTask inputTask = new InputTask();
@@ -226,7 +226,7 @@ public class InputTaskServiceImpl implements InputTaskService {
 
     @Override
     public void cencelInputTasksOnDelPatSet(String patientsSetId, String userId, String projectId, String projectName, String crfId) {
-        List<String> taskIds  = inputTaskMapper.getInputIdsByPatientSetId(patientsSetId);
+        List<String> taskIds  = inputTaskMapper.getRunTimeInputIdsByPatientSetId(patientsSetId);
         cencelInputTasks(userId, projectId, projectName, taskIds,crfId,false);
     }
 
@@ -287,7 +287,7 @@ public class InputTaskServiceImpl implements InputTaskService {
 
     @Override
     public void cencelInputTasksOnDelProject(String userId, String projectId, String projectName, String crfId) {
-        List<String> taskIds  = inputTaskMapper.getInputIdsByProjectId(projectId);
+        List<String> taskIds  = inputTaskMapper.getRunTimeInputIdsByProjectId(projectId);
         cencelInputTasks(userId, projectId, projectName, taskIds,crfId,true);
     }
 
