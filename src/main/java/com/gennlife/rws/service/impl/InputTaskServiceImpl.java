@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.catche.CortrastiveCache;
 import com.gennlife.rws.content.InputStratus;
 import com.gennlife.rws.content.LiminaryContent;
-import com.gennlife.rws.content.RedisContent;
+import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.InputTaskMapper;
 import com.gennlife.rws.dao.PatientsSetMapper;
 import com.gennlife.rws.dao.ProjectMapper;
@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 
 @Service
@@ -69,14 +70,13 @@ public class InputTaskServiceImpl implements InputTaskService {
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"参数不对 缺少 page 或者 size");
         }
         Integer startNum = (page-1)*size;
-        Integer endNum = size;
-        List<InputTask> inputTasks = inputTaskMapper.getInputTasks(uid,projectName,patientSetName,status,startNum,endNum);
+        List<InputTask> inputTasks = inputTaskMapper.getInputTasks(uid,projectName,patientSetName,status,startNum, size);
         for (InputTask inputTask : inputTasks){
-            if(InputStratus.FAILURE == inputTask.getStatus() && inputTask.getRemainTime() != null && inputTask.getRemainTime() !=0){
+            if(Objects.equals(InputStratus.FAILURE, inputTask.getStatus()) && inputTask.getRemainTime() != null && inputTask.getRemainTime() !=0){
                 inputTask.setRemainTime(null);
                 inputTaskMapper.updateInputTaskRemainTime(inputTask);
             }
-            if(InputStratus.UNDER_WAY == inputTask.getStatus() || InputStratus.IN_QUEUE == inputTask.getStatus()){
+            if(Objects.equals(InputStratus.UNDER_WAY, inputTask.getStatus()) || Objects.equals(InputStratus.IN_QUEUE, inputTask.getStatus())){
                 String projectId = inputTask.getProjectId();
                 String patientSetId = inputTask.getPatientSetId();
                 Integer proCount = projectMapper.selectCountByProjectId(projectId);
@@ -94,7 +94,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         Integer total = inputTaskMapper.getInputTasksTotal(uid,projectName,patientSetName,status);
         AjaxObject ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS,AjaxObject.AJAX_MESSAGE_SUCCESS);
         ajaxObject.setData(inputTasks);
-        WebAPIResult webAPIResult = new WebAPIResult(page,size,total);
+        WebAPIResult<Object> webAPIResult = new WebAPIResult<>(page,size,total);
         ajaxObject.setWebAPIResult(webAPIResult);
         return ajaxObject;
     }
@@ -135,12 +135,12 @@ public class InputTaskServiceImpl implements InputTaskService {
             return new AjaxObject(AjaxObject.AJAX_STATUS_TIPS,"无法找到相应患者集，导入失败");
         }
         //导出任务项目数据
-        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));
-        String crfId = null;
-        String projectId = null;
-        JSONObject esJson = null;
-        String createId = null;
-        String crfName = null;
+        JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(UqlConfig.getRwsService(taskId)));
+        String crfId;
+        String projectId;
+        JSONObject esJson;
+        String createId;
+        String crfName;
         Long count = task.getPatientCount();
         if(obj == null ){
             InputTask tasks = inputTaskMapper.getInputtaskAllByInputId(taskId);
@@ -199,7 +199,7 @@ public class InputTaskServiceImpl implements InputTaskService {
         InputTask inputTask = inputTaskMapper.getInputtaskByInputId(taskId);
         String projectName = projectMapper.getProjectNameByProjectId(inputTask.getProjectId());
         String createId = projectMapper.getCreateIdByTaskId(taskId);
-        if(inputTask == null ){
+        if(Objects.isNull(inputTask) ){
             return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE,"任务id不存在");
         }
         Integer sum = patientsSetMapper.getSumCount(inputTask.getProjectId());

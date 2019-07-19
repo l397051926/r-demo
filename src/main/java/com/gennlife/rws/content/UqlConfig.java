@@ -1,16 +1,9 @@
 package com.gennlife.rws.content;
 
-import com.gennlife.rws.entity.ActiveSqlMap;
 import com.gennlife.rws.util.StringUtils;
 import com.gennlife.rws.util.TransPatientSql;
 
-
-import java.io.IOException;
 import java.util.*;
-
-import static com.gennlife.rws.query.BuildIndexCrf.PROJECT_INDEX_NAME_PREFIX;
-import static java.util.stream.Collectors.joining;
-
 
 
 public class UqlConfig {
@@ -21,15 +14,18 @@ public class UqlConfig {
 
     public static final String CORT_INDEX_REDIS_KEY = "rws_cort_index_";
 
-    public static final String CORT_CONT_ENUM_REDIS_KEY ="rws_cont_enum_index_";
+    public static final String CORT_CONT_ENUM_REDIS_KEY = "rws_cont_enum_index_";
 
     public static final String CORT_CONT_ACTIVE_REDIS_KEY = "rws_cont_active_index_";
 
-    public static final Map<String,String> RESULT_ORDER_KEY ;
+    private static final String RWS_SERVICE = "rws_service_";
+
+    public static final Map<String, String> RESULT_ORDER_KEY;
     /**
      * 需要将true  改变是的字段
      */
     public static final List<String> ACTIVE_CONVER_TRUE_OR_FALSE;
+
     static {
         ACTIVE_CONVER_TRUE_OR_FALSE = new ArrayList<>();
         ACTIVE_CONVER_TRUE_OR_FALSE.add("MAIN_DIAGNOSIS_FLAG");
@@ -42,46 +38,26 @@ public class UqlConfig {
     }
 
     /**
-     *
-     * @param crfId
-     * @return  false  is EMR  ; true  is not EMR
+     * @return false  is EMR  ; true  is not EMR
      */
-    public static final Boolean isCrf(String crfId){
-       return StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR");
+    public static Boolean isCrf(String crfId) {
+        return StringUtils.isNotEmpty(crfId) && !crfId.equals("EMR");
     }
 
 
     //整个项目数据sql
-    public static final String getAllProjectSql(String projectId){
+    public static String getAllProjectSql(String projectId) {
         return "select  visit_info.DOC_ID as pSn  from rws_emr_" + projectId + " where   join_field ='patient_info' ";
     }
-    //获取患者集的sql
-    public static final String getPatientSetSql(String projectId,String patientSetQuery){
-        return "select patient_info.DOC_ID as pSn from rws_emr_"+projectId+" where "+patientSetQuery+" group by patient_info.DOC_ID";
-    }
 
-    public static String getEnumAllSql(String projectId, List<ActiveSqlMap> sqlList, String patientSql) throws IOException {
-        List<String> whereList = new LinkedList<>();
-        for (ActiveSqlMap activeSqlMap : sqlList){
-            whereList.add(activeSqlMap.getUncomSqlWhere());
-        }
-        String where = whereList.stream().map( s -> "("+s+")").collect(joining(" OR "));
-        return "select patient_info.DOC_ID as pSn from rws_emr_"+projectId+" where " + where + " group by patient_info.DOC_ID";
-
-    }
-
-    public static String getEnumAllSql(String projectId, List<ActiveSqlMap> sqlList, String patientSql, String crfId) throws IOException {
-        List<String> whereList = new LinkedList<>();
-        for (ActiveSqlMap activeSqlMap : sqlList){
-            whereList.add(activeSqlMap.getUncomSqlWhere());
-        }
-        String where = whereList.stream().map( s -> "("+s+")").collect(joining(" OR "));
-        return "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+PROJECT_INDEX_NAME_PREFIX.get(crfId)+projectId+" where " + where +" "+ IndexContent.getGroupBy(crfId);
-    }
-
-    public static String getEnumSql(Set<String> allsql, String projectId, String crfId,List<String> joinList) {
+    public static String getEnumSql(Set<String> allsql, String projectId, String crfId, List<String> joinList) {
         String where = IndexContent.getPatientInfoPatientSn(crfId) + " " + TransPatientSql.transForExtContain(allsql);
         String joinWhere = IndexContent.getPatientInfoPatientSn(crfId) + " " + TransPatientSql.transForExtContain(joinList);
-       return  "select "+IndexContent.getPatientDocId(crfId)+" as pSn from "+ IndexContent.getIndexName(crfId,projectId)  +" where " + where + " AND " + joinWhere +" "+ IndexContent.getGroupBy(crfId);
+        return "select " + IndexContent.getPatientDocId(crfId) + " as pSn from " + IndexContent.getIndexName(crfId, projectId) + " where " + where + " AND " + joinWhere + " " + IndexContent.getGroupBy(crfId);
     }
+
+    public static String getRwsService(String val) {
+        return RWS_SERVICE.concat(val);
+    }
+
 }

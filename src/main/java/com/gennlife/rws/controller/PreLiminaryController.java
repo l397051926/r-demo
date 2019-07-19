@@ -190,7 +190,7 @@ public class PreLiminaryController {
                     actives.add(object1);
                 }
             }
-            if (StringUtils.isEmpty(projectId) || pageNum == null || pageSize == null || showColumns == null || showColumns.size() <= 0) {
+            if (StringUtils.isEmpty(projectId) || pageNum == null || pageSize == null  || showColumns.size() <= 0) {
                 object.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
                 object.setMessage("提交参数错误");
                 LOG.warn(object.getMessage());
@@ -207,12 +207,12 @@ public class PreLiminaryController {
     }
 
     @ApiOperation(value = "RWS 统计如数据结果", notes = " Created by liuzhen.")
-    @ApiImplicitParams({
+    @ApiImplicitParams(value = {
         @ApiImplicitParam(name = "param", value = "参数{\"projectId\":\"1213212\",\"type\":1,\"activeId\":\"\"}", dataType = "JSONObject", required = true)
     })
     @RequestMapping(value = "/findTotalForImport", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject findTotalForImport(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject object = JSONObject.parseObject(param);
             String projectId = object.getString("projectId").replaceAll("-", "");
@@ -237,7 +237,7 @@ public class PreLiminaryController {
     //获取项目列表
     @RequestMapping(value = "/getProjectByCrfId", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getProjectByCrfId(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             List<Project> projectList = projectService.getProjectListByCrfId(paramObj);

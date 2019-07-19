@@ -1,6 +1,5 @@
 package com.gennlife.rws.aop;
 
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -24,21 +23,21 @@ public class WebTimeLog {
 
     private static final Logger LOG = LoggerFactory.getLogger(WebTimeLog.class);
 
-    ThreadLocal<Long> startTime = new ThreadLocal<>();
+    private ThreadLocal<Long> startTime = new ThreadLocal<>();
 
     @Pointcut("execution(public * com.gennlife.rws.controller..*.*(..)) && !execution(public * com.gennlife.rws.controller.InputTaskController.inputInfo(..))")
     public void webLog(){}
 
 
     @Before("webLog()")
-    public void doBefore(JoinPoint joinPoint) throws Throwable {
+    public void doBefore() {
         startTime.set(System.currentTimeMillis());
     }
 
     @AfterReturning(returning = "ret", pointcut = "webLog()")
-    public void doAfterReturning(Object ret) throws Throwable {
+    public void doAfterReturning(Object ret) {
         // 处理完请求，返回内容
-//        LOG.info("RESPONSE : " + ret);
+        LOG.debug("RESPONSE : " + ret);
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes.getRequest();
         LOG.info( "URL : " + request.getRequestURL().toString() + " SPEND TIME : " + (System.currentTimeMillis() - startTime.get()));

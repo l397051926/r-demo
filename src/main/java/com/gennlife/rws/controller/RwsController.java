@@ -30,9 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -52,8 +50,6 @@ public class RwsController {
     private ModuleConvertService moduleConvertService;
     @Autowired
     private SearchByuqlService searchByuqlService;
-    @Autowired
-    private SearchCrfByuqlService searchCrfByuqlService;
     @Autowired
     private LogUtil logUtil;
     @Autowired
@@ -180,7 +176,7 @@ public class RwsController {
                 }
             }
 
-            List<PatientsIdSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(groupFromId,isVariant == null ? "" : String.valueOf(isVariant),groupToId, obj.getJSONArray("patientSetId"),projectId,crfId);
+            List<PatientsIdSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(groupFromId, isVariant == null ? "" : String.valueOf(isVariant), groupToId, obj.getJSONArray("patientSetId"), projectId, crfId);
             String activeIndexId = obj.getJSONArray("config").getJSONObject(0).getString("activeIndexId");//指标id
             searchByuqlService.computationalInitialization(isSearch, activeIndexId, groupToId, projectId, crfId, activeType, indexTypeDesc, patientsSetId, groupFromId, resultOrderKey);
             //*************  开始计算  *************
@@ -194,15 +190,15 @@ public class RwsController {
                     }
                 }));
             } else {
-                patientSql.forEach( o -> futures.add(SingleExecutorService.getInstance().getSearchUqlExecutor().submit(() -> {
+                patientSql.forEach(o -> futures.add(SingleExecutorService.getInstance().getSearchUqlExecutor().submit(() -> {
                     try {
-                        searchByuqlService.searchByUqlService( crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc,o);
-                    }catch (Exception e) {
+                        searchByuqlService.searchByUqlService(crfId, activeType, obj, resultOrderKey, isSearch, indexTypeDesc, o);
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 })));
             }
-            for (Future future : futures){
+            for (Future future : futures) {
                 future.get();
             }
             //****************** 计算结束 *****************

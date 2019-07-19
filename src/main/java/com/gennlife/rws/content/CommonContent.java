@@ -3,8 +3,6 @@
  */
 package com.gennlife.rws.content;
 
-import org.omg.CORBA.PUBLIC_MEMBER;
-
 /**
  * Created by liuzhen.
  * Date: 2017/10/19
@@ -75,35 +73,47 @@ public class CommonContent {
      * 枚举
      */
     public static final String ACTIVE_INDEX_VALUE_TYPE_4 = "枚举:boolean";
-    /**提交任务成功*/
+    /**
+     * 提交任务成功
+     */
     public static final Integer ACTIVE_TASK_STATUS_0 = 0;
-    /**处理任务成功*/
+    /**
+     * 处理任务成功
+     */
     public static final Integer ACTIVE_TASK_STATUS_1 = 1;
-    /**提交任务失败*/
+    /**
+     * 提交任务失败
+     */
     public static final Integer ACTIVE_TASK_STATUS_2 = 2;
-    /**任务开始计算*/
+    /**
+     * 任务开始计算
+     */
     public static final Integer ACTIVE_TASK_STATUS_CALCING = 3;
-    /**ES 查询串*/
-    public static final String ESSEARCHPARAM="{\n" +
-            "            \"size\":PAGESIZE,\n" +
-            "            \"hospitalID\":\"public\",\n" +
-            "            \"indexName\":\"INDEXNAME\",\n" +
-            "            \"page\":PAGENUM,\n" +
-            "            \"source\":[\"\"],\n" +
-            "            \"query\":\"QUERYPARAM\"\n" +
-            "\n" +
-            "}";
-    public static final String ESSEARCHPARAMEXPORT ="{\n" +
-            "  \"indexName\": \"QUERYINDEXNAME\",\n" +
-            "  \"query\": \"QUERYCONDITION\",    \n" +
-            "  \"size\": PAGESIZE,\n" +
-            "\"source\": [\"patient_info\"]"+
-            "}";
+    /**
+     * ES 查询串
+     */
+    public static final String ESSEARCHPARAM = "{\n" +
+        "            \"size\":PAGESIZE,\n" +
+        "            \"hospitalID\":\"public\",\n" +
+        "            \"indexName\":\"INDEXNAME\",\n" +
+        "            \"page\":PAGENUM,\n" +
+        "            \"source\":[\"\"],\n" +
+        "            \"query\":\"QUERYPARAM\"\n" +
+        "\n" +
+        "}";
+    public static final String ESSEARCHPARAMEXPORT = "{\n" +
+        "  \"indexName\": \"QUERYINDEXNAME\",\n" +
+        "  \"query\": \"QUERYCONDITION\",    \n" +
+        "  \"size\": PAGESIZE,\n" +
+        "\"source\": [\"patient_info\"]" +
+        "}";
 
-    /**修改任务状态的sql*/
+    /**
+     * 修改任务状态的sql
+     */
     public static final String PACKAGINGSERVICE_UPDATE_SQL = "update active_index_task set status=PRODUCESTATUA,message=MESSAGE,complate_time=COMPLATETIME,case_total=CASETOTAL,market_apply=MARKETAPPLY,search_result=SEARCHRESULT,contain_apply=CONTAINAPPLY where active_index_id='INDEXPRECESSID' and  id='PRECESSID'";
 
-    public static final String REMOTE_STATUS="status";
+    public static final String REMOTE_STATUS = "status";
 
-    public static final String SHARDCOLLECTION ="{ shardcollection : \"RWS.TABLES\",key : {patient_sn: \"hashed\"} }";
+    public static final String SHARDCOLLECTION = "{ shardcollection : \"RWS.TABLES\",key : {patient_sn: \"hashed\"} }";
 }

@@ -43,9 +43,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/getPatientGroupList", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getPatientGroupList(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -59,6 +59,7 @@ public class PatientGroupController {
             return ajaxObject;
         } catch (Exception e) {
             ajaxObject = new AjaxObject(CustomerStatusEnum.UNKONW_ERROR.getCode(), e.getMessage());
+            LOG.error("获取分组详情页出现问题：" + e);
             return ajaxObject;
         }
 
@@ -66,9 +67,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/getGroupTypeList", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getGroupTypeList(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -87,9 +88,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/getPatientGroup", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getPatientGroup(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -110,9 +111,9 @@ public class PatientGroupController {
     // 新增按钮保存功能
     @RequestMapping(value = "/savePatientGroup", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject savePatientGroup(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -135,9 +136,9 @@ public class PatientGroupController {
     // 新增组 添加患者 添加按钮 传递患者集ID
     @RequestMapping(value = "/saveGroupAndPatient", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject saveGroupAndPatient(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             object = JSONObject.parseObject(param);
             // 保存分组ID和患者的对应关系 传递患者集ID
             Integer count = patGroupService.saveGroupAndPatient(object);
@@ -164,9 +165,9 @@ public class PatientGroupController {
     // 查看详情 进一步筛选保存功能
     @RequestMapping(value = "/insertGroupDataPatient", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject insertGroupDataPatient(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -186,35 +187,11 @@ public class PatientGroupController {
 
     }
 
-    // 查看详情 进一步导入本组
-    @RequestMapping(value = "/exportGroupDataPatient", method = {RequestMethod.POST, RequestMethod.GET})
-    public AjaxObject exportGroupDataPatient(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
-        try {
-            JSONObject object = null;
-            try {
-                object = JSONObject.parseObject(param);
-            } catch (Exception e) {
-                ajaxObject = new AjaxObject(CustomerStatusEnum.FORMATJSONERROR.getCode(),
-                    CustomerStatusEnum.FORMATJSONERROR.getMessage());
-                return ajaxObject;
-            }
-            // 保存后是否需要将数据返回(取决于id是否需要)
-//			patGroupService.exportGroupDataPatient(object);
-            ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
-            return ajaxObject;
-        } catch (Exception e) {
-            ajaxObject = new AjaxObject(CustomerStatusEnum.UNKONW_ERROR.getCode(), e.getMessage());
-            return ajaxObject;
-        }
-
-    }
-
     @RequestMapping(value = "/updatePatientGroup", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject updatePatientGroup(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -235,9 +212,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/deletePatientGroup", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject deletePatientGroup(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -257,9 +234,9 @@ public class PatientGroupController {
     // 进一步筛选 查询筛选条件 查询患者列表
     @RequestMapping(value = "/getPatientList", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getPatientList(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -277,10 +254,10 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/getActiveIndexList", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getActiveIndexList(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
 
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -289,11 +266,7 @@ public class PatientGroupController {
 
             }
             // 查询筛选条件 待定
-            String uid = object.getString("uid");
             String groupId = object.getString("groupId");
-
-
-            String activeId = null;
             ActiveIndex activeIndex = activeIndexService.findByActiveId(groupId);
             if (activeIndex != null) {
                 ajaxObject = new AjaxObject(AjaxObject.AJAX_STATUS_SUCCESS, AjaxObject.AJAX_MESSAGE_SUCCESS);
@@ -303,7 +276,6 @@ public class PatientGroupController {
                     //字符串格式的["",""]转成数组格式
                     String text = o.toString();
                     String toWebUI = StringUtils.replace(text, "\"[", "[").replace("]\"", "]").replace("\\\"", "\"");
-
                     JSONObject webUi = JSONObject.parseObject(toWebUI);
                     JSONArray webConfig = o.getJSONArray("config");
                     JSONArray newWebConfig = new JSONArray();
@@ -346,9 +318,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/saveActiveIndex", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject saveActiveIndex(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -367,9 +339,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/groupAggregation", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject groupAggregation(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -387,9 +359,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/getGroupParentData", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getGroupParentData(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -407,9 +379,9 @@ public class PatientGroupController {
 
     @RequestMapping(value = "/getGroupIdPath", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getGroupIdPath(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {

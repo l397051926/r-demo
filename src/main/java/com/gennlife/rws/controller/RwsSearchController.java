@@ -43,7 +43,7 @@ public class RwsSearchController {
     @Autowired
     private SearchCrfByuqlService searchCrfByuqlService;
 
-    private AjaxObject getAjaxObject(Integer status, String message) {
+    private AjaxObject getAjaxObject(String message) {
         AjaxObject ajaxObject = new AjaxObject();
         ajaxObject.setStatus(AjaxObject.AJAX_STATUS_FAILURE);
         ajaxObject.setMessage(message);
@@ -64,7 +64,7 @@ public class RwsSearchController {
             if (StringUtils.isEmpty(activeId)) {
                 return new AjaxObject(AjaxObject.AJAX_STATUS_FAILURE, "参数错误");
             }
-            List<String> activeIds = new ArrayList<String>();
+            List<String> activeIds = new ArrayList<>();
             activeIds.add(activeId);
             List<ActiveIndexTask> tasks = taskService.getTaskByActiveIdsAndStatus(activeIds);
             if (tasks == null || tasks.isEmpty()) {
@@ -137,14 +137,14 @@ public class RwsSearchController {
 
         } catch (Exception e) {
             e.printStackTrace();
-             ajaxObject = getAjaxObject(AjaxObject.AJAX_STATUS_FAILURE, e.getMessage());
+             ajaxObject = getAjaxObject(e.getMessage());
         }
         return ajaxObject;
     }
 
     @RequestMapping(value = "/clacResultSearch", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject clacResultSearchByUql(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject object = JSONObject.parseObject(param);
             String activeId = object.getString("activeId");
@@ -171,7 +171,7 @@ public class RwsSearchController {
                 ajaxObject = searchByuqlService.searchCalcResultByUql(activeId, projectId, basicColumns, visitColumns, activeType, pageNum, pageSize,activeResult,groupFromId,patientSetId,groupId,crfId);
             }
         } catch (Exception e) {
-            ajaxObject = getAjaxObject(AjaxObject.AJAX_STATUS_FAILURE, e.getMessage());
+            ajaxObject = getAjaxObject(e.getMessage());
         }
         return ajaxObject;
     }

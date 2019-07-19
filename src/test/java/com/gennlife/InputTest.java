@@ -19,7 +19,7 @@ import java.util.Date;
  **/
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Ignore
+//@Ignore
 public class InputTest {
     @Autowired
     private InputTaskMapper inputTaskMapper;
@@ -38,6 +38,11 @@ public class InputTest {
         InputTask inputTask = new InputTask(taskId,createTime,startTime,finishTime,status,progress,remainTime);
         inputTask.setUpdateTime(new Date());
         inputTaskMapper.updateInputTaskOnDecideStatus(inputTask);
+    }
+    @Test
+    public void getInputTest(){
+        InputTask inputTask = inputTaskMapper.getInputtaskByInputId("xxxx");
+        System.out.println(inputTask);
     }
 
     @Test

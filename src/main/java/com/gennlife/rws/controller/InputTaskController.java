@@ -23,9 +23,9 @@ public class InputTaskController {
     // 获取任务列表接口
     @RequestMapping(value = "/inputInfo", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject inputInfo(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -43,9 +43,9 @@ public class InputTaskController {
     //取消导出接口
     @RequestMapping(value = "/cancel", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject cancel(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -64,9 +64,9 @@ public class InputTaskController {
     //重新导出接口
     @RequestMapping(value = "/restart", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject restart(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -85,9 +85,9 @@ public class InputTaskController {
     //删除接口
     @RequestMapping(value = "/delete", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject delete(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -105,9 +105,9 @@ public class InputTaskController {
     //判定 任务状态
     @RequestMapping(value = "/judgeTaskStatus", method = {RequestMethod.POST, RequestMethod.GET})
     public Object judgeInputTaskStatus(@RequestBody String param) {
-        Object ajaxObject = null;
+        Object ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -125,9 +125,9 @@ public class InputTaskController {
 
     @RequestMapping(value = "/decideInputs", method = {RequestMethod.POST, RequestMethod.GET})
     public Object decideInputs(@RequestBody String param) {
-        Object ajaxObject = null;
+        Object ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {

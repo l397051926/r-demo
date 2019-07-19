@@ -3,26 +3,20 @@ package com.gennlife.rws.rocketmq;
 
 import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.content.InputStratus;
-import com.gennlife.rws.content.RedisContent;
+import com.gennlife.rws.content.UqlConfig;
 import com.gennlife.rws.dao.InputTaskMapper;
 import com.gennlife.rws.dao.PatientsSetMapper;
 import com.gennlife.rws.dao.ProjectMapper;
-import com.gennlife.rws.dao.SearchLogMapper;
 import com.gennlife.rws.entity.InputTask;
-import com.gennlife.rws.entity.PatientsSet;
 import com.gennlife.rws.entity.Project;
-import com.gennlife.rws.entity.SearchLog;
-import com.gennlife.rws.query.BuildIndexRws;
 import com.gennlife.rws.service.*;
-import com.gennlife.rws.util.GzipUtil;
-import com.gennlife.rws.util.HttpUtils;
 import com.gennlife.rws.util.LogUtil;
 import com.gennlife.rws.util.StringUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.*;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
-import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class ProjectConsumer {
@@ -84,18 +71,18 @@ public class ProjectConsumer {
                     for (MessageExt messageExt : list) {
                         //避免重复消费工作
                         String msgId = messageExt.getMsgId();
-                        Boolean msgSismember = redisMapDataService.sismemberSet(rocketMqContent.getMessageId(),msgId);
-                        if(msgSismember){
+                        Boolean msgSismember = redisMapDataService.sismemberSet(rocketMqContent.getMessageId(), msgId);
+                        if (msgSismember) {
                             continue;
-                        }else {
-                            redisMapDataService.AddSet(rocketMqContent.getMessageId(),msgId);
+                        } else {
+                            redisMapDataService.AddSet(rocketMqContent.getMessageId(), msgId);
                         }
                         //TODO 判定messageExt 中的 tag 的类别 然后做不同的业务
                         String tag = messageExt.getTags();
                         String messageBody = new String(messageExt.getBody(), RemotingHelper.DEFAULT_CHARSET);
-                        if(rocketMqContent.getRwsImportTag().equals(tag)){
+                        if (rocketMqContent.getRwsImportTag().equals(tag)) {
                             transforamImportMessage(messageBody);
-                        }else {
+                        } else {
                             LOGGER.info("未知 tag ，无法处理");
                         }
                     }
@@ -113,7 +100,7 @@ public class ProjectConsumer {
         }
     }
 
-    private void transforamImportMessage(String  messageBody) {
+    private void transforamImportMessage(String messageBody) {
         LOGGER.info("处理导出 message ，进行 业务处理 message = " + messageBody);
         try {
             JSONObject importMessage = JSONObject.parseObject(messageBody);
@@ -126,53 +113,53 @@ public class ProjectConsumer {
             Long remainTime = importMessage.getLong("estimate_cost_time");
             String userId = importMessage.getString("user_id");
             InputTask task = inputTaskMapper.getInputtaskByInputId(taskId);
-            if(task == null ){
+            if (task == null) {
                 LOGGER.warn("不是本套系统的项目 不进行数据处理！");
                 return;
             }
             String projectName = projectMapper.getProjectNameByProjectId(task.getProjectId());
             //如果已经是 失败 或者完成的任务 不在进行更新
-            if(task.getStatus() == InputStratus.FAILURE  || task.getStatus() == InputStratus.FINISH  || task.getStatus() == InputStratus.CANCEL){
+            if (task.getStatus() == InputStratus.FAILURE || task.getStatus() == InputStratus.FINISH || task.getStatus() == InputStratus.CANCEL) {
                 return;
             }
-            InputTask inputTask = new InputTask(taskId,createTime,startTime,finishTime,status,progress,remainTime);
+            InputTask inputTask = new InputTask(taskId, createTime, startTime, finishTime, status, progress, remainTime);
             inputTask.setUpdateTime(new Date());
             inputTaskMapper.updateInputTaskOnDecideStatus(inputTask);
 
-            if(InputStratus.FAILURE == status){//失败
+            if (InputStratus.FAILURE == status) {//失败
                 Integer sum = patientsSetMapper.getSumCount(inputTask.getProjectId());
-                if(sum == null || sum == 0){
-                    projectMapper.saveDatasource(inputTask.getProjectId(),"","");
+                if (sum == null || sum == 0) {
+                    projectMapper.saveDatasource(inputTask.getProjectId(), "", "");
                 }
-                producerService.sendProExportField(task.getUid(),taskId,task.getProjectId(),projectName);
+                producerService.sendProExportField(task.getUid(), taskId, task.getProjectId(), projectName);
                 inputTaskService.updateCencelDate(taskId);
             }
-            if(InputStratus.FINISH == status){//成功
-                JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(RedisContent.getRwsService(taskId)));
-                if(obj == null || StringUtils.isEmpty(obj.getString("uqlQuery")) || obj.getLong("curenntCount") == null || StringUtils.isEmpty(obj.getString("patientSetId"))){
+            if (InputStratus.FINISH == status) {//成功
+                JSONObject obj = JSONObject.parseObject(redisMapDataService.getDataBykey(UqlConfig.getRwsService(taskId)));
+                if (obj == null || StringUtils.isEmpty(obj.getString("uqlQuery")) || obj.getLong("curenntCount") == null || StringUtils.isEmpty(obj.getString("patientSetId"))) {
                     Project project = projectMapper.selectByProjectId(task.getProjectId());
                     InputTask taskAll = inputTaskMapper.getInputtaskAllByInputId(task.getInputId());
                     obj = new JSONObject()
-                        .fluentPut("createId",taskAll.getUid())
-                        .fluentPut("patientSetId",taskAll.getPatientSetId())
-                        .fluentPut("searchCondition",taskAll.getEsJson())
-                        .fluentPut("createName",project.getCreatorName())
-                        .fluentPut("patientName",taskAll.getPatientSetName())
-                        .fluentPut("curenntCount",taskAll.getPatientCount())
-                        .fluentPut("projectId",taskAll.getProjectId())
-                        .fluentPut("crfId",taskAll.getCrfId())
-                        .fluentPut("uqlQuery",taskAll.getUqlQuery());
+                        .fluentPut("createId", taskAll.getUid())
+                        .fluentPut("patientSetId", taskAll.getPatientSetId())
+                        .fluentPut("searchCondition", taskAll.getEsJson())
+                        .fluentPut("createName", project.getCreatorName())
+                        .fluentPut("patientName", taskAll.getPatientSetName())
+                        .fluentPut("curenntCount", taskAll.getPatientCount())
+                        .fluentPut("projectId", taskAll.getProjectId())
+                        .fluentPut("crfId", taskAll.getCrfId())
+                        .fluentPut("uqlQuery", taskAll.getUqlQuery());
                 }
-                String content = obj.getString("createName")+"向患者集"+obj.getString("patientName")+"导入"+obj.getLong("curenntCount")+"名患者";
+                String content = obj.getString("createName") + "向患者集" + obj.getString("patientName") + "导入" + obj.getLong("curenntCount") + "名患者";
                 searchLogService.saveSearchLog(obj);
-                logUtil.saveLog(obj.getString("projectId"),content,userId,obj.getString("createName"));
-                projectMapper.updateCrfId(obj.getString("projectId"),obj.getString("crfId"));
+                logUtil.saveLog(obj.getString("projectId"), content, userId, obj.getString("createName"));
+                projectMapper.updateCrfId(obj.getString("projectId"), obj.getString("crfId"));
                 patientSetService.savePatientImport(obj);
                 cortrastiveAnalysisService.deleteActiveIndexVariable(obj.getString("projectId"));
-                producerService.sendProExportSucceed(userId,projectName,obj.getString("projectId"),taskId);
+                producerService.sendProExportSucceed(userId, projectName, obj.getString("projectId"), taskId);
             }
-        } catch (Exception e ){
-            LOGGER.error("处理导出业务发生问题   --- message : " + messageBody );
+        } catch (Exception e) {
+            LOGGER.error("处理导出业务发生问题   --- message : " + messageBody);
         }
 
     }

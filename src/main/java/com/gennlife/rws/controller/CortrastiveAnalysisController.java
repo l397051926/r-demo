@@ -39,7 +39,7 @@ public class CortrastiveAnalysisController {
     //根据项目id 用户id 样本名称 搜索条件
     @RequestMapping(value = "/cort/getPatientGroupCondition", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getPatientGroupCondition(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             LOG.info("获取患者分组信息  参数： " + paramObj);
@@ -47,7 +47,6 @@ public class CortrastiveAnalysisController {
             String projectId = paramObj.getString("projectId");
             String uid = paramObj.getString("uid");
             Integer cortType = paramObj.getInteger("cortType");
-            String createId = paramObj.getString("createId");
             //获取项目分组 信息
             List<Group> groupList = groupService.getGroupByProjectId(groupType, projectId);
             List<GroupCondition> groupConditionList = groupService.getGroupConditionProjectId(uid, projectId, cortType);
@@ -64,11 +63,10 @@ public class CortrastiveAnalysisController {
     //获取研究变量参数
     @RequestMapping(value = "/cort/getResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getResearchVariable(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             LOG.info("获取研究变量参数 " + paramObj);
-            String uid = paramObj.getString("uid");
             String projectId = paramObj.getString("projectId");
             Integer cortType = paramObj.getInteger("cortType");
             String createId = paramObj.getString("createId");
@@ -85,7 +83,7 @@ public class CortrastiveAnalysisController {
     //获取全部研究变量参数
     @RequestMapping(value = "/cort/getAllResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getAllResearchVariable(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             LOG.info("获取全部研究变量参数 " + paramObj);
@@ -106,7 +104,7 @@ public class CortrastiveAnalysisController {
     //存储研究变量参数
     @RequestMapping(value = "/cort/saveResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject saveResearchVariable(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             LOG.info("存储研究变量参数 " + paramObj);
@@ -123,7 +121,7 @@ public class CortrastiveAnalysisController {
     //删除研究变量参数 {"activeIndexId","projectId","createId"}
     @RequestMapping(value = "/cort/deleteResearchVariable", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject deleteResearchVariable(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             LOG.info("删除研究变量参数 " + paramObj);
@@ -140,7 +138,7 @@ public class CortrastiveAnalysisController {
     //获取结果 图形列表
     @RequestMapping(value = "/cort/getContResult", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getContResult(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             String uid = paramObj.getString("uid");
@@ -165,7 +163,7 @@ public class CortrastiveAnalysisController {
     //获取计算结果的患者列表
     @RequestMapping(value = "/cort/getContResultForPatient", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getContResultForPatient(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             String uid = paramObj.getString("uid");
@@ -192,7 +190,7 @@ public class CortrastiveAnalysisController {
     //存储分组条件param:{uname:xx,uid:xx , projectId :xx,groupIds[1,2,3,4,5]}
     @RequestMapping(value = "/cort/saveGroupCondition", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject saveGroupCondition(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             String uid = paramObj.getString("uid");
@@ -214,7 +212,7 @@ public class CortrastiveAnalysisController {
 
     @RequestMapping(value = "/export/calculationResult", method = {RequestMethod.POST, RequestMethod.GET})
     public Object calculationResult(@RequestBody String param) {
-        Object ajaxObject = null;
+        Object ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             ajaxObject = cortrastiveAnalysisService.calculationResult(paramObj);
@@ -227,7 +225,7 @@ public class CortrastiveAnalysisController {
 
     @RequestMapping(value = "/export/calculationResultOne", method = {RequestMethod.POST, RequestMethod.GET})
     public Object calculationResultOne(@RequestBody String param) {
-        Object ajaxObject = null;
+        Object ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             ajaxObject = cortrastiveAnalysisService.calculationResultOne(paramObj);
@@ -240,7 +238,7 @@ public class CortrastiveAnalysisController {
 
     @RequestMapping(value = "/export/snapshootActiveResult", method = {RequestMethod.POST, RequestMethod.GET})
     public Object snapshootActiveResult(@RequestBody String param) {
-        Object ajaxObject = null;
+        Object ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             ajaxObject = cortrastiveAnalysisService.snapshootActiveResult(paramObj);

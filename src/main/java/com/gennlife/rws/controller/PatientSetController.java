@@ -33,9 +33,9 @@ public class PatientSetController {
 
     @RequestMapping(value = "/getPatientSetList", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getPatientSetList(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -58,9 +58,9 @@ public class PatientSetController {
         // 根据患者集ID获取患者集基础数据
         // 根据患者集ID查询患者集搜索条件=搜索条件记录表=SearchLog
         // 根据患者集ID查询患者数据列表
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -110,9 +110,9 @@ public class PatientSetController {
     @RequestMapping(value = "/getSearchCondition", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getSearchCondition(@RequestBody String param) {
         // 根据患者集ID查询患者集搜索条件=搜索条件记录表=SearchLog
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -134,9 +134,9 @@ public class PatientSetController {
     public AjaxObject getContrasAnalyList(@RequestBody String param) {
         // 根据患者用户ID和项目ID研究变量创建情况
         // 是否需要返回 分组查询结果
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -156,7 +156,7 @@ public class PatientSetController {
 
     @RequestMapping(value = "/savePatientSet", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject savePatientSet(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject obj = JSONObject.parseObject(param);
             PatientsSet patientsSet = patientSetService.savePatientSet(obj);
@@ -172,9 +172,9 @@ public class PatientSetController {
 
     @RequestMapping(value = "/updatePatientSet", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject updatePatientSet(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -194,10 +194,10 @@ public class PatientSetController {
 
     @RequestMapping(value = "/deletePatientSet", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject deletePatientSet(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         String projectId = null;
         try {
-            JSONObject object = null;
+            JSONObject object;
             try {
                 object = JSONObject.parseObject(param);
             } catch (Exception e) {
@@ -221,7 +221,7 @@ public class PatientSetController {
     // 根据项目id 获取 患者集列表
     @RequestMapping(value = "/getPatientSetByProjectId", method = {RequestMethod.POST, RequestMethod.GET})
     public AjaxObject getPatientSetByProjectId(@RequestBody String param) {
-        AjaxObject ajaxObject = null;
+        AjaxObject ajaxObject;
         try {
             JSONObject paramObj = JSONObject.parseObject(param);
             List<PatientsSet> patientsSetList = patientSetService.getPatientSetByProjectId(paramObj);
