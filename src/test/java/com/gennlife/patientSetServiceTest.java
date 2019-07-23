@@ -2,10 +2,9 @@ package com.gennlife;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.gennlife.rws.dao.PatientsIdSqlMapMapper;
+import com.gennlife.rws.dao.BatchingSqlMapMapper;
 import com.gennlife.rws.service.PatientSetService;
 import com.gennlife.rws.service.SearchByuqlService;
-import com.gennlife.rws.util.AjaxObject;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,7 +22,7 @@ public class patientSetServiceTest {
     @Autowired
     private PatientSetService patientSetService;
     @Autowired
-    private PatientsIdSqlMapMapper patientsIdSqlMapMapper;
+    private BatchingSqlMapMapper batchingSqlMapMapper;
     @Autowired
     private SearchByuqlService searchByuqlService;
 
@@ -52,7 +50,7 @@ public class patientSetServiceTest {
     @Test
     public void updateExport() {
         String patientSetId = "aaaa";
-        patientsIdSqlMapMapper.updateExportByPatientSetId(patientSetId, 1);
+        batchingSqlMapMapper.updateExportByPatientSetId(patientSetId, 1);
     }
 
     @Test

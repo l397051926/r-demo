@@ -14,7 +14,7 @@ import com.gennlife.rws.dao.ActiveSqlMapMapper;
 import com.gennlife.rws.dao.ContrastiveAnalysisActiveMapper;
 import com.gennlife.rws.entity.ActiveIndex;
 import com.gennlife.rws.entity.ActiveIndexConfigCondition;
-import com.gennlife.rws.entity.PatientsIdSqlMap;
+import com.gennlife.rws.entity.BatchingSqlMap;
 import com.gennlife.rws.service.*;
 import com.gennlife.rws.util.AjaxObject;
 import com.gennlife.rws.util.LogUtil;
@@ -176,7 +176,7 @@ public class RwsController {
                 }
             }
 
-            List<PatientsIdSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(groupFromId, isVariant == null ? "" : String.valueOf(isVariant), groupToId, obj.getJSONArray("patientSetId"), projectId, crfId);
+            List<BatchingSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(groupFromId, isVariant == null ? "" : String.valueOf(isVariant), groupToId, obj.getJSONArray("patientSetId"), projectId, crfId);
             String activeIndexId = obj.getJSONArray("config").getJSONObject(0).getString("activeIndexId");//指标id
             searchByuqlService.computationalInitialization(isSearch, activeIndexId, groupToId, projectId, crfId, activeType, indexTypeDesc, patientsSetId, groupFromId, resultOrderKey);
             //*************  开始计算  *************

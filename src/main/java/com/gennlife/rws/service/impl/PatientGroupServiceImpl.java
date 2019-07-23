@@ -68,7 +68,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
     @Autowired
     private PatientSetService patientSetService;
     @Autowired
-    private PatientsIdSqlMapMapper patientsIdSqlMapMapper;
+    private BatchingSqlMapMapper batchingSqlMapMapper;
 
     private static final int exportMax = 2000;
 
@@ -703,7 +703,7 @@ public class PatientGroupServiceImpl implements PatientGroupService {
                 if (listGroupData != null && listGroupData.size() > 0) {
                     groupDataMapper.deleteByGroupId(groupId);
                 }
-                patientsIdSqlMapMapper.deleteByDataSourceId(groupId);
+                batchingSqlMapMapper.deleteByDataSourceId(groupId);
             }
             String content = createName + "删除了组： " + Objects.requireNonNull(group).getGroupName();
             logUtil.saveLog(group.getProjectId(), content, createId, createName);

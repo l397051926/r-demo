@@ -446,6 +446,11 @@
    			 where active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR}
 	</delete>
 
+	<delete id="deleteByActiveIndexIdAndSqlMap" parameterType="java.lang.Object" >
+		    delete from p_active_sql_map
+   			where active_index_id = #{activeId,jdbcType=VARCHAR} and group_id = #{groupId,jdbcType=VARCHAR} and pat_sql_group= #{patSqlGroup,jdbcType=INTEGER}
+	</delete>
+
 	<select id="getCountByActiveAndsqlMd5" resultType="java.lang.Integer" parameterType="java.lang.String">
 		select count(*)
 		FROM p_active_sql_map

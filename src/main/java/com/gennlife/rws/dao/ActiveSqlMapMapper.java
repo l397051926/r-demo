@@ -51,4 +51,6 @@ public interface ActiveSqlMapMapper {
     List<ActiveSqlMap> getActiveSqlBySqlGroup(@Param("activeId") String activeId , @Param("groupId")String groupId, @Param("patSqlGroup") Integer patSqlGroup);
 
     List<ActiveSqlMap> getActiveSqlMapByProjectIdAndSqlGroup(@Param("projectId") String projectId, @Param("activeId") String activeId,@Param("groupId") String groupId, @Param("patSqlGroup") Integer patSqlGroup);
+
+    void deleteByActiveIndexIdAndSqlMap(@Param("activeId") String activeId , @Param("groupId")String groupId, @Param("patSqlGroup") Integer patSqlGroup);
 }

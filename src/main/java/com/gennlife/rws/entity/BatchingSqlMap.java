@@ -5,7 +5,7 @@ package com.gennlife.rws.entity;
  * @create 2019 04 18:37
  * @desc
  **/
-public class PatientsIdSqlMap {
+public class BatchingSqlMap {
     private Integer id;
     private String dataSourceId;
     private Integer patGroupId;

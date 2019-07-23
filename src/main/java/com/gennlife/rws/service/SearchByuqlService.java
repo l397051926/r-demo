@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gennlife.rws.entity.ActiveSqlMap;
 import com.gennlife.rws.entity.GroupData;
 import com.gennlife.rws.entity.Patient;
-import com.gennlife.rws.entity.PatientsIdSqlMap;
+import com.gennlife.rws.entity.BatchingSqlMap;
 import com.gennlife.rws.util.AjaxObject;
 
 import java.io.IOException;
@@ -14,15 +14,15 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public interface SearchByuqlService {
-    String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
+    String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, BatchingSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     String searchDocIdBySql(String newSql, String projectId, String crfId);
 
-    String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
+    String searchByActive(JSONObject obj, String resultOrderKey, Integer isSearch, BatchingSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-    String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
+    String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, BatchingSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-    String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
+    String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, BatchingSqlMap patientSql, String crfId) throws ExecutionException, InterruptedException, IOException;
 
     AjaxObject searchClacIndexResultByUql(String activeId, String projectId, Integer pageSize, Integer pageNum, JSONArray basicColumns,
                                           String groupFromId, JSONArray patientSetId, String groupId, String isVariant, String crfId) throws IOException, ExecutionException, InterruptedException;
@@ -58,13 +58,13 @@ public interface SearchByuqlService {
 
     void referenceCalculate(String activeId, String projectId, Integer activeType, String resultOrderKey, JSONArray patientsSetId, String groupToId, String groupFromId, String crfId) throws ExecutionException, InterruptedException, IOException;
 
-    void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, PatientsIdSqlMap patientSql) throws ExecutionException, InterruptedException, IOException;
+    void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, BatchingSqlMap patientSql) throws ExecutionException, InterruptedException, IOException;
 
     AjaxObject getPatientSnsByAll(String patientsSetId, String projectId, JSONArray showColumns, JSONArray actives, Integer pageNum, Integer pageSize, Integer type, String crfId);
 
     List<String> getInitialSQLList(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 
-    List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
+    List<BatchingSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId);
 
     /**
      * 计算初始化

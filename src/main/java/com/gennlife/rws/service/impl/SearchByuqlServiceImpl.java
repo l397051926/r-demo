@@ -71,9 +71,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     private ProjectMapper projectMapper;
 
     @Override
-    public String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
+    public String SearchByIndex(JSONObject object, String resultOrderKey, Integer isSearch, BatchingSqlMap batchingSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
         UqlClass uqlClass = null;
-        String patientSql = TransPatientSql.getAllPatientSql(patientsIdSqlMap.getPatientSnIds(), crfId);
+        String patientSql = TransPatientSql.getAllPatientSql(batchingSqlMap.getPatientSnIds(), crfId);
         JSONArray patientSetId = object.getJSONArray("patientSetId");
         String name = object.getString("name");
         String isVariant = object.getString("isVariant");
@@ -127,7 +127,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         uqlClass.setVisitsGroup(visits);
         //处理 条件
-        transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId, groupToId, projectId, patientSetId, patientSql,crfId, patientsIdSqlMap.getId());
+        transforEnumCondition(contitionObj, uqlClass, where, R_activeIndexId, groupToId, projectId, patientSetId, patientSql,crfId, batchingSqlMap.getId());
         UqlClass sqlresult = null;
         String sqlMd5 = "";
         /*------------------------------------------------------------------------------*/
@@ -191,7 +191,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId) ? UqlConfig.CORT_INDEX_ID : groupToId);
         activeSqlMap.setSqlHaving(uqlClass.getHaving());
-        activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
+        activeSqlMap.setPatSqlGroup(batchingSqlMap.getId());
         activeSqlMap.setResultDocId(resultDocId);
         if (StringUtils.isEmpty(groupToId) || UqlConfig.CORT_INDEX_ID.equals(groupToId)) {
             SingleExecutorService.getInstance().getFlushCountGroupExecutor().submit(() -> {
@@ -225,9 +225,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public String searchByActive(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
+    public String searchByActive(JSONObject object, String resultOrderKey, Integer isSearch, BatchingSqlMap batchingSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
         UqlClass uqlClass = null;
-        String patientSql = TransPatientSql.getAllPatientSql(patientsIdSqlMap.getPatientSnIds(), crfId);
+        String patientSql = TransPatientSql.getAllPatientSql(batchingSqlMap.getPatientSnIds(), crfId);
         String activeType = object.getString("activeType");
         JSONArray patientSetId = object.getJSONArray("patientSetId");
         String isVariant = object.getString("isVariant");
@@ -284,7 +284,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         uqlClass.setActiveSelect(uqlClass.getSelect() + hasCount);
 
         JSONObject contitionObj = contitions.getJSONObject(0);
-        transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, groupToId, projectId, patientSetId, patientSql, crfId, patientsIdSqlMap.getId());
+        transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, groupToId, projectId, patientSetId, patientSql, crfId, batchingSqlMap.getId());
 
         UqlClass sqlresult = null;
         String sqlMd5 = "";
@@ -382,7 +382,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId) ? UqlConfig.CORT_INDEX_ID : groupToId);
         activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
         activeSqlMap.setSqlHaving(uqlClass.getHaving());
-        activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
+        activeSqlMap.setPatSqlGroup(batchingSqlMap.getId());
         activeSqlMap.setResultDocId(resultDocId);
         Long mysqlStartTime = System.currentTimeMillis();
         activeSqlMapMapper.insert(activeSqlMap);
@@ -943,7 +943,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     private JSONArray getAllPatientSetId(String groupFromId, JSONArray patientSetId, String groupId) {
-        if(StringUtils.isNotEmpty(groupFromId)){
+        if(!Objects.equals(groupFromId,"''") && StringUtils.isNotEmpty(groupFromId)){
             return new JSONArray().fluentAdd(groupFromId);
         }
         if (StringUtils.isEmpty(groupFromId) && (patientSetId == null || patientSetId.size() == 0) && StringUtils.isNotEmpty(groupId)) {
@@ -967,7 +967,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             String id = patientSetId.getString(i);
             groupService.exportToGroupById(data, groupId, groupName, id, projectId, createId, createName, true, autoExport);
         }
-        String sql = getPatientSqlForIds(patientSetId, projectId, allResutList.stream().collect(toSet()), crfId);
+        String sql = getPatientSqlForIds(patientSetId, projectId, new HashSet<>(allResutList), crfId);
         String removeQuery = "select " + IndexContent.getPatientDocId(crfId) + " as pSn from " + IndexContent.getIndexName(crfId, projectId) + " where " + sql + " " + IndexContent.getGroupBy(crfId);
         String re = httpUtils.querySearch(projectId, removeQuery, pageNum, Integer.MAX_VALUE - 1, "", source, false);
         JSONArray dataRe = UqlQureyResult.getResultData(re, activeId, refActiveIds, false);
@@ -1175,9 +1175,9 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
+    public String SearchByEnume(JSONObject obj, String resultOrderKey, Integer isSearch, BatchingSqlMap batchingSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
         UqlClass uqlClass = null;
-        String patientSql = TransPatientSql.getAllPatientSql(patientsIdSqlMap.getPatientSnIds(), crfId);
+        String patientSql = TransPatientSql.getAllPatientSql(batchingSqlMap.getPatientSnIds(), crfId);
         String projectId = obj.getString("projectId");
         String isVariant = obj.getString("isVariant");
         JSONArray configs = obj.getJSONArray("config");
@@ -1194,7 +1194,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String T_activeIndexId = "t" + activeIndexId;
 
         int size = configs == null ? 0 : configs.size();
-
+        activeSqlMapMapper.deleteByActiveIndexIdAndSqlMap(R_activeIndexId,groupToId,batchingSqlMap.getId());
         List<ActiveSqlMap> activeSqlMaps = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             uqlClass = new EnumeUqlClass(projectId);
@@ -1217,7 +1217,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             UqlWhere where = new UqlWhere();
             JSONObject contitionObj = contitions.getJSONObject(0);
 
-            transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, groupToId, projectId, patientSetId, patientSql, crfId, patientsIdSqlMap.getId());
+            transforEnumCondition(contitionObj, uqlClass, where, T_activeIndexId, groupToId, projectId, patientSetId, patientSql, crfId, batchingSqlMap.getId());
             uqlClass.setWhereIsEmpty(where, null, isVariant, patientSql, null);
 
             String hasCount = " ,count(visit_info.DOC_ID) as jocount ";
@@ -1239,7 +1239,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             activeSqlMap.setUncomSqlWhere(sqlresult.getWhere());
             activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId) ? UqlConfig.CORT_INDEX_ID : groupToId);
             activeSqlMaps.add(activeSqlMap);
-            activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
+            activeSqlMap.setPatSqlGroup(batchingSqlMap.getId());
             Long mysqlStartTime = System.currentTimeMillis();
             activeSqlMapMapper.insert(activeSqlMap);
             LOG.info("数据库用时 :  " + (System.currentTimeMillis() - mysqlStartTime));
@@ -1615,8 +1615,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, PatientsIdSqlMap patientsIdSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
-        String patientSql = TransPatientSql.getAllPatientSql(patientsIdSqlMap.getPatientSnIds(), crfId);
+    public String SearchByExclude(JSONObject object, String resultOrderKey, Integer isSearch, BatchingSqlMap batchingSqlMap, String crfId) throws ExecutionException, InterruptedException, IOException {
+        String patientSql = TransPatientSql.getAllPatientSql(batchingSqlMap.getPatientSnIds(), crfId);
         String projectId = object.getString("projectId");
         JSONArray patientSetId = object.getJSONArray("patientSetId");
         String isVariant = object.getString("isVariant");
@@ -1627,7 +1627,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
 
         UqlWhere where = new UqlWhere();
         UqlClass uqlClass = new ExcludeUqlClass(projectId);
-        transforConditionForConfig(config, uqlClass, where, groupToId, projectId, patientSetId, crfId, patientsIdSqlMap.getId());
+        transforConditionForConfig(config, uqlClass, where, groupToId, projectId, patientSetId, crfId, batchingSqlMap.getId());
         uqlClass.setInitialPatients(isVariant, patientSql);
         activeIndexId = isSearch == CommonContent.ACTIVE_TYPE_TEMP ? activeIndexId.concat("_tmp") : activeIndexId;
         String resultDocId = searchDocIdBySql(uqlClass.getSql(), projectId, crfId);
@@ -1637,7 +1637,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         activeSqlMap.setUncomSqlWhere(uqlClass.getWhere());
         activeSqlMap.setGroupId(StringUtils.isEmpty(groupToId) ? UqlConfig.CORT_INDEX_ID : groupToId);
         activeSqlMap.setResultDocId(resultDocId);
-        activeSqlMap.setPatSqlGroup(patientsIdSqlMap.getId());
+        activeSqlMap.setPatSqlGroup(batchingSqlMap.getId());
         activeSqlMapMapper.insert(activeSqlMap);
         return uqlClass.getSql();
     }
@@ -1664,7 +1664,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return result;
     }
 
-    private List<PatientsIdSqlMap> getPatientSqlForPatientSet(JSONArray patientSetId) {
+    private List<BatchingSqlMap> getPatientSqlForPatientSet(JSONArray patientSetId) {
         List<String> patientSets = patientSetId.toJavaList(String.class);
         return patientSetService.getPatientSetByListForInitialSql(patientSets);
     }
@@ -2208,7 +2208,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         String indexTypeDesc = configss.getJSONObject(0).getString("indexTypeDesc");
         int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP;
         activeType = active.getActiveType();
-        List<PatientsIdSqlMap> patientSql = getInitialSQLTmp(groupFromId, isVariant, groupToId, patientsSetId, projectId, crfId);
+        List<BatchingSqlMap> patientSql = getInitialSQLTmp(groupFromId, isVariant, groupToId, patientsSetId, projectId, crfId);
         computationalInitialization(isSearch, activeId, groupToId, projectId, crfId, activeType, indexTypeDesc, patientsSetId, groupFromId, resultOrderKey);
         Integer finalActiveType = activeType;
         patientSql.forEach(o -> {
@@ -2222,7 +2222,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, PatientsIdSqlMap patientSql) throws ExecutionException, InterruptedException, IOException {
+    public void searchByUqlService(String crfId, Integer activeType, JSONObject obj, String resultOrderKey, Integer isSearch, String indexTypeDesc, BatchingSqlMap patientSql) throws ExecutionException, InterruptedException, IOException {
         if (UqlConfig.isCrf(crfId)) {
             if (3 == activeType) {//那排
                 searchCrfByuqlService.SearchByExclude(obj, resultOrderKey, isSearch, patientSql, crfId);
@@ -2291,8 +2291,8 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
     }
 
     @Override
-    public List<PatientsIdSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId) {
-        List<PatientsIdSqlMap> patientSql = null;
+    public List<BatchingSqlMap> getInitialSQLTmp(String groupFromId, String isVariant, String groupToId, JSONArray patientSetId, String projectId, String crfId) {
+        List<BatchingSqlMap> patientSql = null;
         patientSetId = getAllPatientSetId(groupFromId, patientSetId, groupToId);
         if (!"1".equals(isVariant)) {
             patientSql = getPatientSqlForPatientSet(patientSetId);
@@ -2353,7 +2353,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
             String indexTypeDesc = configss.getJSONObject(0).getString("indexTypeDesc");
             int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP;
             Integer activeType = active.getActiveType();
-            List<PatientsIdSqlMap> patientSql = getInitialSQLTmp(null, isVariant, null, null, projectId, project.getCrfId());
+            List<BatchingSqlMap> patientSql = getInitialSQLTmp(null, isVariant, null, null, projectId, project.getCrfId());
             computationalInitialization(isSearch, activeId, null, projectId, project.getCrfId(), activeType, indexTypeDesc, null, null, UqlConfig.RESULT_ORDER_KEY.get(project.getCrfId()));
             patientSql.forEach(o -> {
                 try {
@@ -2443,7 +2443,7 @@ public class SearchByuqlServiceImpl implements SearchByuqlService {
         return andGroupCondition.toString();
     }
 
-    public List<PatientsIdSqlMap> getPatientsqlForVariant(String projectId) {
+    public List<BatchingSqlMap> getPatientsqlForVariant(String projectId) {
         List<String> groupIds = groupMapper.getGroupIdsByProjectId(projectId);
         return patientSetService.getPatientSetByListForInitialSql(groupIds);
     }

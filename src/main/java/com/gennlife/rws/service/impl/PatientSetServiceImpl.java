@@ -65,7 +65,7 @@ public class PatientSetServiceImpl implements PatientSetService {
     @Autowired
     private InputTaskService inputTaskService;
     @Autowired
-    private PatientsIdSqlMapMapper patientsIdSqlMapMapper;
+    private BatchingSqlMapMapper batchingSqlMapMapper;
     @Autowired
     private LiminaryContent liminaryContent;
     @Autowired
@@ -179,7 +179,7 @@ public class PatientSetServiceImpl implements PatientSetService {
                 }
             }
             patientsSetMapper.updateById(patSet);
-            patientsIdSqlMapMapper.deleteByDataSourceId(patientsSetId);
+            batchingSqlMapMapper.deleteByDataSourceId(patientsSetId);
             String content = createName + "删除了患者集： " + patSet.getPatientsSetName();
             logUtil.saveLog(patSet.getProjectId(), content, createId, createName);
 
@@ -222,46 +222,46 @@ public class PatientSetServiceImpl implements PatientSetService {
 
     @Override
     public Long getPatientSetLocalCountByExclude(String patientSetId, Integer export) {
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, export);
+        List<BatchingSqlMap> pids = batchingSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, export);
         Integer count = pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
         return Long.valueOf(count);
     }
 
     @Override
     public Long getPatientSetLocalCount(String patientSetId) {
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceId(patientSetId);
+        List<BatchingSqlMap> pids = batchingSqlMapMapper.getPatientsSqlMapByDataSourceId(patientSetId);
         Integer count = pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
         return Long.valueOf(count);
     }
 
     @Override
     public Integer getPatientSetLocalCountByListForPatientSets(List<String> patientSetIds) {
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
+        List<BatchingSqlMap> pids = batchingSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
         return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet()).size();
     }
 
     @Override
     public String getPatientSetLocalSql(String patientSetId) {
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, 1);
+        List<BatchingSqlMap> pids = batchingSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, 1);
         return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(joining(SeparatorContent.VERTIVAL_BAR));
     }
 
     @Override
     public List<String> getPatientSetLocalSqlByList(String patientSetId) {
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, 1);
+        List<BatchingSqlMap> pids = batchingSqlMapMapper.getPatientsSqlMapByDataSourceIdAndExclude(patientSetId, 1);
         return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
     }
 
     @Override
     public Set<String> getPatientSetLocalSqlListById(Integer id) {
-        PatientsIdSqlMap pid = patientsIdSqlMapMapper.getPatientsSqlMapByIdAndExclude(id, 1);
+        BatchingSqlMap pid = batchingSqlMapMapper.getPatientsSqlMapByIdAndExclude(id, 1);
         return Arrays.stream(pid.getPatientSnIds() == null ? new String[0] : pid.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).collect(toSet());
     }
 
     @Override
     public void saveGroupDataByGroupBlock(String groupId, List<String> datas, int num, String projectId, boolean isSearch) {
         if(isSearch){
-            patientsIdSqlMapMapper.deleteByDataSourceId(groupId);
+            batchingSqlMapMapper.deleteByDataSourceId(groupId);
         }
         Set<String> oldDatas = getPatientSetLocalSqlByProjectId(projectId);
         Integer groupDataBlock = liminaryContent.getGroupDataBlock();
@@ -280,7 +280,7 @@ public class PatientSetServiceImpl implements PatientSetService {
 
     @Override
     public List<String> getPatientSetLocalSqlByListForPatientSets(List<String> patientSetIds) {
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
+        List<BatchingSqlMap> pids = batchingSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
         return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).distinct().collect(toList());
     }
 
@@ -290,28 +290,28 @@ public class PatientSetServiceImpl implements PatientSetService {
     }
 
     public Set<String> getPatientSetLocalSqlBySetForPatientSets(List<String> patientSetIds) {
-        List<PatientsIdSqlMap> pids = patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
+        List<BatchingSqlMap> pids = batchingSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
         return pids.stream().map(o -> o.getPatientSnIds() == null ? new String[0] : o.getPatientSnIds().split(SeparatorContent.getRegexVartivalBar())).flatMap(Arrays::stream).collect(toSet());
     }
 
     @Override
-    public List<PatientsIdSqlMap> getPatientSetByListForInitialSql(List<String> patientSetIds) {
-        return patientsIdSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
+    public List<BatchingSqlMap> getPatientSetByListForInitialSql(List<String> patientSetIds) {
+        return batchingSqlMapMapper.getPatientsSqlMapBypatientSetIdsAndExclude(patientSetIds, 1);
     }
 
     private void updatePatientSqlMap(JSONObject obj) {
         String patientSetId = obj.getString("patientSetId");
-        patientsIdSqlMapMapper.updateExportByPatientSetId(patientSetId, 1);
+        batchingSqlMapMapper.updateExportByPatientSetId(patientSetId, 1);
     }
 
     @Override
     public void savePatientSetGroupBlock(String dataSourceId, Set<String> allPats, Integer num) {
         String query = String.join(SeparatorContent.VERTIVAL_BAR, allPats);
-        PatientsIdSqlMap patientsIdSqlMap = new PatientsIdSqlMap();
-        patientsIdSqlMap.setDataSourceId(dataSourceId);
-        patientsIdSqlMap.setPatientSnIds(query);
-        patientsIdSqlMap.setExport(num);
-        patientsIdSqlMapMapper.insertForGroupid(patientsIdSqlMap);
+        BatchingSqlMap batchingSqlMap = new BatchingSqlMap();
+        batchingSqlMap.setDataSourceId(dataSourceId);
+        batchingSqlMap.setPatientSnIds(query);
+        batchingSqlMap.setExport(num);
+        batchingSqlMapMapper.insertForGroupid(batchingSqlMap);
     }
 
     @Override
@@ -352,7 +352,7 @@ public class PatientSetServiceImpl implements PatientSetService {
                 obj.put("groupFromId", null);
                 Integer activeType = active.getActiveType();
                 int isSearch = CommonContent.ACTIVE_TYPE_NOTEMP;
-                List<PatientsIdSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(null, isVariant, groupId, JSONArray.parseArray(JSON.toJSONString(patientSetIds)), projectId, crfId);
+                List<BatchingSqlMap> patientSql = searchByuqlService.getInitialSQLTmp(null, isVariant, groupId, JSONArray.parseArray(JSON.toJSONString(patientSetIds)), projectId, crfId);
                 searchByuqlService.computationalInitialization(isSearch, active.getId(), groupId, projectId, crfId, activeType, null, JSONArray.parseArray(JSON.toJSONString(patientSetIds)), null, null);
 
                 Integer finalActiveType = activeType;
